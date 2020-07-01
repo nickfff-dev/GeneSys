@@ -37,35 +37,8 @@ function AddForm(props) {
         setCloseAll(true);
     };
 
-    // const validatePage = async () => {
-    //     var check = () => triggerValidation("firstName");
-    //     console.log(check);
-    //     return;
-    // };
-
-    // onClick={async () => {
-    //     console.log(
-    //       "firstName",
-    //       await triggerValidation("firstName")
-    //     );
-    //   }}
-
-    // function validatePage() {
-    //     triggerValidation([
-    //         "firstName",
-    //         "lastName",
-    //         "DOB",
-    //         "POB",
-    //         "gender",
-    //         "streetAdd",
-    //         "brgyAdd",
-    //         "cityAdd",
-    //         "region",
-    //     ]);
-    //     return test;
-    // }
-
     const validatePage = () => {
+        console.log(errors)
         if (page == 1) {
             const check = triggerValidation([
                 "firstName",
@@ -84,6 +57,12 @@ function AddForm(props) {
                 "mothersName",
                 "mContactNumber",
                 "mAddress",
+                "fatthersName",
+                "fContactNumber",
+                "fAddress",
+                "altContactName",
+                "altContactNumber",
+                "altAddress",
             ]);
             return check;
         }
@@ -117,7 +96,6 @@ function AddForm(props) {
         (today.getMonth() + 1) +
         "-" +
         today.getDate();
-    console.log(maxDate);
 
     const dispatch = useDispatch();
 
@@ -448,8 +426,7 @@ function AddForm(props) {
                                         type="date"
                                         name="DOB"
                                         min="1900-01-01"
-                                        // max={maxDate.toLocaleString}
-                                        max={"2020-06-27"}
+                                        max={maxDate}                                       
                                         ref={register({
                                             required: "This input is required.",
                                             min: {
@@ -478,11 +455,6 @@ function AddForm(props) {
                                             )
                                         }
                                     </ErrorMessage>
-                                    {/* {errors.DOB && (
-                                        <p className="text-danger">
-                                            Date of birth is required
-                                        </p>
-                                    )} */}
                                 </div>
                                 <div className="form-group col-md-4">
                                     <label>Place of Birth</label>
@@ -541,13 +513,30 @@ function AddForm(props) {
                                         className="form-control"
                                         type="text"
                                         name="streetAdd"
-                                        ref={register({ required: true })}
+                                        ref={register({
+                                            required: "This input is required.",
+                                            maxLength: {
+                                                value: 100,
+                                                message:
+                                                    "This input is too long",
+                                            },
+                                        })}
                                     />
-                                    {errors.streetAdd && (
-                                        <p className="text-danger">
-                                            Street address is required
-                                        </p>
-                                    )}
+                                    <ErrorMessage errors={errors} name="streetAdd">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(
+                                                ([type, message]) => (
+                                                    <p
+                                                        className="text-danger"
+                                                        key={type}
+                                                    >
+                                                        {message}
+                                                    </p>
+                                                )
+                                            )
+                                        }
+                                    </ErrorMessage>
                                 </div>
                                 <div className="form-group col-md-6">
                                     <label>Barangay Address</label>
@@ -555,13 +544,30 @@ function AddForm(props) {
                                         className="form-control"
                                         type="text"
                                         name="brgyAdd"
-                                        ref={register({ required: true })}
+                                        ref={register({
+                                            required: "This input is required.",
+                                            maxLength: {
+                                                value: 100,
+                                                message:
+                                                    "This input is too long",
+                                            },
+                                        })}
                                     />
-                                    {errors.brgyAdd && (
-                                        <p className="text-danger">
-                                            Barangay address is required
-                                        </p>
-                                    )}
+                                    <ErrorMessage errors={errors} name="brgyAdd">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(
+                                                ([type, message]) => (
+                                                    <p
+                                                        className="text-danger"
+                                                        key={type}
+                                                    >
+                                                        {message}
+                                                    </p>
+                                                )
+                                            )
+                                        }
+                                    </ErrorMessage>
                                 </div>
                             </div>
                             <div className="form-row">
@@ -571,13 +577,30 @@ function AddForm(props) {
                                         className="form-control"
                                         type="text"
                                         name="cityAdd"
-                                        ref={register({ required: true })}
+                                        ref={register({
+                                            required: "This input is required.",
+                                            maxLength: {
+                                                value: 100,
+                                                message:
+                                                    "This input is too long",
+                                            },
+                                        })}
                                     />
-                                    {errors.cityAdd && (
-                                        <p className="text-danger">
-                                            City address is required
-                                        </p>
-                                    )}
+                                    <ErrorMessage errors={errors} name="cityAdd">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(
+                                                ([type, message]) => (
+                                                    <p
+                                                        className="text-danger"
+                                                        key={type}
+                                                    >
+                                                        {message}
+                                                    </p>
+                                                )
+                                            )
+                                        }
+                                    </ErrorMessage>
                                 </div>
                                 <div className="form-group col-md-6">
                                     <label>Region</label>
@@ -633,79 +656,63 @@ function AddForm(props) {
                                         type="text"
                                         name="mothersName"
                                         ref={register({
+                                            maxLength:{
+                                                value: 75,
+                                                message: "This input is too long"
+                                            },                                            
                                             validate: {
                                                 atLeastOne: (value) => {
                                                     const {
-                                                        fathersName,
-                                                        altContactName,
+                                                        mContactNumber,mAddress,
+                                                        fathersName, fContactNumber, fAddress,
+                                                        altContactName, altContactNumber, altAddress
                                                     } = getValues();
                                                     return (
-                                                        value.length != 0 ||
-                                                        fathersName.length !=
-                                                            0 ||
-                                                        altContactName.length !=
-                                                            0 ||
+                                                        value.length > 0 || mContactNumber.length > 0 || mAddress.length > 0 ||
+                                                        fathersName.length > 0 || fContactNumber.length > 0 || fAddress.length > 0 ||
+                                                        altContactName.length > 0 || altContactNumber.length > 0 || altAddress.length > 0 ||
                                                         "At least one contact should be provided"
                                                     );
                                                 },
-                                                otherFieldsFilled: () => {
+                                                motherOtherFieldsFilled: (value) => {
                                                     const {
                                                         mContactNumber,
                                                         mAddress,
                                                     } = getValues();
                                                     return (
-                                                        mContactNumber > 0 ||
-                                                        mAddress > 0 ||
+                                                        (value.length > 0 || (mContactNumber.length == 0 &&  mAddress.length == 0)) ||
                                                         "This is required"
                                                     );
                                                 },
                                             },
                                         })}
-                                        // ref={register({
-                                        //     required: "This input is required.",
-                                        //     pattern: {
-                                        //       value: /\d+/,
-                                        //       message: "This input is number only."
-                                        //     },
-                                        //     maxLength: {
-                                        //       value: 10,
-                                        //       message: "This input exceed maxLength."
-                                        //     }
-                                        //   })}
                                     />
-                                    {errors.mothersName &&
-                                        errors.mothersName.type ==
-                                            "otherFieldsFilled"(
-                                                <p className="text-danger">
-                                                    Mother's Name is required
-                                                </p>
-                                            )}
 
-                                    {/* <ErrorMessage
-                                        errors={errors}
-                                        name="multipleErrorInput"
-                                    >
-                                        {({ messages }) => {
-                                            return (
-                                                messages &&
-                                                Object.entries(
-                                                    messages
-                                                ).map(([type, message]) => (
-                                                    <p key={type}>{message}</p>
-                                                ))
-                                            );
-                                        }}
-                                    </ErrorMessage> */}
+                                    {errors.mothersName && errors.mothersName.type === "otherFieldsFilled" && (
+                                        <p className="text-danger">
+                                            {errors.mothersName.message}
+                                        </p>
+                                    )}
+
                                 </div>
                                 <div className="form-group col-md-6">
                                     <label>Contact Number</label>
                                     <input
                                         className="form-control"
-                                        type="number"
+                                        type="text"
                                         name="mContactNumber"
                                         ref={register({
+                                            // pattern: {
+                                            //     value:/(\+?\d{2}?\s?\d{3}\s?\d{3}\s?\d{4})|([0]\d{3}\s?\d{3}\s?\d{4})/g,
+                                            //     message: "Invalid "
+                                            // },
+                                            maxLength: {                                                
+                                                value: 20,
+                                                message: "Input too long"
+
+                                            },
                                             validate: {
-                                                motherFilled: (value) => {
+                                                mothersNameFilled: (value) => {
                                                     const {
                                                         mothersName,
                                                     } = getValues();
@@ -719,11 +726,21 @@ function AddForm(props) {
                                             },
                                         })}
                                     />
-                                    {errors.mContactNumber && (
-                                        <p className="text-danger">
-                                            This is required
-                                        </p>
-                                    )}
+                                    <ErrorMessage errors={errors} name="mContactNumber">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(
+                                                ([type, message]) => (
+                                                    <p
+                                                        className="text-danger"
+                                                        key={type}
+                                                    >
+                                                        {message}
+                                                    </p>
+                                                )
+                                            )
+                                        }
+                                    </ErrorMessage>
                                 </div>
                             </div>
                             <div className="form-row">
@@ -734,6 +751,10 @@ function AddForm(props) {
                                         type="text"
                                         name="mAddress"
                                         ref={register({
+                                            maxLength:{
+                                                value: 225,
+                                                message: "This input is too long"
+                                            },
                                             validate: {
                                                 motherFilled: (value) => {
                                                     const {
@@ -749,11 +770,21 @@ function AddForm(props) {
                                             },
                                         })}
                                     />
-                                    {errors.mAddress && (
-                                        <p className="text-danger">
-                                            This is required
-                                        </p>
-                                    )}
+                                    <ErrorMessage errors={errors} name="mAddress">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(
+                                                ([type, message]) => (
+                                                    <p
+                                                        className="text-danger"
+                                                        key={type}
+                                                    >
+                                                        {message}
+                                                    </p>
+                                                )
+                                            )
+                                        }
+                                    </ErrorMessage>
                                 </div>
                             </div>
 
@@ -764,8 +795,40 @@ function AddForm(props) {
                                         className="form-control"
                                         type="text"
                                         name="fathersName"
-                                        ref={register()}
+                                        ref={register({
+                                            maxLength:{
+                                                value: 75,
+                                                message: "This input is too long"
+                                            },                                            
+                                            validate: {
+                                                fatherOtherFieldsFilled: (value) => {
+                                                    const {
+                                                        fContactNumber,
+                                                        fAddress,
+                                                    } = getValues();
+                                                    return (
+                                                        (value.length > 0 || (fContactNumber.length == 0 &&  fAddress.length == 0)) ||
+                                                        "This is required"
+                                                    );
+                                                },
+                                            },
+                                        })}
                                     />
+                                    <ErrorMessage errors={errors} name="fathersName">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(
+                                                ([type, message]) => (
+                                                    <p
+                                                        className="text-danger"
+                                                        key={type}
+                                                    >
+                                                        {message}
+                                                    </p>
+                                                )
+                                            )
+                                        }
+                                    </ErrorMessage>
                                 </div>
                                 <div className="form-group col-md-6">
                                     <label>Contact Number</label>
@@ -773,8 +836,46 @@ function AddForm(props) {
                                         className="form-control"
                                         type="number"
                                         name="fContactNumber"
-                                        ref={register()}
+                                        ref={register({
+                                            // pattern: {
+                                            //     value:/(\+?\d{2}?\s?\d{3}\s?\d{3}\s?\d{4})|([0]\d{3}\s?\d{3}\s?\d{4})/g,
+                                            //     message: "Invalid "
+                                            // },
+                                            maxLength: {                                                
+                                                value: 20,
+                                                message: "Input too long"
+
+                                            },
+                                            validate: {
+                                                fathersNameFilled: (value) => {
+                                                    const {
+                                                        fathersName,
+                                                    } = getValues();
+                                                    return (
+                                                        fathersName.length ==
+                                                            0 ||
+                                                        value.length > 0 ||
+                                                        "This is required"
+                                                    );
+                                                },
+                                            },
+                                        })}
                                     />
+                                    <ErrorMessage errors={errors} name="fContactNumber">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(
+                                                ([type, message]) => (
+                                                    <p
+                                                        className="text-danger"
+                                                        key={type}
+                                                    >
+                                                        {message}
+                                                    </p>
+                                                )
+                                            )
+                                        }
+                                    </ErrorMessage>
                                 </div>
                             </div>
                             <div className="form-row">
@@ -784,8 +885,41 @@ function AddForm(props) {
                                         className="form-control"
                                         type="text"
                                         name="fAddress"
-                                        ref={register()}
+                                        ref={register({
+                                            maxLength:{
+                                                value: 225,
+                                                message: "This input is too long"
+                                            },
+                                            validate: {
+                                                motherFilled: (value) => {
+                                                    const {
+                                                        fathersName,
+                                                    } = getValues();
+                                                    return (
+                                                        fathersName.length ==
+                                                            0 ||
+                                                        value.length > 0 ||
+                                                        "This is required"
+                                                    );
+                                                },
+                                            },
+                                        })}
                                     />
+                                    <ErrorMessage errors={errors} name="fAddress">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(
+                                                ([type, message]) => (
+                                                    <p
+                                                        className="text-danger"
+                                                        key={type}
+                                                    >
+                                                        {message}
+                                                    </p>
+                                                )
+                                            )
+                                        }
+                                    </ErrorMessage>
                                 </div>
                             </div>
 

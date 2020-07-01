@@ -32,7 +32,7 @@ const Patients = (props) => {
         dispatch(showPatientModal(type, modalProps));
     }
 
-    if (state.patients.patients && state.patients.patients.length) {
+    // if (state.patients.patients && state.patients.patients.length) {
         return (
             <Fragment>
                 <h2>Patient Management</h2>
@@ -130,9 +130,9 @@ const Patients = (props) => {
                 })()}
             </Fragment>
         );
-    } else {
-        return <h1>Loading...</h1>;
-    }
+    // } else {
+    //     return <h1>Loading...</h1>;
+    // }
 };
 
 // export class Patients extends Component {
