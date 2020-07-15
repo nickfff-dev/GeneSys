@@ -2,12 +2,7 @@ import axios from "axios";
 import { createMessage, returnErrors } from "./messages";
 import { tokenConfig } from "./auth";
 
-import {
-    GET_PATIENTS,
-    DELETE_PATIENT,
-    ADD_PATIENT,
-    EDIT_PATIENT,
-} from "./types";
+import { GET_PATIENTS, DELETE_PATIENT, ADD_PATIENT, EDIT_PATIENT } from "./types";
 
 //GET PATIENTS
 export const getPatients = () => (dispatch, getState) => {
@@ -19,9 +14,7 @@ export const getPatients = () => (dispatch, getState) => {
                 payload: res.data,
             });
         })
-        .catch((err) =>
-            dispatch(returnErrors(err.response.data, err.response.status))
-        );
+        .catch((err) => dispatch(returnErrors(err.response.data, err.response.status)));
 };
 
 //DELETE PATIENT
@@ -37,6 +30,19 @@ export const deletePatient = (patientID) => (dispatch, getState) => {
         })
         .catch((err) => console.log(err));
 };
+//DISCHARGE PATIENT
+export const dischargePatient = (patient) => (dispatch, getState) => {
+    axios
+        .put(`/api/patients/${patient.patientID}/`, patient, tokenConfig(getState))
+        .then((res) => {
+            dispatch(createMessage({ dischargePatient: "Patient Discharged" }));
+            dispatch({
+                type: EDIT_PATIENT,
+                payload: res.data,
+            });
+        })
+        .catch((err) => dispatch(returnErrors(err.response.data, err.response.status)));
+};
 
 //ADD PATIENT
 export const addPatient = (patient) => (dispatch, getState) => {
@@ -49,19 +55,13 @@ export const addPatient = (patient) => (dispatch, getState) => {
                 payload: res.data,
             });
         })
-        .catch((err) =>
-            dispatch(returnErrors(err.response.data, err.response.status))
-        );
+        .catch((err) => dispatch(returnErrors(err.response.data, err.response.status)));
 };
 
 //EDIT PATIENT
 export const editPatient = (patient) => (dispatch, getState) => {
     axios
-        .put(
-            `/api/patients/${patient.patientID}/`,
-            patient,
-            tokenConfig(getState)
-        )
+        .put(`/api/patients/${patient.patientID}/`, patient, tokenConfig(getState))
         .then((res) => {
             dispatch(createMessage({ editPatient: "Patient Edited" }));
             dispatch({
@@ -69,9 +69,7 @@ export const editPatient = (patient) => (dispatch, getState) => {
                 payload: res.data,
             });
         })
-        .catch((err) =>
-            dispatch(returnErrors(err.response.data, err.response.status))
-        );
+        .catch((err) => dispatch(returnErrors(err.response.data, err.response.status)));
 };
 
 //GENERATE ID

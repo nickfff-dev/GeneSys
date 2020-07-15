@@ -12,26 +12,27 @@ class PatientContactSerializer(serializers.ModelSerializer):
 class PatientClinicalSerializer(serializers.ModelSerializer):
     class Meta:
         model = PatientClinical
-        fields = ('gestationAge' ,'birthWeight','birthHospital','collectionHospital','attendingPhys','attendingContact','specialistName','specialistContact','collectionDate','sampleReceptionDate','rCollectionDate','rSampleReceptionDate','diagnosis','diagnosisDate','treatmentDate','note', 'status')
+        # fields = ('gestationAge' ,'birthWeight','birthHospital','collectionHospital','attendingPhys','attendingContact','specialistName','specialistContact','collectionDate','sampleReceptionDate','rCollectionDate','rSampleReceptionDate','diagnosis','diagnosisDate','treatmentDate','note', 'status')
+        fields = ('caseNumber', 'patientType', 'referringDoctor', 'referringService', 'referralReason', 'status')
 
 class PatientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patient
-        fields = ('patientID','caseNumber','firstName','lastName','middleName','suffix','gender','DOB','POB','streetAdd','brgyAdd','cityAdd','region') 
+        fields = ('patientID','firstName','lastName','middleName','suffix','sex','DOB','POB','streetAdd','brgyAdd','cityAdd','region') 
 
 class PatientContactClinicalSerializer(serializers.ModelSerializer):
     contact = PatientContactSerializer(required=True)
     clinical = PatientClinicalSerializer(required=True)
     class Meta:
         model = Patient
-        fields = ('patientID','caseNumber','firstName','lastName','middleName','suffix','gender','DOB','POB','streetAdd','brgyAdd','cityAdd','region', 'contact', 'clinical')
+        fields = ('patientID','firstName','lastName','middleName','suffix','sex','DOB','POB','streetAdd','brgyAdd','cityAdd','region', 'contact', 'clinical')
 
     def save(self, validated_data):
         contactData = validated_data.pop('contact')
         clinicalData = validated_data.pop('clinical')
-        patient = Patient.objects.create(patientID = validated_data['patientID'], caseNumber = validated_data['caseNumber'], firstName = validated_data['firstName'], lastName = validated_data['lastName'], middleName = validated_data['middleName'], suffix = validated_data['suffix'], gender = validated_data['gender'], DOB = validated_data['DOB'], POB = validated_data['POB'], streetAdd = validated_data['streetAdd'], brgyAdd = validated_data['brgyAdd'], cityAdd = validated_data['cityAdd'], region = validated_data['region'])
+        patient = Patient.objects.create(patientID = validated_data['patientID'], firstName = validated_data['firstName'], lastName = validated_data['lastName'], middleName = validated_data['middleName'], suffix = validated_data['suffix'], sex = validated_data['sex'], DOB = validated_data['DOB'], POB = validated_data['POB'], streetAdd = validated_data['streetAdd'], brgyAdd = validated_data['brgyAdd'], cityAdd = validated_data['cityAdd'], region = validated_data['region'])
         contact = PatientContact.objects.create(patient=patient, mothersName=contactData['mothersName'], mAddress=contactData['mAddress'], mContactNumber=contactData['mContactNumber'], fathersName=contactData['fathersName'], fAddress=contactData['fAddress'], fContactNumber=contactData['fContactNumber'], altContactName=contactData['altContactName'], altAddress=contactData['altAddress'], altContactNumber=contactData['altContactNumber'])
-        clinical = PatientClinical.objects.create(patient= patient, gestationAge=clinicalData['gestationAge'], birthWeight=clinicalData['birthWeight'], birthHospital=clinicalData['birthHospital'], collectionHospital=clinicalData['collectionHospital'], attendingPhys=clinicalData['attendingPhys'], attendingContact=clinicalData['attendingContact'], specialistName=clinicalData['specialistName'], specialistContact=clinicalData['specialistContact'], collectionDate=clinicalData['collectionDate'], sampleReceptionDate=clinicalData['sampleReceptionDate'], rCollectionDate=clinicalData['rCollectionDate'], rSampleReceptionDate=clinicalData['rSampleReceptionDate'], diagnosis=clinicalData['diagnosis'], diagnosisDate=clinicalData['diagnosisDate'], treatmentDate=clinicalData['treatmentDate'], note=clinicalData['note'], status=clinicalData['status'])
+        clinical = PatientClinical.objects.create(patient= patient, caseNumber=clinicalData['caseNumber'], patientType=clinicalData['patientType'], referringDoctor=clinicalData['referringDoctor'], referringService=clinicalData['referringService'], referralReason=clinicalData['referralReason'], status=clinicalData['status'])
         validated_data['contact']=contactData
         validated_data['clinical']=clinicalData
         print(validated_data)
@@ -41,12 +42,11 @@ class PatientContactClinicalSerializer(serializers.ModelSerializer):
         contact_data = validated_data.pop('contact')
         clinical_data = validated_data.pop('clinical')
 
-        instance.caseNumber = validated_data.get('caseNumber', instance.caseNumber)
         instance.firstName = validated_data.get('firstName', instance.firstName)
         instance.lastName = validated_data.get('lastName', instance.lastName)
         instance.middleName = validated_data.get('middleName', instance.middleName)
         instance.suffix = validated_data.get('suffix', instance.suffix)
-        instance.gender = validated_data.get('gender', instance.gender)
+        instance.sex = validated_data.get('sex', instance.sex)
         instance.DOB = validated_data.get('DOB', instance.DOB)
         instance.POB = validated_data.get('POB', instance.POB)
         instance.streetAdd = validated_data.get('streetAdd', instance.streetAdd)

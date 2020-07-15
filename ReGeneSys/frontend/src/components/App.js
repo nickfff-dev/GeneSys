@@ -1,16 +1,14 @@
 import React, { Component, Fragment } from "react";
 import ReactDOM from "react-dom";
-import {
-    HashRouter as Router,
-    Route,
-    Switch,
-    Redirect,
-} from "react-router-dom";
+import { BrowserRouter as Router, Route, Switch, Redirect, browserHistory } from "react-router-dom";
+import { createHashHistory } from "history";
 
 import { Provider as AlertProvider } from "react-alert";
 import AlertTemplate from "react-alert-template-basic";
 
+import Home from "./layout/Home";
 import Header from "./layout/Header";
+import Footer from "./layout/Footer";
 import Dashboard from "./patients/Dashboard";
 import Alerts from "./layout/Alerts";
 import Login from "./accounts/Login";
@@ -34,36 +32,30 @@ class App extends Component {
         store.dispatch(loadUser());
     }
 
+    history = createHashHistory({
+        basename: "", // The base URL of the app (see below)
+        hashType: "slash", // The hash type to use (see below)
+        // A function to use to confirm navigation with the user (see below)
+        getUserConfirmation: (message, callback) => callback(window.confirm(message)),
+    });
+
     render() {
         return (
             <Provider store={store}>
-                <AlertProvider template={AlertTemplate} {...alertOptions}>
-                    <Router>
-                        <Fragment>
-                            <Header />
-                            <Alerts />
-                            <div className="container">
-                                <Switch>
-                                    <PrivateRoute
-                                        exact
-                                        path="/"
-                                        component={Dashboard}
-                                    />
-                                    <Route
-                                        exact
-                                        path="/register"
-                                        component={Register}
-                                    />
-                                    <Route
-                                        exact
-                                        path="/login"
-                                        component={Login}
-                                    />
-                                </Switch>
-                            </div>
-                        </Fragment>
-                    </Router>
-                </AlertProvider>
+                {/* <AlertProvider template={AlertTemplate} {...alertOptions}> */}
+                <Router>
+                    {/* <Fragment> */}
+                    {/* <Alerts /> */}
+                    <div className="">
+                        <Switch>
+                            <PrivateRoute exact path="/" component={Home} />
+                            <Route path="/register" component={Register} />
+                            <Route path="/login" component={Login} />
+                        </Switch>
+                    </div>
+                    {/* </Fragment> */}
+                </Router>
+                {/* </AlertProvider> */}
             </Provider>
         );
     }

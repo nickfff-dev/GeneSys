@@ -4,10 +4,11 @@ import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 import PropTypes from "prop-types";
 
 import _ from "lodash";
-import { useForm } from "react-hook-form";
+import { useForm, ErrorMessage } from "react-hook-form";
 
 import { addPatient, editPatient } from "../../actions/patients";
 import { hidePatientModal } from "../../actions/modal";
+import axios from "axios";
 
 function pageInitial() {
     return 1;
@@ -27,7 +28,6 @@ function EditForm(props) {
         setModal(!modal);
         closeModal();
     };
-    console.log(props.toggleModal);
     const toggleNested = () => {
         setNestedModal(!nestedModal);
         setCloseAll(false);
@@ -35,6 +35,30 @@ function EditForm(props) {
     const toggleAll = () => {
         setNestedModal(!nestedModal);
         setCloseAll(true);
+    };
+
+    const validatePage = () => {
+        if (page == 1) {
+            const check = triggerValidation(["firstName", "lastName", "DOB", "POB", "sex", "streetAdd", "brgyAdd", "cityAdd", "region"]);
+
+            return check;
+        } else if (page == 2) {
+            const check = triggerValidation([
+                "mothersName",
+                "mContactNumber",
+                "mAddress",
+                "fathersName",
+                "fContactNumber",
+                "fAddress",
+                "altContactName",
+                "altContactNumber",
+                "altAddress",
+            ]);
+            return check;
+        } else if (page == 3) {
+            const check = triggerValidation(["caseNumber", "patientType", "referringDoctor", "referringService", "referralReason"]);
+            return check;
+        }
     };
 
     function nextPage() {
@@ -55,67 +79,27 @@ function EditForm(props) {
         patientID: modalProps,
     });
 
-    const {
-        patientID,
-        caseNumber,
-        firstName,
-        lastName,
-        middleName,
-        suffix,
-        gender,
-        DOB,
-        POB,
-        streetAdd,
-        brgyAdd,
-        cityAdd,
-        region,
-        contact,
-        clinical,
-    } = modalData;
+    const today = new Date();
+    today.setDate(today.getDate() + 1);
+    const curDate = today.getMonth() + 1 + "/" + today.getDate() + "/" + today.getFullYear();
+    const maxDate = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
 
-    const {
-        mothersName,
-        mAddress,
-        mContactNumber,
-        fathersName,
-        fAddress,
-        fContactNumber,
-        altContactName,
-        altAddress,
-        altContactNumber,
-    } = contact;
+    const { patientID, firstName, lastName, middleName, suffix, sex, DOB, POB, streetAdd, brgyAdd, cityAdd, region, contact, clinical } = modalData;
 
-    const {
-        gestationAge,
-        birthWeight,
-        birthHospital,
-        collectionHospital,
-        attendingPhys,
-        attendingContact,
-        specialistName,
-        specialistContact,
-        collectionDate,
-        sampleReceptionDate,
-        rCollectionDate,
-        rSampleReceptionDate,
-        diagnosis,
-        diagnosisDate,
-        treatmentDate,
-        note,
-        status,
-    } = clinical;
+    const { mothersName, mAddress, mContactNumber, fathersName, fAddress, fContactNumber, altContactName, altAddress, altContactNumber } = contact;
 
-    const { register, errors, reset, handleSubmit } = useForm({
+    const { caseNumber, patientType, referringDoctor, referringService, referralReason, status } = clinical;
+
+    const { register, errors, reset, handleSubmit, triggerValidation, getValues } = useForm({
         mode: "onChange",
         reValidateMode: "onChange",
         defaultValues: {
             patientID: patientID,
-            caseNumber: caseNumber,
             firstName: firstName,
             lastName: lastName,
             middleName: middleName,
             suffix: suffix,
-            gender: gender,
+            sex: sex,
             DOB: DOB,
             POB: POB,
             streetAdd: streetAdd,
@@ -131,34 +115,23 @@ function EditForm(props) {
             altContactName: altContactName,
             altAddress: altAddress,
             altContactNumber: altContactNumber,
-            gestationAge: gestationAge,
-            birthWeight: birthWeight,
-            birthHospital: birthHospital,
-            collectionHospital: collectionHospital,
-            attendingPhys: attendingPhys,
-            attendingContact: attendingContact,
-            specialistName: specialistName,
-            specialistContact: specialistContact,
-            collectionDate: collectionDate,
-            sampleReceptionDate: sampleReceptionDate,
-            rCollectionDate: rCollectionDate,
-            rSampleReceptionDate: rSampleReceptionDate,
-            diagnosis: diagnosis,
-            diagnosisDate: diagnosisDate,
-            treatmentDate: treatmentDate,
-            note: note,
+            caseNumber: caseNumber,
+            patientType: patientType,
+            referringDoctor: referringDoctor,
+            referringService: referringService,
+            referralReason: referralReason,
+            status: status,
         },
     });
 
     const onSubmit = (data) => {
         const {
             patientID,
-            caseNumber,
             firstName,
             lastName,
             middleName,
             suffix,
-            gender,
+            sex,
             DOB,
             POB,
             streetAdd,
@@ -174,22 +147,11 @@ function EditForm(props) {
             altContactName,
             altAddress,
             altContactNumber,
-            gestationAge,
-            birthWeight,
-            birthHospital,
-            collectionHospital,
-            attendingPhys,
-            attendingContact,
-            specialistName,
-            specialistContact,
-            collectionDate,
-            sampleReceptionDate,
-            rCollectionDate,
-            rSampleReceptionDate,
-            diagnosis,
-            diagnosisDate,
-            treatmentDate,
-            note,
+            caseNumber,
+            patientType,
+            referringDoctor,
+            referringService,
+            referralReason,
         } = data;
 
         const contact = {
@@ -204,33 +166,20 @@ function EditForm(props) {
             altContactNumber,
         };
         const clinical = {
-            gestationAge,
-            birthWeight,
-            birthHospital,
-            collectionHospital,
-            attendingPhys,
-            attendingContact,
-            specialistName,
-            specialistContact,
-            collectionDate,
-            sampleReceptionDate,
-            rCollectionDate,
-            rSampleReceptionDate,
-            diagnosis,
-            diagnosisDate,
-            treatmentDate,
-            note,
-            status,
+            caseNumber,
+            patientType,
+            referringDoctor,
+            referringService,
+            referralReason,
         };
 
         const userToUpdate = {
             patientID,
-            caseNumber,
             firstName,
             lastName,
             middleName,
             suffix,
-            gender,
+            sex,
             DOB,
             POB,
             streetAdd,
@@ -250,30 +199,11 @@ function EditForm(props) {
                 <ModalHeader toggle={toggle}>Edit Patient</ModalHeader>
                 <ModalBody>
                     <form id="edit-form" onSubmit={handleSubmit(onSubmit)}>
-                        <div
-                            id="page-one"
-                            className={page == 1 ? "" : "d-none"}
-                        >
+                        <div id="page-one" className={page == 1 ? "" : "d-none"}>
                             <div className="form-row">
                                 <div className="form-group col-md-6">
                                     <label>Patient ID</label>
-                                    <input
-                                        readOnly={true}
-                                        disabled={true}
-                                        className="form-control"
-                                        type="text"
-                                        name="patientID"
-                                        ref={register()}
-                                    />
-                                </div>
-                                <div className="form-group col-md-6">
-                                    <label>Case Number</label>
-                                    <input
-                                        className="form-control"
-                                        type="number"
-                                        name="caseNumber"
-                                        ref={register()}
-                                    />
+                                    <input className="form-control" readOnly={true} type="text" name="patientID" ref={register({ required: true })} />
                                 </div>
                             </div>
                             <div className="form-row">
@@ -283,8 +213,28 @@ function EditForm(props) {
                                         className="form-control"
                                         type="text"
                                         name="firstName"
-                                        ref={register()}
+                                        ref={register({
+                                            required: "This input is required.",
+                                            minLength: {
+                                                value: 2,
+                                                message: "This input is too short.",
+                                            },
+                                            maxLength: {
+                                                value: 100,
+                                                message: "This input is too long.",
+                                            },
+                                        })}
                                     />
+                                    <ErrorMessage errors={errors} name="firstName">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(([type, message]) => (
+                                                <p className="text-danger" key={type}>
+                                                    {message}
+                                                </p>
+                                            ))
+                                        }
+                                    </ErrorMessage>
                                 </div>
                                 <div className="form-group col-md-3">
                                     <label>Last Name</label>
@@ -292,8 +242,28 @@ function EditForm(props) {
                                         className="form-control"
                                         type="text"
                                         name="lastName"
-                                        ref={register()}
+                                        ref={register({
+                                            required: "This input is required.",
+                                            minLength: {
+                                                value: 2,
+                                                message: "This input is too short.",
+                                            },
+                                            maxLength: {
+                                                value: 100,
+                                                message: "This input is too long.",
+                                            },
+                                        })}
                                     />
+                                    <ErrorMessage errors={errors} name="lastName">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(([type, message]) => (
+                                                <p className="text-danger" key={type}>
+                                                    {message}
+                                                </p>
+                                            ))
+                                        }
+                                    </ErrorMessage>
                                 </div>
                                 <div className="form-group col-md-3">
                                     <label>Middle Name</label>
@@ -301,17 +271,39 @@ function EditForm(props) {
                                         className="form-control"
                                         type="text"
                                         name="middleName"
-                                        ref={register()}
+                                        ref={register({
+                                            maxLength: {
+                                                value: 50,
+                                                message: "This input is too long.",
+                                            },
+                                        })}
                                     />
+                                    <ErrorMessage errors={errors} name="middleName">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(([type, message]) => (
+                                                <p className="text-danger" key={type}>
+                                                    {message}
+                                                </p>
+                                            ))
+                                        }
+                                    </ErrorMessage>
                                 </div>
                                 <div className="form-group col-md-3">
                                     <label>Suffix</label>
-                                    <input
-                                        className="form-control"
-                                        type="text"
-                                        name="suffix"
-                                        ref={register()}
-                                    />
+                                    <select id="suffixSelect" className="form-control" name="suffix" ref={register({})}>
+                                        <option value="M">Jr.</option>
+                                        <option value="F">Sr.</option>
+                                        <option value="A">II</option>
+                                        <option value="M">III</option>
+                                        <option value="F">IV</option>
+                                        <option value="A">V</option>
+                                        <option value="M">VI</option>
+                                        <option value="F">VII</option>
+                                        <option value="A">VIII</option>
+                                        <option value="F">IX</option>
+                                        <option value="A">X</option>
+                                    </select>
                                 </div>
                             </div>
                             <div className="form-row">
@@ -321,8 +313,30 @@ function EditForm(props) {
                                         className="form-control"
                                         type="date"
                                         name="DOB"
-                                        ref={register()}
+                                        min="1900-01-01"
+                                        max={maxDate}
+                                        ref={register({
+                                            required: "This input is required.",
+                                            min: {
+                                                value: "01/01/1900",
+                                                message: "Invalid date",
+                                            },
+                                            max: {
+                                                value: curDate,
+                                                message: "Date cannot be in the future",
+                                            },
+                                        })}
                                     />
+                                    <ErrorMessage errors={errors} name="DOB">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(([type, message]) => (
+                                                <p className="text-danger" key={type}>
+                                                    {message}
+                                                </p>
+                                            ))
+                                        }
+                                    </ErrorMessage>
                                 </div>
                                 <div className="form-group col-md-4">
                                     <label>Place of Birth</label>
@@ -330,94 +344,139 @@ function EditForm(props) {
                                         className="form-control"
                                         type="text"
                                         name="POB"
-                                        ref={register()}
+                                        ref={register({
+                                            required: "This input is required.",
+                                            maxLength: {
+                                                value: 75,
+                                                message: "This input is too long",
+                                            },
+                                        })}
                                     />
+                                    <ErrorMessage errors={errors} name="POB">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(([type, message]) => (
+                                                <p className="text-danger" key={type}>
+                                                    {message}
+                                                </p>
+                                            ))
+                                        }
+                                    </ErrorMessage>
                                 </div>
                                 <div className="form-group col-md-4">
-                                    <label>Gender</label>
-                                    <select
-                                        id="genderSelect"
-                                        className="form-control"
-                                        name="gender"
-                                        ref={register()}
-                                    >
+                                    <label>Sex</label>
+                                    <select id="sexSelect" className="form-control" name="sex" ref={register({ required: true })}>
                                         <option value="M">Male</option>
                                         <option value="F">Female</option>
                                         <option value="A">Ambiguous</option>
                                     </select>
+                                    {errors.sex && <p className="text-danger">Sex is required</p>}
                                 </div>
                             </div>
                             <div className="form-row">
-                                <div className="form-group col-md-6">
+                                <div className="form-group col-12">
                                     <label>Street Address</label>
                                     <input
                                         className="form-control"
                                         type="text"
                                         name="streetAdd"
-                                        ref={register()}
+                                        ref={register({
+                                            required: "This input is required.",
+                                            maxLength: {
+                                                value: 100,
+                                                message: "This input is too long",
+                                            },
+                                        })}
                                     />
+                                    <ErrorMessage errors={errors} name="streetAdd">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(([type, message]) => (
+                                                <p className="text-danger" key={type}>
+                                                    {message}
+                                                </p>
+                                            ))
+                                        }
+                                    </ErrorMessage>
                                 </div>
-                                <div className="form-group col-md-6">
+                                <div className="form-group col-12">
                                     <label>Barangay Address</label>
                                     <input
                                         className="form-control"
                                         type="text"
                                         name="brgyAdd"
-                                        ref={register()}
+                                        ref={register({
+                                            required: "This input is required.",
+                                            maxLength: {
+                                                value: 100,
+                                                message: "This input is too long",
+                                            },
+                                        })}
                                     />
+                                    <ErrorMessage errors={errors} name="brgyAdd">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(([type, message]) => (
+                                                <p className="text-danger" key={type}>
+                                                    {message}
+                                                </p>
+                                            ))
+                                        }
+                                    </ErrorMessage>
                                 </div>
                             </div>
                             <div className="form-row">
-                                <div className="form-group col-md-6">
+                                <div className="form-group col-6">
                                     <label>City Address</label>
                                     <input
                                         className="form-control"
                                         type="text"
                                         name="cityAdd"
-                                        ref={register()}
+                                        ref={register({
+                                            required: "This input is required.",
+                                            maxLength: {
+                                                value: 100,
+                                                message: "This input is too long",
+                                            },
+                                        })}
                                     />
+                                    <ErrorMessage errors={errors} name="cityAdd">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(([type, message]) => (
+                                                <p className="text-danger" key={type}>
+                                                    {message}
+                                                </p>
+                                            ))
+                                        }
+                                    </ErrorMessage>
                                 </div>
-                                <div className="form-group col-md-6">
+                                <div className="form-group col-6">
                                     <label>Region</label>
-                                    <select
-                                        id="Region"
-                                        className="form-control"
-                                        name="region"
-                                        ref={register()}
-                                    >
+                                    <select id="Region" className="form-control" name="region" ref={register({ required: true })}>
                                         <option value="NCR">NCR</option>
                                         <option value="I">Region I</option>
                                         <option value="CAR">CAR</option>
                                         <option value="II">Region II</option>
                                         <option value="III">Region III</option>
-                                        <option value="IV-A">
-                                            Region IV-A or CALABARZON
-                                        </option>
-                                        <option value="MIMAROPA">
-                                            MIMAROPA Region
-                                        </option>
+                                        <option value="IV-A">Region IV-A or CALABARZON</option>
+                                        <option value="MIMAROPA">MIMAROPA Region</option>
                                         <option value="V">Region V</option>
                                         <option value="VI">Region VI</option>
                                         <option value="VII">Region VII</option>
-                                        <option value="VIII">
-                                            Region VIII
-                                        </option>
+                                        <option value="VIII">Region VIII</option>
                                         <option value="IX">Region IX</option>
                                         <option value="X">Region X</option>
                                         <option value="XI">Region XI</option>
                                         <option value="XII">Region XII</option>
-                                        <option value="XIII">
-                                            Region XIII
-                                        </option>
+                                        <option value="XIII">Region XIII</option>
                                         <option value="BARMM">BARMM</option>
                                     </select>
+                                    {errors.region && <p className="text-danger">Region is required</p>}
                                 </div>
                             </div>
                         </div>
-                        <div
-                            id="page-two"
-                            className={page == 2 ? "" : "d-none"}
-                        >
+                        <div id="page-two" className={page == 2 ? "" : "d-none"}>
                             <div className="form-row">
                                 <div className="form-group col-md-6">
                                     <label>Mother's Name</label>
@@ -425,8 +484,48 @@ function EditForm(props) {
                                         className="form-control"
                                         type="text"
                                         name="mothersName"
-                                        ref={register()}
+                                        ref={register({
+                                            maxLength: {
+                                                value: 75,
+                                                message: "This input is too long",
+                                            },
+                                            validate: {
+                                                atLeastOne: (value) => {
+                                                    const {
+                                                        mContactNumber,
+                                                        mAddress,
+                                                        fathersName,
+                                                        fContactNumber,
+                                                        fAddress,
+                                                        altContactName,
+                                                        altContactNumber,
+                                                        altAddress,
+                                                    } = getValues();
+                                                    return (
+                                                        value.length > 0 ||
+                                                        mContactNumber.length > 0 ||
+                                                        mAddress.length > 0 ||
+                                                        fathersName.length > 0 ||
+                                                        fContactNumber.length > 0 ||
+                                                        fAddress.length > 0 ||
+                                                        altContactName.length > 0 ||
+                                                        altContactNumber.length > 0 ||
+                                                        altAddress.length > 0 ||
+                                                        "At least one contact should be provided"
+                                                    );
+                                                },
+                                                motherOtherFieldsFilled: (value) => {
+                                                    const { mContactNumber, mAddress } = getValues();
+                                                    return (
+                                                        value.length > 0 || (mContactNumber.length == 0 && mAddress.length == 0) || "This is required"
+                                                    );
+                                                },
+                                            },
+                                        })}
                                     />
+                                    {errors.mothersName && errors.mothersName.type === "motherOtherFieldsFilled" && (
+                                        <p className="text-danger">{errors.mothersName.message}</p>
+                                    )}
                                 </div>
                                 <div className="form-group col-md-6">
                                     <label>Contact Number</label>
@@ -434,8 +533,33 @@ function EditForm(props) {
                                         className="form-control"
                                         type="number"
                                         name="mContactNumber"
-                                        ref={register()}
+                                        ref={register({
+                                            // pattern: {
+                                            //     value:/(\+?\d{2}?\s?\d{3}\s?\d{3}\s?\d{4})|([0]\d{3}\s?\d{3}\s?\d{4})/g,
+                                            //     message: "Invalid "
+                                            // },
+                                            maxLength: {
+                                                value: 20,
+                                                message: "Input too long",
+                                            },
+                                            validate: {
+                                                mothersNameFilled: (value) => {
+                                                    const { mothersName } = getValues();
+                                                    return mothersName.length == 0 || value.length > 0 || "This is required";
+                                                },
+                                            },
+                                        })}
                                     />
+                                    <ErrorMessage errors={errors} name="mContactNumber">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(([type, message]) => (
+                                                <p className="text-danger" key={type}>
+                                                    {message}
+                                                </p>
+                                            ))
+                                        }
+                                    </ErrorMessage>
                                 </div>
                             </div>
                             <div className="form-row">
@@ -445,10 +569,32 @@ function EditForm(props) {
                                         className="form-control"
                                         type="text"
                                         name="mAddress"
-                                        ref={register()}
+                                        ref={register({
+                                            maxLength: {
+                                                value: 225,
+                                                message: "This input is too long",
+                                            },
+                                            validate: {
+                                                motherFilled: (value) => {
+                                                    const { mothersName } = getValues();
+                                                    return mothersName.length == 0 || value.length > 0 || "This is required";
+                                                },
+                                            },
+                                        })}
                                     />
+                                    <ErrorMessage errors={errors} name="mAddress">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(([type, message]) => (
+                                                <p className="text-danger" key={type}>
+                                                    {message}
+                                                </p>
+                                            ))
+                                        }
+                                    </ErrorMessage>
                                 </div>
                             </div>
+
                             <div className="form-row">
                                 <div className="form-group col-md-6">
                                     <label>Father's Name</label>
@@ -456,8 +602,31 @@ function EditForm(props) {
                                         className="form-control"
                                         type="text"
                                         name="fathersName"
-                                        ref={register()}
+                                        ref={register({
+                                            maxLength: {
+                                                value: 75,
+                                                message: "This input is too long",
+                                            },
+                                            validate: {
+                                                fatherOtherFieldsFilled: (value) => {
+                                                    const { fContactNumber, fAddress } = getValues();
+                                                    return (
+                                                        value.length > 0 || (fContactNumber.length == 0 && fAddress.length == 0) || "This is required"
+                                                    );
+                                                },
+                                            },
+                                        })}
                                     />
+                                    <ErrorMessage errors={errors} name="fathersName">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(([type, message]) => (
+                                                <p className="text-danger" key={type}>
+                                                    {message}
+                                                </p>
+                                            ))
+                                        }
+                                    </ErrorMessage>
                                 </div>
                                 <div className="form-group col-md-6">
                                     <label>Contact Number</label>
@@ -465,8 +634,33 @@ function EditForm(props) {
                                         className="form-control"
                                         type="number"
                                         name="fContactNumber"
-                                        ref={register()}
+                                        ref={register({
+                                            // pattern: {
+                                            //     value:/(\+?\d{2}?\s?\d{3}\s?\d{3}\s?\d{4})|([0]\d{3}\s?\d{3}\s?\d{4})/g,
+                                            //     message: "Invalid "
+                                            // },
+                                            maxLength: {
+                                                value: 20,
+                                                message: "Input too long",
+                                            },
+                                            validate: {
+                                                fathersNameFilled: (value) => {
+                                                    const { fathersName } = getValues();
+                                                    return fathersName.length == 0 || value.length > 0 || "This is required";
+                                                },
+                                            },
+                                        })}
                                     />
+                                    <ErrorMessage errors={errors} name="fContactNumber">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(([type, message]) => (
+                                                <p className="text-danger" key={type}>
+                                                    {message}
+                                                </p>
+                                            ))
+                                        }
+                                    </ErrorMessage>
                                 </div>
                             </div>
                             <div className="form-row">
@@ -476,10 +670,32 @@ function EditForm(props) {
                                         className="form-control"
                                         type="text"
                                         name="fAddress"
-                                        ref={register()}
+                                        ref={register({
+                                            maxLength: {
+                                                value: 225,
+                                                message: "This input is too long",
+                                            },
+                                            validate: {
+                                                motherFilled: (value) => {
+                                                    const { fathersName } = getValues();
+                                                    return fathersName.length == 0 || value.length > 0 || "This is required";
+                                                },
+                                            },
+                                        })}
                                     />
+                                    <ErrorMessage errors={errors} name="fAddress">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(([type, message]) => (
+                                                <p className="text-danger" key={type}>
+                                                    {message}
+                                                </p>
+                                            ))
+                                        }
+                                    </ErrorMessage>
                                 </div>
                             </div>
+
                             <div className="form-row">
                                 <div className="form-group col-md-6">
                                     <label>Alternative Contact's Name</label>
@@ -487,8 +703,33 @@ function EditForm(props) {
                                         className="form-control"
                                         type="text"
                                         name="altContactName"
-                                        ref={register()}
+                                        ref={register({
+                                            maxLength: {
+                                                value: 75,
+                                                message: "This input is too long",
+                                            },
+                                            validate: {
+                                                altOtherFieldsFilled: (value) => {
+                                                    const { altContactNumber, altAddress } = getValues();
+                                                    return (
+                                                        value.length > 0 ||
+                                                        (altContactNumber.length == 0 && altAddress.length == 0) ||
+                                                        "This is required"
+                                                    );
+                                                },
+                                            },
+                                        })}
                                     />
+                                    <ErrorMessage errors={errors} name="altContactName">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(([type, message]) => (
+                                                <p className="text-danger" key={type}>
+                                                    {message}
+                                                </p>
+                                            ))
+                                        }
+                                    </ErrorMessage>
                                 </div>
                                 <div className="form-group col-md-6">
                                     <label>Contact Number</label>
@@ -496,7 +737,33 @@ function EditForm(props) {
                                         className="form-control"
                                         type="number"
                                         name="altContactNumber"
+                                        ref={register({
+                                            // pattern: {
+                                            //     value:/(\+?\d{2}?\s?\d{3}\s?\d{3}\s?\d{4})|([0]\d{3}\s?\d{3}\s?\d{4})/g,
+                                            //     message: "Invalid "
+                                            // },
+                                            maxLength: {
+                                                value: 20,
+                                                message: "Input too long",
+                                            },
+                                            validate: {
+                                                altContactsNameFilled: (value) => {
+                                                    const { altContactName, altAddress } = getValues();
+                                                    return altContactName.length == 0 || value.length > 0 || "This is required";
+                                                },
+                                            },
+                                        })}
                                     />
+                                    <ErrorMessage errors={errors} name="altContactNumber">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(([type, message]) => (
+                                                <p className="text-danger" key={type}>
+                                                    {message}
+                                                </p>
+                                            ))
+                                        }
+                                    </ErrorMessage>
                                 </div>
                             </div>
                             <div className="form-row">
@@ -506,192 +773,144 @@ function EditForm(props) {
                                         className="form-control"
                                         type="text"
                                         name="altAddress"
-                                        ref={register()}
+                                        ref={register({
+                                            maxLength: {
+                                                value: 225,
+                                                message: "This input is too long",
+                                            },
+                                            validate: {
+                                                altFilled: (value) => {
+                                                    const { altContactName } = getValues();
+                                                    return altContactName.length == 0 || value.length > 0 || "This is required";
+                                                },
+                                            },
+                                        })}
                                     />
+                                    <ErrorMessage errors={errors} name="altAddress">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(([type, message]) => (
+                                                <p className="text-danger" key={type}>
+                                                    {message}
+                                                </p>
+                                            ))
+                                        }
+                                    </ErrorMessage>
                                 </div>
                             </div>
+                            {errors.mothersName && errors.mothersName.type == "atLeastOne" && (
+                                <p className="text-danger">{errors.mothersName.message}</p>
+                            )}
                         </div>
 
-                        <div
-                            id="page-three"
-                            className={page == 3 ? "" : "d-none"}
-                        >
+                        <div id="page-three" className={page == 3 ? "" : "d-none"}>
                             <div className="form-row">
-                                <div className="form-group col-md-3">
-                                    <label>Gestation Age</label>
-                                    <input
-                                        className="form-control"
-                                        type="number"
-                                        name="gestationAge"
-                                        ref={register()}
-                                    />
+                                <div className="form-group col-md-6">
+                                    <label>Case Number</label>
+                                    <input className="form-control" type="text" name="caseNumber" ref={register()} />
                                 </div>
-                                <div className="form-group col-md-3">
-                                    <label>Birth Weight</label>
-                                    <input
+                                <div className="form-group col-md-6">
+                                    <label>Type of Patient</label>
+                                    <select
                                         className="form-control"
-                                        type="text"
-                                        name="birthWeight"
-                                        ref={register()}
-                                    />
-                                </div>
-                                <div className="form-group col-md-3">
-                                    <label>Birth Hospital</label>
-                                    <input
-                                        className="form-control"
-                                        type="text"
-                                        name="birthHospital"
-                                        ref={register()}
-                                    />
-                                </div>
-                                <div className="form-group col-md-3">
-                                    <label>Hospital of Collection</label>
-                                    <input
-                                        className="form-control"
-                                        type="text"
-                                        name="collectionHospital"
-                                        ref={register()}
-                                    />
+                                        name="patientType"
+                                        ref={register({
+                                            required: "This is Required",
+                                        })}
+                                    >
+                                        <option value="M">Metabolic</option>
+                                        <option value="N">NBS</option>
+                                        <option value="D">Dysmorphologic</option>
+                                        <option value="P">Pre-Natal</option>
+                                        <option value="C">Cancer</option>
+                                        <option value="CN">Counselling</option>
+                                    </select>
+                                    <ErrorMessage errors={errors} name="patientType">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(([type, message]) => (
+                                                <p className="text-danger" key={type}>
+                                                    {message}
+                                                </p>
+                                            ))
+                                        }
+                                    </ErrorMessage>
                                 </div>
                             </div>
                             <div className="form-row">
                                 <div className="form-group col-md-6">
-                                    <label>Attending Physician</label>
+                                    <label>Referring Doctor</label>
                                     <input
                                         className="form-control"
                                         type="text"
-                                        name="attendingPhys"
-                                        ref={register()}
+                                        name="referringDoctor"
+                                        ref={register({ required: "This is required" })}
                                     />
+                                    <ErrorMessage errors={errors} name="referringDoctor">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(([type, message]) => (
+                                                <p className="text-danger" key={type}>
+                                                    {message}
+                                                </p>
+                                            ))
+                                        }
+                                    </ErrorMessage>
                                 </div>
                                 <div className="form-group col-md-6">
-                                    <label>Contact Number</label>
-                                    <input
-                                        className="form-control"
-                                        type="number"
-                                        name="attendingContact"
-                                        ref={register()}
-                                    />
-                                </div>
-                            </div>
-                            <div className="form-row">
-                                <div className="form-group col-md-6">
-                                    <label>Name of Specialist</label>
+                                    <label>Referring Service</label>
                                     <input
                                         className="form-control"
                                         type="text"
-                                        name="specialistName"
-                                        ref={register()}
+                                        name="referringService"
+                                        ref={register({ required: "This is required" })}
                                     />
-                                </div>
-                                <div className="form-group col-md-6">
-                                    <label>Contact Number</label>
-                                    <input
-                                        className="form-control"
-                                        type="number"
-                                        name="specialistContact"
-                                        ref={register()}
-                                    />
-                                </div>
-                            </div>
-                            <div className="form-row">
-                                <div className="form-group col-md-3">
-                                    <label>Date of Initial Collection</label>
-                                    <input
-                                        className="form-control"
-                                        type="date"
-                                        name="collectionDate"
-                                        ref={register()}
-                                    />
-                                </div>
-                                <div className="form-group col-md-3">
-                                    <label>
-                                        Date First Sample Received at NSC
-                                    </label>
-                                    <input
-                                        className="form-control"
-                                        type="date"
-                                        name="sampleReceptionDate"
-                                        ref={register()}
-                                    />
-                                </div>
-                                <div className="form-group col-md-3">
-                                    <label>Date of Repeat Collection</label>
-                                    <input
-                                        className="form-control"
-                                        type="date"
-                                        name="rSampleReceptionDate"
-                                        ref={register()}
-                                    />
-                                </div>
-                                <div className="form-group col-md-3">
-                                    <label>
-                                        Date Repeat Sample Received at NSC
-                                    </label>
-                                    <input
-                                        className="form-control"
-                                        type="date"
-                                        name="rCollectionDate"
-                                        ref={register()}
-                                    />
+                                    <ErrorMessage errors={errors} name="referringService">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(([type, message]) => (
+                                                <p className="text-danger" key={type}>
+                                                    {message}
+                                                </p>
+                                            ))
+                                        }
+                                    </ErrorMessage>
                                 </div>
                             </div>
                             <div className="form-row">
-                                <div className="form-group col-md-6">
-                                    <label>Diagnosis</label>
-                                    <input
+                                <div className="form-group col-md-12">
+                                    <label>Reason for Referral</label>
+                                    <textarea
                                         className="form-control"
-                                        type="text"
-                                        name="diagnosis"
-                                        ref={register()}
+                                        rows="5"
+                                        name="referralReason"
+                                        ref={register({
+                                            required: "This is required",
+                                            maxLength: {
+                                                value: 225,
+                                                message: "This input is too long",
+                                            },
+                                        })}
                                     />
-                                </div>
-                                <div className="form-group col-md-6">
-                                    <label>Diagnosis Date</label>
-                                    <input
-                                        className="form-control"
-                                        type="date"
-                                        name="diagnosisDate"
-                                        ref={register()}
-                                    />
-                                </div>
-                            </div>
-                            <div className="form-row">
-                                <div className="form-group col-md-6">
-                                    <label>Treatment Date</label>
-                                    <input
-                                        className="form-control"
-                                        type="date"
-                                        name="treatmentDate"
-                                        ref={register()}
-                                    />
-                                </div>
-                                <div className="form-group col-md-6">
-                                    <label>Note</label>
-                                    <input
-                                        className="form-control"
-                                        type="text"
-                                        name="note"
-                                        ref={register()}
-                                    />
+                                    <ErrorMessage errors={errors} name="referralReason">
+                                        {({ messages }) =>
+                                            messages &&
+                                            Object.entries(messages).map(([type, message]) => (
+                                                <p className="text-danger" key={type}>
+                                                    {message}
+                                                </p>
+                                            ))
+                                        }
+                                    </ErrorMessage>
                                 </div>
                             </div>
                         </div>
                     </form>
-                    <Modal
-                        isOpen={nestedModal}
-                        toggle={toggleNested}
-                        onClosed={closeAll ? toggle : undefined}
-                    >
+                    <Modal isOpen={nestedModal} toggle={toggleNested} onClosed={closeAll ? toggle : undefined}>
                         <ModalHeader>Save Changes</ModalHeader>
-                        <ModalBody>
-                            Are you sure you want to save the changes you made?
-                        </ModalBody>
+                        <ModalBody>Are you sure you want to save the changes you made?</ModalBody>
                         <ModalFooter>
-                            <Button
-                                color="primary"
-                                onClick={handleSubmit(onSubmit)}
-                            >
+                            <Button color="primary" onClick={handleSubmit(onSubmit)}>
                                 Yes
                             </Button>
                             <Button color="secondary" onClick={toggleNested}>
@@ -702,19 +921,20 @@ function EditForm(props) {
                 </ModalBody>
                 <ModalFooter>
                     {page > 1 && (
-                        <button
-                            type="button"
-                            onClick={previousPage}
-                            className="btn btn-primary"
-                        >
+                        <button type="button" onClick={previousPage} className="btn btn-primary">
                             Previous Page
                         </button>
                     )}
                     {page < 3 && (
                         <button
                             type="button"
-                            onClick={nextPage}
                             className="btn btn-primary"
+                            onClick={async () => {
+                                const pageValid = await validatePage();
+                                if (pageValid) {
+                                    nextPage();
+                                }
+                            }}
                         >
                             Next Page
                         </button>
@@ -723,18 +943,18 @@ function EditForm(props) {
                         <button
                             type="button"
                             className="btn btn-primary"
-                            onClick={toggleNested}
+                            onClick={async () => {
+                                const pageValid = await validatePage();
+                                console.log("page valid? " + errors);
+                                if (pageValid == true) {
+                                    toggleNested();
+                                }
+                            }}
                         >
                             Save
                         </button>
                     )}
-                    <button
-                        type="button"
-                        className="btn btn-secondary"
-                        data-dismiss="modal"
-                        onClick={toggle}
-                        // onClick={(closeModal, reset)}
-                    >
+                    <button type="button" className="btn btn-secondary" data-dismiss="modal" onClick={toggle}>
                         Close
                     </button>
                 </ModalFooter>

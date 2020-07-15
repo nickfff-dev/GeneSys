@@ -14,17 +14,39 @@ export class Header extends Component {
         const { isAuthenticated, user } = this.props.auth;
 
         const authLinks = (
-            <ul className="navbar-nav ml-auto mt-2 mt-lg-0">
-                <span className="navbar-text mr-3">
-                    <strong>{user ? `Welcome ${user.username}` : ""}</strong>
-                </span>
-                <li className="nav-item">
-                    <button
-                        onClick={this.props.logout}
-                        className="nav-link btn btn-info btn-sn text-light"
+            // <ul className="navbar-nav ml-auto mt-2 mt-lg-0">
+            //     <span className="navbar-text mr-3">
+            //         <strong>{user ? `Welcome ${user.username}` : ""}</strong>
+            //     </span>
+            //     <li className="nav-item">
+            //         <a onClick={this.props.logout} className="nav-link btn btn-info btn-sn text-light">
+            //             Logout
+            //         </a>
+            //     </li>
+            // </ul>
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item dropdown">
+                    <a
+                        class="nav-link dropdown-toggle"
+                        href="#"
+                        id="navbarDropdownMenuLink"
+                        data-toggle="dropdown"
+                        aria-haspopup="true"
+                        aria-expanded="false"
                     >
-                        Logout
-                    </button>
+                        <strong>{user ? `Welcome ${user.username}` : ""}</strong>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
+                        <a class="dropdown-item" href="#">
+                            Action
+                        </a>
+                        <a class="dropdown-item" href="#">
+                            Another action
+                        </a>
+                        <a onClick={this.props.logout} className="dropdown-item">
+                            Logout
+                        </a>
+                    </div>
                 </li>
             </ul>
         );
@@ -45,30 +67,70 @@ export class Header extends Component {
         );
 
         return (
-            <nav className="navbar navbar-expand-sm navbar-light bg-light">
-                <div className="container">
-                    <button
-                        className="navbar-toggler"
-                        type="button"
-                        data-toggle="collapse"
-                        data-target="#navbarTogglerDemo01"
-                        aria-controls="navbarTogglerDemo01"
-                        aria-expanded="false"
-                        aria-label="Toggle navigation"
-                    >
-                        <span className="navbar-toggler-icon" />
-                    </button>
-                    <div
-                        className="collapse navbar-collapse"
-                        id="navbarTogglerDemo01"
-                    >
-                        <a className="navbar-brand" href="#">
-                            GeneSys
-                        </a>
-                    </div>
+            <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                <a class="navbar-brand" href="/">
+                    GeneSys
+                </a>
+                <button
+                    class="navbar-toggler"
+                    type="button"
+                    data-toggle="collapse"
+                    data-target="#navbarText"
+                    aria-controls="navbarText"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation"
+                >
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarText">
                     {isAuthenticated ? authLinks : guestLinks}
                 </div>
             </nav>
+
+            // <div class="bg-light border-right" id="sidebar-wrapper">
+            //     <div class="sidebar-heading">Start Bootstrap </div>
+            //     <div class="list-group list-group-flush">
+            //         <a href="#" class="list-group-item list-group-item-action bg-light">
+            //             Dashboard
+            //         </a>
+            //         <a href="#" class="list-group-item list-group-item-action bg-light">
+            //             Shortcuts
+            //         </a>
+            //         <a href="#" class="list-group-item list-group-item-action bg-light">
+            //             Overview
+            //         </a>
+            //         <a href="#" class="list-group-item list-group-item-action bg-light">
+            //             Events
+            //         </a>
+            //         <a href="#" class="list-group-item list-group-item-action bg-light">
+            //             Profile
+            //         </a>
+            //         <a href="#" class="list-group-item list-group-item-action bg-light">
+            //             Status
+            //         </a>
+            //     </div>
+            // </div>
+            // <nav className="navbar navbar-expand-sm navbar-light bg-light">
+            //     <div className="">
+            //         <button
+            //             className="navbar-toggler"
+            //             type="button"
+            //             data-toggle="collapse"
+            //             data-target="#navbarTogglerDemo01"
+            //             aria-controls="navbarTogglerDemo01"
+            //             aria-expanded="false"
+            //             aria-label="Toggle navigation"
+            //         >
+            //             <span className="navbar-toggler-icon" />
+            //         </button>
+            //         <div className="collapse navbar-collapse" id="navbarTogglerDemo01">
+            //             <a className="navbar-brand" href="#">
+            //                 GeneSys
+            //             </a>
+            //         </div>
+            //         {isAuthenticated ? authLinks : guestLinks}
+            //     </div>
+            // </nav>
         );
     }
 }
