@@ -1,0 +1,13 @@
+.text-danger {
+    color: #bf1650;
+}
+
+.text-danger::before {
+    display: inline;
+    content: "⚠ ";
+}
+
+.logo-small {
+    height: 2rem;
+    width: 2rem;
+}

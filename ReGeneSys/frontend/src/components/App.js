@@ -42,20 +42,20 @@ class App extends Component {
     render() {
         return (
             <Provider store={store}>
-                {/* <AlertProvider template={AlertTemplate} {...alertOptions}> */}
-                <Router>
-                    {/* <Fragment> */}
-                    {/* <Alerts /> */}
-                    <div className="">
-                        <Switch>
-                            <PrivateRoute exact path="/" component={Home} />
-                            <Route path="/register" component={Register} />
-                            <Route path="/login" component={Login} />
-                        </Switch>
-                    </div>
-                    {/* </Fragment> */}
-                </Router>
-                {/* </AlertProvider> */}
+                <AlertProvider template={AlertTemplate} {...alertOptions}>
+                    <Router>
+                        <Fragment>
+                            <Alerts />
+                            <div className="">
+                                <Switch>
+                                    <PrivateRoute exact path="/" component={Home} />
+                                    <Route path="/register" component={Register} />
+                                    <Route path="/login" component={Login} />
+                                </Switch>
+                            </div>
+                        </Fragment>
+                    </Router>
+                </AlertProvider>
             </Provider>
         );
     }

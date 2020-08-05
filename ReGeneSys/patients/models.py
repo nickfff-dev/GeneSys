@@ -54,44 +54,44 @@ REGIONS = (
         
 
 class Patient(models.Model):
-    patientID = models.CharField(max_length=30, primary_key=True)
-    firstName = models.CharField(max_length=100)
-    lastName = models.CharField(max_length=100)
-    middleName = models.CharField(max_length=50, null=True, blank=True)
+    patient_id = models.CharField(max_length=30, primary_key=True)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    middle_name = models.CharField(max_length=50, null=True, blank=True)
     suffix = models.CharField(max_length=5, null=True, blank=True)
     sex = models.CharField(max_length=1, choices=SEXES)
-    DOB = models.DateField()
-    POB = models.CharField(max_length=75)
-    streetAdd = models.CharField(max_length=255)
-    brgyAdd = models.CharField(max_length=255)
-    cityAdd = models.CharField(max_length=255)
+    dob = models.DateField()
+    pob = models.CharField(max_length=75)
+    street_add = models.CharField(max_length=255)
+    brgy_add = models.CharField(max_length=255)
+    city_add = models.CharField(max_length=255)
     region = models.CharField(max_length=8, choices=REGIONS)
-    dateCreated = models.DateTimeField(auto_now_add=True)
-    createdBy = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, default=1, editable=False)
+    date_created = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, editable=False)
 
     def __str__(self):
-        return self.firstName
+        return self.first_name
 
 class PatientContact(models.Model):
     patient = models.OneToOneField(Patient, on_delete=models.CASCADE, related_name="contact")
-    mothersName = models.CharField(max_length=75, blank=True)
-    mAddress= models.CharField(max_length=255, blank=True)
-    mContactNumber = models.CharField(max_length=20, blank=True)
-    fathersName = models.CharField(max_length=75, blank=True)
-    fAddress= models.CharField(max_length=255, blank=True)
-    fContactNumber = models.CharField(max_length=20, blank=True)
-    altContactName = models.CharField(max_length=75, blank=True)
-    altAddress= models.CharField(max_length=255, blank=True)
-    altContactNumber = models.CharField(max_length=20, blank=True)
+    mothers_name = models.CharField(max_length=75, blank=True)
+    m_address= models.CharField(max_length=255, blank=True)
+    m_contact_number = models.CharField(max_length=20, blank=True)
+    fathers_name = models.CharField(max_length=75, blank=True)
+    f_address= models.CharField(max_length=255, blank=True)
+    f_contact_number = models.CharField(max_length=20, blank=True)
+    alt_contact_name = models.CharField(max_length=75, blank=True)
+    alt_address = models.CharField(max_length=255, blank=True)
+    alt_contact_number = models.CharField(max_length=20, blank=True)
 
 class PatientClinical(models.Model):
     patient = models.OneToOneField(Patient, on_delete=models.CASCADE, related_name="clinical")
-    caseNumber = models.CharField(max_length=30, null=True, blank=True)
-    patientType = models.CharField(max_length=3, blank=True)
-    referringDoctor = models.CharField(max_length=75, blank=True)
-    referringService = models.CharField(max_length=75, blank=True)
-    referralReason = models.CharField(max_length=255, blank=True)
+    case_number = models.CharField(max_length=30, null=True, blank=True)
+    patient_type = models.CharField(max_length=3, blank=True)
+    referring_doctor = models.CharField(max_length=75, blank=True)
+    referring_service = models.CharField(max_length=75, blank=True)
+    referral_reason = models.CharField(max_length=255, blank=True)
     status = models.CharField(max_length=10, blank=True)
     # workingImpression = models.CharField(max_length=255, blank=True)
     # medicalHistory = models.CharField(max_length=255, blank=True)

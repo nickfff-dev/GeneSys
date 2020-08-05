@@ -7,6 +7,7 @@ urlpatterns = [
     path('', include('frontend.urls')),
     path('', include('patients.urls')),
     path('', include('accounts.urls')),
+    path('', include('schedules.urls')),
     re_path(r'^api/patients/generateid', generatePatientID)
 
 ]

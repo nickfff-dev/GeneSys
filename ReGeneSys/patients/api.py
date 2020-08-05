@@ -8,6 +8,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializers import PatientSerializer, PatientContactClinicalSerializer
 
+from ReGeneSys.common.mixins import FromCamelCase, ToCamelCase
+
 
 #Patient Viewset
 class PatientViewSet(viewsets.ModelViewSet):
@@ -21,8 +23,8 @@ class PatientViewSet(viewsets.ModelViewSet):
     
     def update(self, request, *args, **kwargs):
 
-        instance = self.get_object()
-        instance = request.data
+        # instance = self.get_object()
+        # instance = request.data
 
         instance = self.get_object()
         serializer = PatientContactClinicalSerializer(
