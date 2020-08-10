@@ -1,8 +1,9 @@
 from django.contrib import admin
-from .models import Schedules, ScheduleStaff
+from .models import Event, ClinicSchedule, PatientClinicSchedule
 # Register your models here.
 
-admin.site.register(Schedules)
-admin.site.register(ScheduleStaff)
+admin.site.register(Event)
+admin.site.register(ClinicSchedule)
+admin.site.register(PatientClinicSchedule)
 
 

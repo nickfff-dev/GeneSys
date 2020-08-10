@@ -11,9 +11,10 @@ export const getPatients = () => (dispatch, getState) => {
     axios
         .get(PATIENT_API, tokenConfig(getState))
         .then((res) => {
+            console.log(res.data)
             dispatch({
                 type: GET_PATIENTS,
-                payload: res.data,
+                payload: snakeCaseKeysToCamel(res.data),
             });
         })
         .catch((err) => dispatch(returnErrors(err.response.data, err.response.status)));
@@ -40,7 +41,7 @@ export const dischargePatient = (patient) => (dispatch, getState) => {
             dispatch(createMessage({ dischargePatient: "Patient Discharged" }));
             dispatch({
                 type: EDIT_PATIENT,
-                payload: res.data,
+                payload: snakeCaseKeysToCamel(res.data),
             });
         })
         .catch((err) => dispatch(returnErrors(err.response.data, err.response.status)));
@@ -48,34 +49,14 @@ export const dischargePatient = (patient) => (dispatch, getState) => {
 
 //ADD PATIENT
 export const addPatient = (patient) => (dispatch, getState) => {
-    // for (var [index, value] of Object.keys(patient).entries()) {
-    //     if (value === "contact" || value === "clinical") {
-    //         for (var [index2, value2] of Object.keys(patient[value]).entries()) {
-    //             value2 = _.snakeCase(value2);
-    //             console.log(value2);
-    //         }
-    //     }
-    //     value = _.snakeCase(value);
-    //     console.log(value);
-    // }
-
-    // var snakeCase =
-
-    // const camelCaseArray = snakeCaseArray.map(item=>{
-    //     return Object.keys(item).map(key=>{
-    //        const newKeyName = _.camelCase(key) /*---> lodash function*/
-    //        return {[newKeyName]:item[key]}
-    //     })
-
-    console.log(snakeCase(patient));
 
     axios
-        .post(PATIENT_API, snakeCase(patient), tokenConfig(getState))
+        .post(PATIENT_API, camelCaseKeysToSnake(patient), tokenConfig(getState))
         .then((res) => {
             dispatch(createMessage({ addPatient: "Patient Added" }));
             dispatch({
                 type: ADD_PATIENT,
-                payload: res.data,
+                payload: snakeCaseKeysToCamel(res.data),
             });
         })
         .catch((err) => dispatch(returnErrors(err.response.data, err.response.status)));
@@ -84,27 +65,67 @@ export const addPatient = (patient) => (dispatch, getState) => {
 //EDIT PATIENT
 export const editPatient = (patient) => (dispatch, getState) => {
     axios
-        .put(PATIENT_API + `${patient.patientID}/`, patient, tokenConfig(getState))
+        .put(PATIENT_API + `${patient.patientId}/`, camelCaseKeysToSnake(patient), tokenConfig(getState))
         .then((res) => {
             dispatch(createMessage({ editPatient: "Patient Edited" }));
             dispatch({
                 type: EDIT_PATIENT,
-                payload: res.data,
+                payload: snakeCaseKeysToCamel(res.data),
             });
         })
         .catch((err) => dispatch(returnErrors(err.response.data, err.response.status)));
 };
 
-function snakeCase(data) {
-    for (var [index, value] of Object.keys(data).entries()) {
-        if (value === "contact" || value === "clinical") {
-            for (var [index2, value2] of Object.keys(data[value]).entries()) {
-                value2 = _.snakeCase(value2);
-                // console.log(data[value][value2]);
+function camelCaseKeysToSnake(obj){
+    if (typeof(obj) !== "object") return obj;
+
+    for(var oldName in obj){
+
+        // Camel to underscore
+        // var newName = oldName.replace(/([A-Z])/g, function($1){return "_"+$1.toLowerCase();});
+        var newName = _.snakeCase(oldName)
+
+        // Only process if names are different
+        if (newName !== oldName) {
+            // Check for the old property name to avoid a ReferenceError in strict mode.
+            if (obj.hasOwnProperty(oldName)) {
+                obj[newName] = obj[oldName];
+                delete obj[oldName];
             }
         }
-        value = _.snakeCase(value);
-        // console.log(data[value]);
+
+        // Recursion
+        if (typeof(obj[newName]) == "object") {
+            obj[newName] = camelCaseKeysToSnake(obj[newName]);
+        }
+
     }
-    return data;
+    return obj;
+}
+
+function snakeCaseKeysToCamel(obj){
+    if (typeof(obj) !== "object") return obj;
+
+    for(var oldName in obj){
+
+        // Camel to underscore
+        // var newName = oldName.replace(/([A-Z])/g, function($1){return "_"+$1.toLowerCase();});
+        var newName = _.camelCase(oldName)
+
+        // Only process if names are different
+        if (newName !== oldName) {
+            // Check for the old property name to avoid a ReferenceError in strict mode.
+            if (obj.hasOwnProperty(oldName)) {
+                obj[newName] = obj[oldName];
+                delete obj[oldName];
+            }
+        }
+
+        // Recursion
+        if (typeof(obj[newName]) == "object") {
+            obj[newName] = snakeCaseKeysToCamel(obj[newName]);
+        }
+
+    }
+    return obj;
 }

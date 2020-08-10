@@ -1,8 +1,8 @@
 from rest_framework import routers
-from .api import ScheduleViewSet
+from .api import EventViewSet
 
 router = routers.DefaultRouter()
-router.register('api/schedules', ScheduleViewSet, 'schedules')
+router.register('api/events', EventViewSet, 'events')
 
 
 urlpatterns = router.urls

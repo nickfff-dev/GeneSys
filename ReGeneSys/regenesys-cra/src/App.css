@@ -36,3 +36,14 @@
     transform: rotate(360deg);
   }
 }
+.scat{
+  background-color: ghostwhite;
+}
+
+.react-calendar__navigation__prev2-button{
+  display: none;
+}
+
+.react-calendar__navigation__next2-button{
+  display: none;
+}

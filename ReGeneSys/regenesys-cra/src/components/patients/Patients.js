@@ -34,7 +34,6 @@ function Patients(props) {
     const [closeAll, setCloseAll] = useState(true);
 
     const toggle = () => {
-        console.log("one");
         setModal(!modal);
     };
 
@@ -89,18 +88,18 @@ function Patients(props) {
         const { status } = data;
 
         const modalData = _.find(state.patients.patients, {
-            patientID: modalProps,
+            patientId: modalProps,
         });
 
         const {
-            patientID,
+            patientId,
             firstName,
             lastName,
             middleName,
             suffix,
             sex,
-            DOB,
-            POB,
+            birthDate,
+            birthPlace,
             streetAdd,
             brgyAdd,
             cityAdd,
@@ -123,14 +122,14 @@ function Patients(props) {
         clinical.status = status;
 
         const userToDischarge = {
-            patientID,
+            patientId,
             firstName,
             lastName,
             middleName,
             suffix,
             sex,
-            DOB,
-            POB,
+            birthDate,
+            birthPlace,
             streetAdd,
             brgyAdd,
             cityAdd,
@@ -138,7 +137,6 @@ function Patients(props) {
             contact,
             clinical,
         };
-        console.log(userToDischarge);
         dispatch(dischargePatient(userToDischarge));
         toggleAll();
     };
@@ -151,12 +149,12 @@ function Patients(props) {
                     className="btn btn-primary float-right mb-5"
                     data-toggle="modal"
                     data-target="#addPatientModal"
-                    // onClick={() => showModal("create")}
+                    
                     onClick={async () => {
                         const newID = data;
                         await showModal("create", newID);
                         mutate(url, { ...data, newID });
-                        // nextPage();
+                        
                     }}
                 >
                     Add Patient
@@ -170,24 +168,24 @@ function Patients(props) {
                         <th>Middle Name</th>
                         <th>Last Name</th>
                         <th>Suffix</th>
-                        <th>DOB </th>
-                        <th>Gender</th>
+                        <th>Birth Date </th>
+                        <th>Sex</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     {state.patients.patients.map((patient, index) => (
                         <tr key={index}>
-                            <td>{patient.patientID}</td>
+                            <td>{patient.patientId}</td>
                             <td>{patient.firstName}</td>
                             <td>{patient.middleName}</td>
                             <td>{patient.lastName}</td>
                             <td>{patient.suffix}</td>
-                            <td>{patient.DOB}</td>
-                            <td>{patient.gender}</td>
+                            <td>{patient.birthDate}</td>
+                            <td>{patient.sex}</td>
                             <td>
                                 <button
-                                    onClick={() => showModal("view", patient.patientID)}
+                                    onClick={() => showModal("view", patient.patientId)}
                                     className="btn btn-info btn-sm mr-2"
                                     data-toggle="modal"
                                     data-target="#viewPatientModal"
@@ -195,7 +193,7 @@ function Patients(props) {
                                     View
                                 </button>
                                 <button
-                                    onClick={() => showModal("edit", patient.patientID)}
+                                    onClick={() => showModal("edit", patient.patientId)}
                                     className="btn btn-primary btn-sm mr-2"
                                     data-toggle="modal"
                                     data-target="#editPatientModal"
@@ -204,7 +202,7 @@ function Patients(props) {
                                 </button>
                                 <button
                                     // onClick={toggle}
-                                    onClick={() => showModal("delete", patient.patientID)}
+                                    onClick={() => showModal("delete", patient.patientId)}
                                     className="btn btn-danger btn-sm"
                                 >
                                     Discharge
@@ -325,8 +323,8 @@ function Patients(props) {
 //                             <th>Middle Name</th>
 //                             <th>Last Name</th>
 //                             <th>Suffix</th>
-//                             <th>DOB </th>
-//                             <th>Gender</th>
+//                             <th>birthDate </th>
+//                             <th>sex</th>
 //                             <th></th>
 //                         </tr>
 //                     </thead>
@@ -338,8 +336,8 @@ function Patients(props) {
 //                                 <td>{patient.middleName}</td>
 //                                 <td>{patient.lastName}</td>
 //                                 <td>{patient.suffix}</td>
-//                                 <td>{patient.DOB}</td>
-//                                 <td>{patient.gender}</td>
+//                                 <td>{patient.birthDate}</td>
+//                                 <td>{patient.sex}</td>
 //                                 <td>
 //                                     <button
 //                                         onClick={this.props.showPatientModal.bind(

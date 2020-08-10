@@ -1,15 +1,14 @@
-import React, { Component, useState, Fragment } from "react";
+import React, { useState } from "react";
 import { connect, useSelector, useDispatch } from "react-redux";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
-import PropTypes from "prop-types";
+
 
 import _ from "lodash";
 import { useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
 
-import { addPatient, editPatient } from "../../actions/patients";
+import { editPatient } from "../../actions/patients";
 import { hidePatientModal } from "../../actions/modal";
-import axios from "axios";
 
 function pageInitial() {
     return 1;
@@ -40,11 +39,11 @@ function EditForm(props) {
 
     const validatePage = () => {
         if (page === 1) {
-            const check = triggerValidation(["firstName", "lastName", "DOB", "POB", "sex", "streetAdd", "brgyAdd", "cityAdd", "region"]);
+            const check = trigger(["firstName", "lastName", "birthDate", "birthPlace", "sex", "streetAdd", "brgyAdd", "cityAdd", "region"]);
 
             return check;
         } else if (page === 2) {
-            const check = triggerValidation([
+            const check = trigger([
                 "mothersName",
                 "mContactNumber",
                 "mAddress",
@@ -57,7 +56,7 @@ function EditForm(props) {
             ]);
             return check;
         } else if (page === 3) {
-            const check = triggerValidation(["caseNumber", "patientType", "referringDoctor", "referringService", "referralReason"]);
+            const check = trigger(["caseNumber", "patientType", "referringDoctor", "referringService", "referralReason"]);
             return check;
         }
     };
@@ -77,7 +76,7 @@ function EditForm(props) {
     const dispatch = useDispatch();
     const { modalType, modalProps } = state.modal;
     const modalData = _.find(state.patients.patients, {
-        patientID: modalProps,
+        patientId: modalProps,
     });
 
     const today = new Date();
@@ -85,24 +84,24 @@ function EditForm(props) {
     const curDate = today.getMonth() + 1 + "/" + today.getDate() + "/" + today.getFullYear();
     const maxDate = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
 
-    const { patientID, firstName, lastName, middleName, suffix, sex, DOB, POB, streetAdd, brgyAdd, cityAdd, region, contact, clinical } = modalData;
+    const { patientId, firstName, lastName, middleName, suffix, sex, birthDate, birthPlace, streetAdd, brgyAdd, cityAdd, region, contact, clinical } = modalData;
 
     const { mothersName, mAddress, mContactNumber, fathersName, fAddress, fContactNumber, altContactName, altAddress, altContactNumber } = contact;
 
     const { caseNumber, patientType, referringDoctor, referringService, referralReason, status } = clinical;
 
-    const { register, errors, reset, handleSubmit, triggerValidation, getValues } = useForm({
+    const { register, errors, reset, handleSubmit, trigger, getValues } = useForm({
         mode: "onChange",
         reValidateMode: "onChange",
         defaultValues: {
-            patientID: patientID,
+            patientId: patientId,
             firstName: firstName,
             lastName: lastName,
             middleName: middleName,
             suffix: suffix,
             sex: sex,
-            DOB: DOB,
-            POB: POB,
+            birthDate: birthDate,
+            birthPlace: birthPlace,
             streetAdd: streetAdd,
             brgyAdd: brgyAdd,
             cityAdd: cityAdd,
@@ -127,14 +126,14 @@ function EditForm(props) {
 
     const onSubmit = (data) => {
         const {
-            patientID,
+            patientId,
             firstName,
             lastName,
             middleName,
             suffix,
             sex,
-            DOB,
-            POB,
+            birthDate,
+            birthPlace,
             streetAdd,
             brgyAdd,
             cityAdd,
@@ -175,14 +174,14 @@ function EditForm(props) {
         };
 
         const userToUpdate = {
-            patientID,
+            patientId,
             firstName,
             lastName,
             middleName,
             suffix,
             sex,
-            DOB,
-            POB,
+            birthDate,
+            birthPlace,
             streetAdd,
             brgyAdd,
             cityAdd,
@@ -204,7 +203,7 @@ function EditForm(props) {
                             <div className="form-row">
                                 <div className="form-group col-md-6">
                                     <label>Patient ID</label>
-                                    <input className="form-control" readOnly={true} type="text" name="patientID" ref={register({ required: true })} />
+                                    <input className="form-control" readOnly={true} type="text" name="patientId" ref={register({ required: true })} />
                                 </div>
                             </div>
                             <div className="form-row">
@@ -313,7 +312,7 @@ function EditForm(props) {
                                     <input
                                         className="form-control"
                                         type="date"
-                                        name="DOB"
+                                        name="birthDate"
                                         min="1900-01-01"
                                         max={maxDate}
                                         ref={register({
@@ -328,7 +327,7 @@ function EditForm(props) {
                                             },
                                         })}
                                     />
-                                    <ErrorMessage errors={errors} name="DOB">
+                                    <ErrorMessage errors={errors} name="birthDate">
                                         {({ messages }) =>
                                             messages &&
                                             Object.entries(messages).map(([type, message]) => (
@@ -344,7 +343,7 @@ function EditForm(props) {
                                     <input
                                         className="form-control"
                                         type="text"
-                                        name="POB"
+                                        name="birthPlace"
                                         ref={register({
                                             required: "This input is required.",
                                             maxLength: {
@@ -353,7 +352,7 @@ function EditForm(props) {
                                             },
                                         })}
                                     />
-                                    <ErrorMessage errors={errors} name="POB">
+                                    <ErrorMessage errors={errors} name="birthPlace">
                                         {({ messages }) =>
                                             messages &&
                                             Object.entries(messages).map(([type, message]) => (

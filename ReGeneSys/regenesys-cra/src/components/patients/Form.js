@@ -1,28 +1,28 @@
-import React, { Component, Fragment, useState, useEffect } from "react";
+import React, { Component, Fragment, useState } from "react";
 import { connect, useSelector, useDispatch } from "react-redux";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
-import PropTypes, { func } from "prop-types";
+
 import { useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
-import axios from "axios";
+
 import _ from "lodash/fp";
 
 import { hidePatientModal } from "../../actions/modal";
-import toggle from "./Patients";
+
 
 import { addPatient } from "../../actions/patients";
-import { isEmpty } from "lodash";
+
 
 function pageInitial() {
     return 1;
 }
 
-function generateID() {
-    axios.get("/api/patients/generateid").then((res) => {
-        // console.log(res.data);
-        return res.data;
-    });
-}
+// function generateID() {
+//     axios.get("/api/patients/generateid").then((res) => {
+//         // console.log(res.data);
+//         return res.data;
+//     });
+// }
 
 function AddForm(props) {
     const [page, setPage] = useState(() => pageInitial());
@@ -49,11 +49,11 @@ function AddForm(props) {
     };
 
     const validatePage = () => {
-        if (page == 1) {
-            const check = trigger(["firstName", "lastName", "DOB", "POB", "sex", "streetAdd", "brgyAdd", "cityAdd", "region"]);
+        if (page === 1) {
+            const check = trigger(["firstName", "lastName", "birthDate", "birthPlace", "sex", "streetAdd", "brgyAdd", "cityAdd", "region"]);
 
             return check;
-        } else if (page == 2) {
+        } else if (page === 2) {
             const check = trigger([
                 "mothersName",
                 "mContactNumber",
@@ -66,7 +66,7 @@ function AddForm(props) {
                 "altAddress",
             ]);
             return check;
-        } else if (page == 3) {
+        } else if (page === 3) {
             const check = trigger([
                 "caseNumber",
                 "patientType",
@@ -117,7 +117,7 @@ function AddForm(props) {
     const curDate = today.getMonth() + 1 + "/" + today.getDate() + "/" + today.getFullYear();
     const maxDate = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
 
-    const { register, errors, reset, handleSubmit, trigger, getValues } = useForm({
+    const { register, errors, handleSubmit, trigger, getValues } = useForm({
         criteriaMode: "all",
         mode: "onChange",
         reValidateMode: "onChange",
@@ -128,8 +128,8 @@ function AddForm(props) {
             middleName: "",
             suffix: "",
             sex: "",
-            DOB: "",
-            POB: "",
+            birthDate: "",
+            birthPlace: "",
             streetAdd: "",
             brgyAdd: "",
             cityAdd: "",
@@ -176,8 +176,8 @@ function AddForm(props) {
             middleName,
             suffix,
             sex,
-            DOB,
-            POB,
+            birthDate,
+            birthPlace,
             streetAdd,
             brgyAdd,
             cityAdd,
@@ -260,8 +260,8 @@ function AddForm(props) {
             middleName,
             suffix,
             sex,
-            DOB,
-            POB,
+            birthDate,
+            birthPlace,
             streetAdd,
             brgyAdd,
             cityAdd,
@@ -281,7 +281,7 @@ function AddForm(props) {
                 <ModalHeader toggle={toggle}>Add Patient</ModalHeader>
                 <ModalBody>
                     <form id="edit-form" onSubmit={handleSubmit(onSubmit)}>
-                        <div id="page-one" className={page == 1 ? "" : "d-none"}>
+                        <div id="page-one" className={page === 1 ? "" : "d-none"}>
                             <div className="form-row">
                                 <div className="form-group col-md-6">
                                     <label>Patient ID</label>
@@ -406,7 +406,7 @@ function AddForm(props) {
                                     <input
                                         className="form-control"
                                         type="date"
-                                        name="DOB"
+                                        name="birthDate"
                                         min="1900-01-01"
                                         max={maxDate}
                                         ref={register({
@@ -423,7 +423,7 @@ function AddForm(props) {
                                     />
                                     <ErrorMessage
                                         errors={errors}
-                                        name="DOB"
+                                        name="birthDate"
                                         render={({ messages }) => {
                                             console.log("messages", messages);
                                             return messages
@@ -441,7 +441,7 @@ function AddForm(props) {
                                     <input
                                         className="form-control"
                                         type="text"
-                                        name="POB"
+                                        name="birthPlace"
                                         ref={register({
                                             required: "This input is required.",
                                             maxLength: {
@@ -452,7 +452,7 @@ function AddForm(props) {
                                     />
                                     <ErrorMessage
                                         errors={errors}
-                                        name="POB"
+                                        name="birthPlace"
                                         render={({ messages }) => {
                                             console.log("messages", messages);
                                             return messages
@@ -590,7 +590,7 @@ function AddForm(props) {
                                 </div>
                             </div>
                         </div>
-                        <div id="page-two" className={page == 2 ? "" : "d-none"}>
+                        <div id="page-two" className={page === 2 ? "" : "d-none"}>
                             <div className="form-row">
                                 <div className="form-group col-md-6">
                                     <label>Mother's Name</label>
@@ -631,7 +631,7 @@ function AddForm(props) {
                                                 motherOtherFieldsFilled: (value) => {
                                                     const { mContactNumber, mAddress } = getValues();
                                                     return (
-                                                        value.length > 0 || (mContactNumber.length == 0 && mAddress.length == 0) || "This is required"
+                                                        value.length > 0 || (mContactNumber.length === 0 && mAddress.length === 0) || "This is required"
                                                     );
                                                 },
                                             },
@@ -659,7 +659,7 @@ function AddForm(props) {
                                             validate: {
                                                 mothersNameFilled: (value) => {
                                                     const { mothersName } = getValues();
-                                                    return mothersName.length == 0 || value.length > 0 || "This is required";
+                                                    return mothersName.length === 0 || value.length > 0 || "This is required";
                                                 },
                                             },
                                         })}
@@ -695,7 +695,7 @@ function AddForm(props) {
                                             validate: {
                                                 motherFilled: (value) => {
                                                     const { mothersName } = getValues();
-                                                    return mothersName.length == 0 || value.length > 0 || "This is required";
+                                                    return mothersName.length === 0 || value.length > 0 || "This is required";
                                                 },
                                             },
                                         })}
@@ -733,7 +733,7 @@ function AddForm(props) {
                                                 fatherOtherFieldsFilled: (value) => {
                                                     const { fContactNumber, fAddress } = getValues();
                                                     return (
-                                                        value.length > 0 || (fContactNumber.length == 0 && fAddress.length == 0) || "This is required"
+                                                        value.length > 0 || (fContactNumber.length === 0 && fAddress.length === 0) || "This is required"
                                                     );
                                                 },
                                             },
@@ -772,7 +772,7 @@ function AddForm(props) {
                                             validate: {
                                                 fathersNameFilled: (value) => {
                                                     const { fathersName } = getValues();
-                                                    return fathersName.length == 0 || value.length > 0 || "This is required";
+                                                    return fathersName.length === 0 || value.length > 0 || "This is required";
                                                 },
                                             },
                                         })}
@@ -808,7 +808,7 @@ function AddForm(props) {
                                             validate: {
                                                 motherFilled: (value) => {
                                                     const { fathersName } = getValues();
-                                                    return fathersName.length == 0 || value.length > 0 || "This is required";
+                                                    return fathersName.length === 0 || value.length > 0 || "This is required";
                                                 },
                                             },
                                         })}
@@ -847,7 +847,7 @@ function AddForm(props) {
                                                     const { altContactNumber, altAddress } = getValues();
                                                     return (
                                                         value.length > 0 ||
-                                                        (altContactNumber.length == 0 && altAddress.length == 0) ||
+                                                        (altContactNumber.length === 0 && altAddress.length === 0) ||
                                                         "This is required"
                                                     );
                                                 },
@@ -887,7 +887,7 @@ function AddForm(props) {
                                             validate: {
                                                 altContactsNameFilled: (value) => {
                                                     const { altContactName, altAddress } = getValues();
-                                                    return altContactName.length == 0 || value.length > 0 || "This is required";
+                                                    return altContactName.length === 0 || value.length > 0 || "This is required";
                                                 },
                                             },
                                         })}
@@ -923,7 +923,7 @@ function AddForm(props) {
                                             validate: {
                                                 altFilled: (value) => {
                                                     const { altContactName } = getValues();
-                                                    return altContactName.length == 0 || value.length > 0 || "This is required";
+                                                    return altContactName.length === 0 || value.length > 0 || "This is required";
                                                 },
                                             },
                                         })}
@@ -944,12 +944,12 @@ function AddForm(props) {
                                     />
                                 </div>
                             </div>
-                            {errors.mothersName && errors.mothersName.type == "atLeastOne" && (
+                            {errors.mothersName && errors.mothersName.type === "atLeastOne" && (
                                 <p className="text-danger">{errors.mothersName.message}</p>
                             )}
                         </div>
 
-                        <div id="page-three" className={page == 3 ? "" : "d-none"}>
+                        <div id="page-three" className={page === 3 ? "" : "d-none"}>
                             <div className="form-row">
                                 <div className="form-group col-md-6">
                                     <label>Case Number</label>
@@ -1145,7 +1145,7 @@ function AddForm(props) {
                                 </div>
                             </div> */}
                         </div>
-                        <div id="page-three" className={page == 4 ? "" : "d-none"}>
+                        <div id="page-three" className={page === 4 ? "" : "d-none"}>
                             {/* <div className="form-row">
                                 <div className="form-group col-md-12">
                                     <label>Other History</label>
@@ -1176,7 +1176,7 @@ function AddForm(props) {
 
                         {/* <div
                             id="page-three"
-                            className={page == 3 ? "" : "d-none"}
+                            className={page === 3 ? "" : "d-none"}
                         >
                             <div className="form-row">
                                 <div className="form-group col-md-6">
@@ -1895,8 +1895,8 @@ function AddForm(props) {
                             // disabled={
                             //     (errors.firstName,
                             //     errors.lastName,
-                            //     errors.DOB,
-                            //     errors.POB,
+                            //     errors.birthDate,
+                            //     errors.birthPlace,
                             //     errors.sex,
                             //     errors.streetAdd,
                             //     errors.brgyAdd,
@@ -1932,7 +1932,7 @@ function AddForm(props) {
                             Next Page
                         </button>
                     )}
-                    {page == 3 && (
+                    {page === 3 && (
                         <button
                             type="button"
                             className="btn btn-primary"
@@ -1940,7 +1940,7 @@ function AddForm(props) {
                                 const pageValid = await validatePage();
                                 // const curTime = new Date().toLocaleString();
                                 console.log("page valid? " + errors);
-                                if (pageValid == true) {
+                                if (pageValid === true) {
                                     toggleNested();
                                 }
                             }}
@@ -1953,7 +1953,6 @@ function AddForm(props) {
                         className="btn btn-secondary"
                         data-dismiss="modal"
                         onClick={toggle}
-                        // onClick={(closeModal, reset)}
                     >
                         Close
                     </button>

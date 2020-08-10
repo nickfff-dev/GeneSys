@@ -7,6 +7,7 @@ import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import Patients from "../patients/Patients";
+import Schedules from "../schedules/Schedules"
 import PrivateRoute from "../common/PrivateRoute";
 import Login from "../accounts/Login";
 import Register from "../../components/accounts/Register";
@@ -29,6 +30,11 @@ const routes = [
         path: "/patients",
         // sidebar: () => <div>patients!</div>,
         main: () => <Patients />,
+    },
+    {
+        path: "/schedule",
+        // sidebar: () => <div>patients!</div>,
+        main: () => <Schedules />,
     },
 ];
 

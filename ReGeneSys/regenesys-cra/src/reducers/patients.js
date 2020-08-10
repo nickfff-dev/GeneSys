@@ -20,7 +20,7 @@ export default function (state = initialState, action) {
             return {
                 ...state,
                 patients: state.patients.filter(
-                    (patient) => patient.patientID !== action.payload
+                    (patient) => patient.patientId !== action.payload
                 ),
             };
         case ADD_PATIENT:
@@ -32,7 +32,7 @@ export default function (state = initialState, action) {
             return {
                 ...state,
                 patients: state.patients.map((patient) =>
-                    patient.patientID === action.payload.patientID
+                    patient.patientId === action.payload.patientId
                         ? action.payload
                         : patient
                 ),

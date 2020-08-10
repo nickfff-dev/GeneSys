@@ -1,17 +1,17 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
-from .models import Permissions
+from .models import UserPermissions
 
 
-class PermissionsInline(admin.StackedInline):
-    model = Permissions
+class UserPermissionsInline(admin.StackedInline):
+    model = UserPermissions
     can_delete = False
-    verbose_name_plural = 'Permissions'
+    verbose_name_plural = 'UserPermissions'
 
 
 class UserAdmin(BaseUserAdmin):
-    inlines = (PermissionsInline,)
+    inlines = (UserPermissionsInline,)
 
 
 admin.site.unregister(User)
