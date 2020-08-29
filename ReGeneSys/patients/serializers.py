@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Patient,  PatientContact, PatientClinical 
+from .models import Patient, PatientContact, PatientClinical 
 
 # Patient Serializer
 

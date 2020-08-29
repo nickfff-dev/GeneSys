@@ -1,6 +1,6 @@
-import React, { Component, Fragment, useState, useEffect } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTachometerAlt, faAngleUp, faUsers, faCalendarAlt, faMedkit } from "@fortawesome/free-solid-svg-icons";
+import React, { Fragment } from "react";
+// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+// import { faTachometerAlt, faAngleUp, faUsers, faCalendarAlt, faMedkit } from "@fortawesome/free-solid-svg-icons";
 import "../../static/sb-admin2/css/sb-admin-2.css";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap/js/dist/dropdown";

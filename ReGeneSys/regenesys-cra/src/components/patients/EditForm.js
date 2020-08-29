@@ -2,13 +2,12 @@ import React, { useState } from "react";
 import { connect, useSelector, useDispatch } from "react-redux";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 
-
 import _ from "lodash";
 import { useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
 
 import { editPatient } from "../../actions/patients";
-import { hidePatientModal } from "../../actions/modal";
+import { hideModal } from "../../actions/modal";
 
 function pageInitial() {
     return 1;
@@ -21,7 +20,7 @@ function EditForm(props) {
     const [closeAll, setCloseAll] = useState(true);
 
     const closeModal = () => {
-        dispatch(hidePatientModal());
+        dispatch(hideModal());
     };
 
     const toggle = () => {
@@ -84,7 +83,22 @@ function EditForm(props) {
     const curDate = today.getMonth() + 1 + "/" + today.getDate() + "/" + today.getFullYear();
     const maxDate = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
 
-    const { patientId, firstName, lastName, middleName, suffix, sex, birthDate, birthPlace, streetAdd, brgyAdd, cityAdd, region, contact, clinical } = modalData;
+    const {
+        patientId,
+        firstName,
+        lastName,
+        middleName,
+        suffix,
+        sex,
+        birthDate,
+        birthPlace,
+        streetAdd,
+        brgyAdd,
+        cityAdd,
+        region,
+        contact,
+        clinical,
+    } = modalData;
 
     const { mothersName, mAddress, mContactNumber, fathersName, fAddress, fContactNumber, altContactName, altAddress, altContactNumber } = contact;
 
@@ -970,7 +984,7 @@ function EditForm(props) {
 // export class EditForm extends Component {
 //     static propTypes = {
 //         editPatient: PropTypes.func.isRequired,
-//         hidePatientModal: PropTypes.func.isRequired,
+//         hideModal: PropTypes.func.isRequired,
 //         modal: PropTypes.object.isRequired,
 //         patients: PropTypes.array.isRequired,
 //     };
@@ -994,5 +1008,5 @@ const mapStateToProps = (state) => ({
 
 export default connect(mapStateToProps, {
     editPatient,
-    hidePatientModal,
+    hideModal,
 })(EditForm);

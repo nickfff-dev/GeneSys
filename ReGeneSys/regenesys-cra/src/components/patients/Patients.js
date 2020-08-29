@@ -1,12 +1,12 @@
-import React, { Component, Fragment, useState, useEffect } from "react";
+import React, { Fragment, useState, useEffect } from "react";
 import { connect, useSelector, useDispatch } from "react-redux";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
-import { PropTypes } from "prop-types";
+// import { PropTypes } from "prop-types";
 import { useForm } from "react-hook-form";
 import useSWR, { mutate } from "swr";
 
 import { getPatients, dischargePatient, editPatient } from "../../actions/patients";
-import { showPatientModal, hidePatientModal } from "../../actions/modal";
+import { showModal, hideModal } from "../../actions/modal";
 import { PATIENT_API } from "../../constants";
 import Form from "./Form";
 import EditForm from "./EditForm";
@@ -59,16 +59,16 @@ function Patients(props) {
 
     const dispatch = useDispatch();
 
-    function showModal(type, modalProps) {
+    function showPatientModal(type, modalProps) {
         if (type === "delete") {
             toggle();
-            dispatch(showPatientModal(type, modalProps));
+            dispatch(showModal(type, modalProps));
         } else {
-            dispatch(showPatientModal(type, modalProps));
+            dispatch(showModal(type, modalProps));
         }
     }
 
-    const { register, errors, reset, handleSubmit, triggerValidation, getValues } = useForm({
+    const { register, errors, reset, handleSubmit, trigger, getValues } = useForm({
         validateCriteriaMode: "all",
         mode: "onChange",
         reValidateMode: "onChange",
@@ -149,12 +149,10 @@ function Patients(props) {
                     className="btn btn-primary float-right mb-5"
                     data-toggle="modal"
                     data-target="#addPatientModal"
-                    
                     onClick={async () => {
                         const newID = data;
-                        await showModal("create", newID);
+                        await showPatientModal("create", newID);
                         mutate(url, { ...data, newID });
-                        
                     }}
                 >
                     Add Patient
@@ -185,7 +183,7 @@ function Patients(props) {
                             <td>{patient.sex}</td>
                             <td>
                                 <button
-                                    onClick={() => showModal("view", patient.patientId)}
+                                    onClick={() => showPatientModal("view", patient.patientId)}
                                     className="btn btn-info btn-sm mr-2"
                                     data-toggle="modal"
                                     data-target="#viewPatientModal"
@@ -193,7 +191,7 @@ function Patients(props) {
                                     View
                                 </button>
                                 <button
-                                    onClick={() => showModal("edit", patient.patientId)}
+                                    onClick={() => showPatientModal("edit", patient.patientId)}
                                     className="btn btn-primary btn-sm mr-2"
                                     data-toggle="modal"
                                     data-target="#editPatientModal"
@@ -202,7 +200,7 @@ function Patients(props) {
                                 </button>
                                 <button
                                     // onClick={toggle}
-                                    onClick={() => showModal("delete", patient.patientId)}
+                                    onClick={() => showPatientModal("delete", patient.patientId)}
                                     className="btn btn-danger btn-sm"
                                 >
                                     Discharge
@@ -257,10 +255,10 @@ function Patients(props) {
                         <ModalHeader>Save Changes</ModalHeader>
                         <ModalBody>Are you sure you want to save the changes you made?</ModalBody>
                         <ModalFooter>
-                            <Button color="primary" onClick={handleSubmit(onSubmit)}>
+                            <Button color="primary" onClick={() => handleSubmit(onSubmit)}>
                                 Yes
                             </Button>
-                            <Button color="secondary" onClick={toggleNested}>
+                            <Button color="secondary" onClick={() => toggleNested}>
                                 Cancel
                             </Button>
                         </ModalFooter>
@@ -415,6 +413,6 @@ export default connect(mapStateToProps, {
     getPatients,
     dischargePatient,
     editPatient,
-    showPatientModal,
-    hidePatientModal,
+    showModal,
+    hideModal,
 })(Patients);

@@ -1,8 +1,9 @@
-import React, { Component, Fragment, useState, useEffect } from "react";
+import React, { Fragment } from "react";
 import { Link, useRouteMatch } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTachometerAlt, faAngleUp, faUsers, faCalendarAlt, faMedkit } from "@fortawesome/free-solid-svg-icons";
+import { faTachometerAlt, faUsers, faCalendarAlt, faMedkit } from "@fortawesome/free-solid-svg-icons";
 import "../../static/sb-admin2/css/sb-admin-2.css";
+import logo from "../../static/images/logo.png";
 
 export function Sidebar() {
     let { path, url } = useRouteMatch();
@@ -13,7 +14,7 @@ export function Sidebar() {
                 {/* Sidebar - Brand */}
                 <a className="sidebar-brand d-flex align-items-center justify-content-center" href="/">
                     <div className="sidebar-brand-icon">
-                        <img className="logo-small" src="../../../static/frontend/images/IHT Thumbnail Logo.png"></img>
+                        <img className="logo-small" src={logo}></img>
                     </div>
                     <div className="sidebar-brand-text mx-3">GeneSys</div>
                 </a>

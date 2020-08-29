@@ -1,18 +1,18 @@
-import React, { Component, Fragment, useState, useEffect } from "react";
-import { Route, Switch, useRouteMatch, withRouter } from "react-router-dom";
+import React, { Fragment } from "react";
+import { Switch, useRouteMatch } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTachometerAlt, faAngleUp, faUsers, faCalendarAlt, faMedkit } from "@fortawesome/free-solid-svg-icons";
+import { faAngleUp } from "@fortawesome/free-solid-svg-icons";
 import "../../static/sb-admin2/css/sb-admin-2.css";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import Patients from "../patients/Patients";
-import Schedules from "../schedules/Schedules"
+import Schedules from "../schedules/Schedules";
 import PrivateRoute from "../common/PrivateRoute";
-import Login from "../accounts/Login";
-import Register from "../../components/accounts/Register";
-import HomeContainer from "./HomeContainer";
-import Dashboard from "../patients/Dashboard";
+// import Login from "../accounts/Login";
+// import Register from "../../components/accounts/Register";
+// import HomeContainer from "./HomeContainer";
+// import Dashboard from "../patients/Dashboard";
 
 const routes = [
     {

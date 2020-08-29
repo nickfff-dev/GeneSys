@@ -1,4 +1,5 @@
-import { SHOW_PATIENT_MODAL, HIDE_PATIENT_MODAL } from "../actions/types.js";
+import { SHOW_MODAL, HIDE_MODAL } from "../actions/types.js";
+// import { SHOW_PATIENT_MODAL, HIDE_PATIENT_MODAL } from "../actions/types.js";
 
 const initialState = {
     modalMode: "",
@@ -7,13 +8,13 @@ const initialState = {
 
 export default function (state = initialState, action) {
     switch (action.type) {
-        case SHOW_PATIENT_MODAL:
+        case SHOW_MODAL:
             return {
                 ...state,
                 modalMode: action.modalMode,
                 modalProps: action.modalProps,
             };
-        case HIDE_PATIENT_MODAL:
+        case HIDE_MODAL:
             return {
                 ...state,
                 modalMode: action.modalMode,

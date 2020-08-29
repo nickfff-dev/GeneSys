@@ -1,9 +1,24 @@
+export const GET_EVENTS = "GET_EVENTS";
+export const ADD_EVENT = "ADD_EVENTS";
+export const EDIT_EVENT = "EDIT_EVENTS";
+export const DELETE_EVENT = "GET_EVENTS";
+
+export const GET_SCHEDULES = "GET_SCHEDULES";
+export const ADD_SCHEDULE = "ADD_SCHEDULE";
+export const EDIT_SCHEDULE = "EDIT_SCHEDULE";
+export const DELETE_SCHEDULE = "GET_SCHEDULE";
+export const GET_SCHEDULED_PATIENTS = "GET_SCHEDULED_PATIENTS";
+
 export const GET_PATIENTS = "GET_PATIENTS";
 export const DELETE_PATIENT = "DELETE_PATIENT";
 export const ADD_PATIENT = "ADD_PATIENT";
 export const EDIT_PATIENT = "EDIT_PATIENT";
-export const SHOW_PATIENT_MODAL = "SHOW_PATIENT_MODAL";
-export const HIDE_PATIENT_MODAL = "HIDE_PATIENT_MODAL";
+
+// export const SHOW_PATIENT_MODAL = "SHOW_PATIENT_MODAL";
+// export const HIDE_PATIENT_MODAL = "HIDE_PATIENT_MODAL";
+export const SHOW_MODAL = "SHOW_MODAL";
+export const HIDE_MODAL = "HIDE_MODAL";
+
 export const GET_ERRORS = "GET_ERRORS";
 export const CREATE_MESSAGE = "CREATE_MESSAGE";
 export const USER_LOADING = "USER_LOADING";

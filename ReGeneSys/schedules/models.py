@@ -4,29 +4,48 @@ from patients.models import Patient
 
 # Create your models here.
 
+
 class Event(models.Model):
     name = models.CharField(max_length=75)
     date = models.DateField()
     location = models.CharField(max_length=75)
-    event_type = models.CharField(max_length=75)
+    event_type = models.CharField(max_length=25)
     time_start = models.TimeField()
     time_end = models.TimeField()
     description = models.TextField(max_length=225)
-    attendees = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="attendees")
-    createdBy = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT, editable=False)
+    attendees = models.ManyToManyField(settings.AUTH_USER_MODEL,
+                                       related_name="attendees")
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL,
+                                   on_delete=models.PROTECT)
+
+    def __str__(self):
+        return self.name + " - " + str(self.date)
+
 
 class ClinicSchedule(models.Model):
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="event")
-    physician = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="attending_physician")
+    event = models.ForeignKey(Event,
+                              on_delete=models.CASCADE,
+                              related_name="event")
+    physician = models.ManyToManyField(settings.AUTH_USER_MODEL,
+                                       related_name="attending_physician")
 
-class PatientClinicSchedule(models.Model):
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="scheduled_patient")
-    schedule = models.ForeignKey(ClinicSchedule, on_delete=models.CASCADE, related_name="clinic_schedule")
+    def __str__(self):
+        return str(self.event) + "-" + str(self.physician)
+
+
+class ClinicSchedulePatient(models.Model):
+    patient = models.ForeignKey(Patient,
+                                on_delete=models.CASCADE,
+                                related_name="scheduled_patient")
+    schedule = models.ForeignKey(ClinicSchedule,
+                                 on_delete=models.CASCADE,
+                                 related_name="schedule")
     time_start = models.TimeField()
     time_end = models.TimeField()
-    status = models.CharField(max_length=2)
+    status = models.CharField(max_length=15)
 
-
+    def __str__(self):
+        return str(self.schedule.event.date) + " - " + str(self.patient)
 
 
 # class Schedules(models.Model):
@@ -39,7 +58,6 @@ class PatientClinicSchedule(models.Model):
 
 #     def __str__(self):
 #         return self.patient.patientID + " - " + str(self.date) + " - " + str(self.timeStart) + " - " + str(self.timeEnd)
-
 
 # class ScheduleStaff(models.Model):
 #     schedule = models.ForeignKey(Schedules, on_delete=models.CASCADE, editable=False, related_name="schedule")

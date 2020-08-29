@@ -4,13 +4,13 @@ import { connect } from "react-redux";
 import PropTypes from "prop-types";
 import _ from "lodash";
 
-import { showPatientModal, hidePatientModal } from "../../actions/modal";
+import { showModal, hideModal } from "../../actions/modal";
 
 export class ViewModal extends Component {
     static propTypes = {
         patients: PropTypes.array.isRequired,
-        showPatientModal: PropTypes.func.isRequired,
-        hidePatientModal: PropTypes.func.isRequired,
+        showModal: PropTypes.func.isRequired,
+        hideModal: PropTypes.func.isRequired,
         modal: PropTypes.object.isRequired,
     };
 
@@ -89,26 +89,19 @@ export class ViewModal extends Component {
     render() {
         return (
             <Fragment>
-                <div className="modal" id="viewPatientModal">
+                <div className="modal" id="viewModal">
                     <div className="modal-dialog modal-xl" role="document">
                         <div className="modal-content">
                             <div className="modal-header">
                                 <h5 className="modal-title">
-                                    {this.state.PatientID}{" "}
-                                    {this.state.ModalPage}
+                                    {this.state.PatientID} {this.state.ModalPage}
                                 </h5>
-                                <button
-                                    type="button"
-                                    className="close"
-                                    data-dismiss="modal"
-                                    aria-label="Close"
-                                    onClick={this.props.hidePatientModal.bind()}
-                                >
+                                <button type="button" className="close" data-dismiss="modal" aria-label="Close" onClick={this.props.hideModal.bind()}>
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
 
-                            {this.state.ModalPage == 1 && (
+                            {this.state.ModalPage === 1 && (
                                 <div className="modal-body">
                                     <div className="row">
                                         <div className="col-md-3">
@@ -130,7 +123,7 @@ export class ViewModal extends Component {
                                     </div>
                                 </div>
                             )}
-                            {this.state.ModalPage == 2 && (
+                            {this.state.ModalPage === 2 && (
                                 <div className="modal-body">
                                     <div className="row">
                                         <div className="col-md-4">
@@ -148,47 +141,30 @@ export class ViewModal extends Component {
                                     </div>
                                 </div>
                             )}
-                            {this.state.ModalPage == 3 && (
+                            {this.state.ModalPage === 3 && (
                                 <div className="modal-body">
                                     <div className="row">
                                         <div className="col-md-6">
                                             <label>Contact Person</label>
-                                            <span>
-                                                {this.state.ContactPerson}
-                                            </span>
+                                            <span>{this.state.ContactPerson}</span>
                                         </div>
                                         <div className="col-md-6">
                                             <label>Contact Number</label>
-                                            <span>
-                                                {this.state.ContactNumber}
-                                            </span>
+                                            <span>{this.state.ContactNumber}</span>
                                         </div>
                                     </div>
                                 </div>
                             )}
 
                             <div className="modal-footer">
-                                <button
-                                    type="button"
-                                    className="btn btn-primary"
-                                    onClick={this.previousPage}
-                                >
+                                <button type="button" className="btn btn-primary" onClick={this.previousPage}>
                                     Previous Page
                                 </button>
-                                <button
-                                    type="button"
-                                    className="btn btn-primary"
-                                    onClick={this.nextPage}
-                                >
+                                <button type="button" className="btn btn-primary" onClick={this.nextPage}>
                                     Next Page
                                 </button>
 
-                                <button
-                                    type="button"
-                                    className="btn btn-secondary"
-                                    data-dismiss="modal"
-                                    onClick={this.props.hidePatientModal.bind()}
-                                >
+                                <button type="button" className="btn btn-secondary" data-dismiss="modal" onClick={this.props.hideModal.bind()}>
                                     Close
                                 </button>
                             </div>
@@ -205,6 +181,4 @@ const mapStateToProps = (state) => ({
     modal: state.modal,
 });
 
-export default connect(mapStateToProps, { showPatientModal, hidePatientModal })(
-    ViewModal
-);
+export default connect(mapStateToProps, { showModal, hideModal })(ViewModal);

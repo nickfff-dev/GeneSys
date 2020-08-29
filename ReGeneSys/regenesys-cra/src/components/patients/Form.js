@@ -7,22 +7,13 @@ import { ErrorMessage } from "@hookform/error-message";
 
 import _ from "lodash/fp";
 
-import { hidePatientModal } from "../../actions/modal";
-
+import { hideModal } from "../../actions/modal";
 
 import { addPatient } from "../../actions/patients";
-
 
 function pageInitial() {
     return 1;
 }
-
-// function generateID() {
-//     axios.get("/api/patients/generateid").then((res) => {
-//         // console.log(res.data);
-//         return res.data;
-//     });
-// }
 
 function AddForm(props) {
     const [page, setPage] = useState(() => pageInitial());
@@ -31,7 +22,7 @@ function AddForm(props) {
     const [closeAll, setCloseAll] = useState(true);
 
     const closeModal = () => {
-        dispatch(hidePatientModal());
+        dispatch(hideModal());
     };
 
     const toggle = () => {
@@ -254,7 +245,6 @@ function AddForm(props) {
 
         const userToAdd = {
             patientID,
-            // caseNumber,
             firstName,
             lastName,
             middleName,
@@ -386,17 +376,17 @@ function AddForm(props) {
                                 <div className="form-group col-md-3">
                                     <label>Suffix</label>
                                     <select id="suffixSelect" className="form-control" name="suffix" ref={register({})}>
-                                        <option value="M">Jr.</option>
-                                        <option value="F">Sr.</option>
-                                        <option value="A">II</option>
-                                        <option value="M">III</option>
-                                        <option value="F">IV</option>
-                                        <option value="A">V</option>
-                                        <option value="M">VI</option>
-                                        <option value="F">VII</option>
-                                        <option value="A">VIII</option>
-                                        <option value="F">IX</option>
-                                        <option value="A">X</option>
+                                        <option value="Jr.">Jr.</option>
+                                        <option value="Sr.">Sr.</option>
+                                        <option value="II">II</option>
+                                        <option value="III">III</option>
+                                        <option value="IV">IV</option>
+                                        <option value="V">V</option>
+                                        <option value="VI">VI</option>
+                                        <option value="VII">VII</option>
+                                        <option value="VIII">VIII</option>
+                                        <option value="IX">IX</option>
+                                        <option value="X">X</option>
                                     </select>
                                 </div>
                             </div>
@@ -631,7 +621,9 @@ function AddForm(props) {
                                                 motherOtherFieldsFilled: (value) => {
                                                     const { mContactNumber, mAddress } = getValues();
                                                     return (
-                                                        value.length > 0 || (mContactNumber.length === 0 && mAddress.length === 0) || "This is required"
+                                                        value.length > 0 ||
+                                                        (mContactNumber.length === 0 && mAddress.length === 0) ||
+                                                        "This is required"
                                                     );
                                                 },
                                             },
@@ -733,7 +725,9 @@ function AddForm(props) {
                                                 fatherOtherFieldsFilled: (value) => {
                                                     const { fContactNumber, fAddress } = getValues();
                                                     return (
-                                                        value.length > 0 || (fContactNumber.length === 0 && fAddress.length === 0) || "This is required"
+                                                        value.length > 0 ||
+                                                        (fContactNumber.length === 0 && fAddress.length === 0) ||
+                                                        "This is required"
                                                     );
                                                 },
                                             },
@@ -1948,12 +1942,7 @@ function AddForm(props) {
                             Save
                         </button>
                     )}
-                    <button
-                        type="button"
-                        className="btn btn-secondary"
-                        data-dismiss="modal"
-                        onClick={toggle}
-                    >
+                    <button type="button" className="btn btn-secondary" data-dismiss="modal" onClick={toggle}>
                         Close
                     </button>
                 </ModalFooter>
