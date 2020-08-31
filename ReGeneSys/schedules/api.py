@@ -80,9 +80,9 @@ class ClinicScheduleViewSet(viewsets.ModelViewSet):
 
         print(available_physicians)
 
-        # return Response(UserSerializer(available_physicians, many=True).data)
+        return Response(UserSerializer(available_physicians, many=True).data)
 
-        return Response()
+       
 
 
 class ClinicSchedulePatientViewSet(viewsets.ModelViewSet):
@@ -95,10 +95,14 @@ class ClinicSchedulePatientViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def all(self, request, pk=None):
 
-        date = request.GET.get('schedule')
+        schedule = request.GET.get('schedule')
+        physician = request.GET.get('physician')
 
-        schedule = ClinicSchedulePatient.objects.filter(schedule__pk=date)
-        print(date)
+        print(schedule)
+        print(physician)
+
+        schedule = ClinicSchedulePatient.objects.all().filter(schedule__pk=schedule, physician_id=physician)
+        print(schedule)
 
         return Response(
             ClinicSchedulePatientSerializer(schedule, many=True).data)

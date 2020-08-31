@@ -4,7 +4,7 @@ import { useTable, useSortBy, useGlobalFilter, usePagination } from "react-table
 import { columns, data, data2 } from "./DataSource";
 import { format } from "date-fns";
 import { split } from "lodash";
-import shortenTime from "./CalendarSchedule";
+import { shortenTime } from "./CalendarSchedule";
 
 function TableSchedule(props) {
     // const APIValue = useSelector((state) => state);

@@ -2,8 +2,14 @@ import React, { Component, Fragment, useState } from "react";
 import { connect, useSelector, useDispatch } from "react-redux";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 
+import { getAvailablePhysicians } from "../../actions/schedules";
+import { format } from "date-fns";
+
+
 import { useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
+import Select from 'react-select';
+import makeAnimated from 'react-select/animated'
 
 import _ from "lodash/fp";
 
@@ -13,17 +19,28 @@ function pageInitial() {
     return 1;
 }
 
-function AddScheduleForm(props) {
+function CreateEventForm(props) {
     const [page, setPage] = useState(() => pageInitial());
     const [modal, setModal] = useState(props.toggleModal);
     const [nestedModal, setNestedModal] = useState(false);
     const [closeAll, setCloseAll] = useState(true);
 
+    const dispatch = useDispatch();
+
+    const optionsPhysicians = [
+        {value:2, label:"Second Person"},
+        {value:3, label:"Third Person"},
+        {value:1, label:"First Person"},
+    ]
+
     const closeModal = () => {
         dispatch(hideModal());
     };
 
-    const dispatch = useDispatch();
+    const generateOptions = (date) => {
+       dispatch(getAvailablePhysicians(format(date, "yyyy-MM-dd")))  
+       
+    }
 
     const toggle = () => {
         setModal(!modal);
@@ -40,7 +57,11 @@ function AddScheduleForm(props) {
     };
 
     function nextPage() {
+        console.log(page)
         if (page < 3) {
+            if(page === 1){  
+                generateOptions(props.modal.modalProps)
+            }
             setPage((prevPage) => prevPage + 1);
         }
     }
@@ -266,21 +287,20 @@ function AddScheduleForm(props) {
                             <div className="form-row">
                                 <div className="form-group col-12">
                                     <label>Physician</label>
-                                    <input
-                                        className="form-control"
-                                        type="text"
+                                    <Select
+                                        className="basic-single"
                                         name="physician"
-                                        ref={register({
-                                            required: "This input is required.",
-                                            minLength: {
-                                                value: 2,
-                                                message: "This input is too short.",
-                                            },
-                                            maxLength: {
-                                                value: 100,
-                                                message: "This input is too long.",
-                                            },
-                                        })}
+                                        // classNamePrefix="select"
+                                        // defaultValue={options[0]}
+                                        // isDisabled={isDisabled}
+                                        // isLoading={isLoading}
+                                        // isClearable={isClearable}
+                                        // isRtl={isRtl}
+                                        // isSearchable={isSearchable}
+                                        // name="color"
+                                        placeholder="Select Physician"
+                                        options={optionsPhysicians}
+                                        isSearchable
                                     />
                                     <ErrorMessage
                                         errors={errors}
@@ -437,4 +457,10 @@ function AddScheduleForm(props) {
     );
 }
 
-export default AddScheduleForm;
+const mapStateToProps = (state) => ({
+    patients: state.schedules.patients,
+    availablePhysicians: state.schedules.availablePhysicians,
+    modal: state.modal,
+});
+
+export default connect(mapStateToProps, { getAvailablePhysicians })(CreateEventForm);

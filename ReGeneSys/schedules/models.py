@@ -27,7 +27,7 @@ class ClinicSchedule(models.Model):
                               on_delete=models.CASCADE,
                               related_name="event")
     physician = models.ManyToManyField(settings.AUTH_USER_MODEL,
-                                       related_name="attending_physician")
+                                  related_name="attending_physician")
 
     def __str__(self):
         return str(self.event) + "-" + str(self.physician)
@@ -40,6 +40,9 @@ class ClinicSchedulePatient(models.Model):
     schedule = models.ForeignKey(ClinicSchedule,
                                  on_delete=models.CASCADE,
                                  related_name="schedule")
+    physician = models.ForeignKey(settings.AUTH_USER_MODEL,
+                                  on_delete=models.CASCADE,
+                                  related_name="scheduled_physician")
     time_start = models.TimeField()
     time_end = models.TimeField()
     status = models.CharField(max_length=15)

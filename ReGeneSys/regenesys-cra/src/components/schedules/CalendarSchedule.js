@@ -7,15 +7,7 @@ import { differenceInCalendarDays, parseISO, format } from "date-fns";
 import { getSchedules, getScheduledPatients } from "../../actions/schedules";
 import { showModal, hideModal } from "../../actions/modal";
 
-import AddScheduleForm from "./AddScheduleForm";
-
-// export const shortenTime = (time) => {
-//     console.log(time);
-//     var split = time.split(":");
-//     var shortened = split[0] + ":" + split(1);
-
-//     return shortened;
-// };
+import CreateEventForm from "./CreateEventForm";
 
 export function shortenTime(time) {
     console.log(time);
@@ -72,16 +64,22 @@ function CalendarSchedule(props) {
         dispatch(getSchedules(format(value, "yyyy-MM-dd")));
     }
 
-    function getPatients(scheduleId) {
-        dispatch(getScheduledPatients(scheduleId));
+    function getPatients(scheduleId, physicianId) {
+        dispatch(getScheduledPatients(scheduleId, physicianId));
     }
 
     function showScheduleModal(type, modalProps) {
-        console.log(type);
         if (type === "delete") {
             toggle();
             dispatch(showModal(type, modalProps));
-        } else {
+        }
+        else if(type === "addSchedule"){
+            if(props.schedules.length === 0){
+                type = "createEvent"
+            }
+            dispatch(showModal(type, modalProps));
+        }
+        else {
             dispatch(showModal(type, modalProps));
         }
     }
@@ -110,18 +108,20 @@ function CalendarSchedule(props) {
                 <div className="row">
                     <div className="col-12">
                         {props.schedules.map((schedule, index) => (
+                            schedule.physician.map((physician, index2) => (
                             <div
-                                key={index}
-                                className="card border-left-info bg-light text-black shadow m-1"
-                                onClick={() => getPatients(schedule.pk)}
+                            key={index2}
+                            className="card border-left-info bg-light text-black shadow m-1"
+                            onClick={() => getPatients(schedule.pk, physician.id)}
                             >
                                 <div className="card-body user-select-none">
-                                    {schedule.event.name}
+                                    {physician.firstName} {" "} {physician.lastName}
                                     <div className="text-black-50 small user-select-none">
                                         {shortenTime(schedule.event.timeStart)} {" - "} {shortenTime(schedule.event.timeEnd)}
                                     </div>
                                 </div>
                             </div>
+                                ))   
                         ))}
                     </div>
                 </div>
@@ -166,10 +166,10 @@ function CalendarSchedule(props) {
             </div>
             {(() => {
                 switch (state.modal.modalMode) {
-                    case "addSchedule":
+                    case "createEvent":
                         return (
                             <Fragment>
-                                <AddScheduleForm toggleModal={true} />
+                                <CreateEventForm toggleModal={true} />
                             </Fragment>
                         );
                     case "edit":
