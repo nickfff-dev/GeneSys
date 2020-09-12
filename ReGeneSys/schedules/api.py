@@ -36,6 +36,7 @@ class ClinicScheduleViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         request.data['event']['created_by'] = request.user
+        request.data['event']['attendees'].append(request.user)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         clinic_schedule = serializer.save(validated_data=request.data)
@@ -61,7 +62,9 @@ class ClinicScheduleViewSet(viewsets.ModelViewSet):
                                                  event__event_type='clinic')
         print(schedule)
 
-        return Response(ClinicScheduleSerializer(schedule, many=True).data)
+        test = ClinicScheduleSerializer(schedule, many=True).data
+
+        return Response(test)
 
     @action(detail=False, methods=['get'])
     def search_available_physicians(self, request, pk=None):
@@ -72,17 +75,20 @@ class ClinicScheduleViewSet(viewsets.ModelViewSet):
         physicians = User.objects.all().filter(permissions__is_doctor=True)
         print(physicians)
 
-        scheduled_physicians = ClinicSchedule.objects.filter(
-            event__date=date).values('physician')
-        print(scheduled_physicians)
+        if date != "":
+            scheduled_physicians = ClinicSchedule.objects.filter(
+                event__date=date).values('physician')
+            print(scheduled_physicians)
 
-        available_physicians = physicians.exclude(id__in=scheduled_physicians)
+            available_physicians = physicians.exclude(
+                id__in=scheduled_physicians)
 
-        print(available_physicians)
+            print(available_physicians)
 
-        return Response(UserSerializer(available_physicians, many=True).data)
-
-       
+            return Response(
+                UserSerializer(available_physicians, many=True).data)
+        else:
+            return Response(UserSerializer(physicians, many=True).data)
 
 
 class ClinicSchedulePatientViewSet(viewsets.ModelViewSet):
@@ -92,17 +98,31 @@ class ClinicSchedulePatientViewSet(viewsets.ModelViewSet):
 
     permissionclasses = [permissions.IsAuthenticated]
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        clinic_schedule_patient = serializer.save(validated_data=request.data)
+        return Response(
+            ClinicSchedulePatientSerializer(
+                clinic_schedule_patient,
+                context=self.get_serializer_context()).data, )
+
+    def update(self, request, *args, **kwargs):
+
+        instance = self.get_object()
+        serializer = ClinicSchedulePatientSerializer(instance=instance,
+                                                     data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.update(instance, request.data)
+        return Response(serializer.data)
+
     @action(detail=False, methods=['get'])
     def all(self, request, pk=None):
 
-        schedule = request.GET.get('schedule')
-        physician = request.GET.get('physician')
+        date = request.GET.get('schedule')
 
-        print(schedule)
-        print(physician)
-
-        schedule = ClinicSchedulePatient.objects.all().filter(schedule__pk=schedule, physician_id=physician)
-        print(schedule)
+        schedule = ClinicSchedulePatient.objects.filter(schedule__pk=date)
+        print(date)
 
         return Response(
             ClinicSchedulePatientSerializer(schedule, many=True).data)

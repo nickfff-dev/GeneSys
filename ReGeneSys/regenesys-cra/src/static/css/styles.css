@@ -1,5 +1,6 @@
 .text-danger {
     color: #bf1650;
+    margin-bottom: 0;
 }
 
 .text-danger::before {

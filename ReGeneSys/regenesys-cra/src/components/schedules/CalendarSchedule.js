@@ -1,47 +1,63 @@
 import React, { useState, useEffect, Fragment } from "react";
 import { connect, useDispatch, useSelector } from "react-redux";
+import {
+    Dropdown,
+    DropdownToggle,
+    DropdownMenu,
+    DropdownItem,
+    Card,
+    CardTitle,
+    CardText,
+    Button,
+    Modal,
+    ModalHeader,
+    ModalBody,
+    ModalFooter,
+} from "reactstrap";
 
 import Calendar from "react-calendar";
 import { differenceInCalendarDays, parseISO, format } from "date-fns";
 
-import { getSchedules, getScheduledPatients } from "../../actions/schedules";
+import { getScheduleDetails, getScheduledPatients, deleteEvent } from "../../actions/schedules";
+
 import { showModal, hideModal } from "../../actions/modal";
 
-import CreateEventForm from "./CreateEventForm";
+import CreateScheduleForm from "./CreateScheduleForm";
+import EditScheduleForm from "./EditScheduleForm";
 
-export function shortenTime(time) {
-    console.log(time);
+export const shortenTime = (time) => {
     let splitTime = time.split(":");
     let shortened = splitTime[0] + ":" + splitTime[1];
 
     return shortened;
-}
+};
 
 function CalendarSchedule(props) {
     const [currentDate, onChange] = useState(new Date());
     const dispatch = useDispatch();
 
     useEffect(() => {
-        dispatch(getSchedules(format(currentDate, "yyyy-MM-dd")));
+        dispatch(getScheduleDetails(format(currentDate, "yyyy-MM-dd")));
     }, []);
 
     const [modal, setModal] = useState(false);
-    const [nestedModal, setNestedModal] = useState(false);
-    const [closeAll, setCloseAll] = useState(true);
+    // const [nestedModal, setNestedModal] = useState(false);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+
     const state = useSelector((state) => state);
 
-    const toggle = () => {
-        setModal(!modal);
-    };
+    const toggleDropdown = () => setDropdownOpen((prevState) => !prevState);
 
-    const toggleNested = () => {
-        setNestedModal(!nestedModal);
-        setCloseAll(false);
-    };
-    const toggleAll = () => {
-        setNestedModal(!nestedModal);
-        setCloseAll(true);
-    };
+    const toggle = () => setModal(!modal);
+
+    // const toggleNested = () => {
+    //     setNestedModal(!nestedModal);
+    //     setCloseAll(false);
+    // };
+    // const toggleAll = () => {
+    //     setNestedModal(!nestedModal);
+    //     setCloseAll(true);
+    // };
 
     const datesToAddClassTo = [];
 
@@ -61,7 +77,7 @@ function CalendarSchedule(props) {
     }
 
     function onClickDay(value) {
-        dispatch(getSchedules(format(value, "yyyy-MM-dd")));
+        dispatch(getScheduleDetails(format(value, "yyyy-MM-dd")));
     }
 
     function getPatients(scheduleId, physicianId) {
@@ -69,20 +85,20 @@ function CalendarSchedule(props) {
     }
 
     function showScheduleModal(type, modalProps) {
-        if (type === "delete") {
+        if (type === "deleteSchedule") {
             toggle();
             dispatch(showModal(type, modalProps));
-        }
-        else if(type === "addSchedule"){
-            if(props.schedules.length === 0){
-                type = "createEvent"
-            }
+        } else if (type === "addSchedule") {
             dispatch(showModal(type, modalProps));
-        }
-        else {
+        } else {
             dispatch(showModal(type, modalProps));
         }
     }
+
+    const confirmDelete = () => {
+        dispatch(deleteEvent(props.selectedSchedule[0].event.pk));
+        toggle();
+    };
 
     let componentHeader;
     let myComponent;
@@ -91,11 +107,39 @@ function CalendarSchedule(props) {
         myComponent = <h1>Loading</h1>;
     } else {
         componentHeader = (
-            <h6 className="h-4">
-                Schedules for <i>{format(currentDate, "yyyy-MM-dd")}</i>
-            </h6>
+            <div className="row">
+                <div className="col-8">
+                    <h6 className="h-4">
+                        Schedules for <i>{format(currentDate, "yyyy-MM-dd")}</i>
+                    </h6>
+                </div>
+                <div className="col-4">
+                    <Dropdown isOpen={dropdownOpen} toggle={toggleDropdown}>
+                        <DropdownToggle className="float-right">
+                            <svg
+                                width="1em"
+                                height="1em"
+                                viewBox="0 0 16 16"
+                                className="bi bi-three-dots-vertical"
+                                fill="currentColor"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    fillRule="evenodd"
+                                    d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"
+                                />
+                            </svg>
+                        </DropdownToggle>
+                        <DropdownMenu right>
+                            <DropdownItem onClick={() => showScheduleModal("editSchedule", currentDate)}> Edit Schedule</DropdownItem>
+                            <DropdownItem onClick={() => showScheduleModal("deleteSchedule", currentDate)}>Delete Schedule</DropdownItem>
+                        </DropdownMenu>
+                    </Dropdown>
+                    {/* <button className="menu-button float-right"></button> */}
+                </div>
+            </div>
         );
-        if (props.schedules.length === 0) {
+        if (props.selectedSchedule.length === 0) {
             myComponent = (
                 <div className="row h-75">
                     <div className="col-12 my-auto">
@@ -107,22 +151,24 @@ function CalendarSchedule(props) {
             myComponent = (
                 <div className="row">
                     <div className="col-12">
-                        {props.schedules.map((schedule, index) => (
+                        {props.selectedSchedule.map((schedule, index) =>
                             schedule.physician.map((physician, index2) => (
-                            <div
-                            key={index2}
-                            className="card border-left-info bg-light text-black shadow m-1"
-                            onClick={() => getPatients(schedule.pk, physician.id)}
-                            >
-                                <div className="card-body user-select-none">
-                                    {physician.firstName} {" "} {physician.lastName}
-                                    <div className="text-black-50 small user-select-none">
-                                        {shortenTime(schedule.event.timeStart)} {" - "} {shortenTime(schedule.event.timeEnd)}
-                                    </div>
-                                </div>
-                            </div>
-                                ))   
-                        ))}
+                                <Card
+                                    key={index2}
+                                    body
+                                    outline
+                                    className="border-left-info bg-light text-black shadow m-1"
+                                    onClick={() => getPatients(schedule.pk, physician.id)}
+                                >
+                                    <CardTitle>
+                                        {physician.firstName} {physician.lastName}
+                                    </CardTitle>
+                                    <CardText className="text-black-50 small user-select-none">
+                                        {shortenTime(schedule.event.startTime)} {" - "} {shortenTime(schedule.event.endTime)}
+                                    </CardText>
+                                </Card>
+                            ))
+                        )}
                     </div>
                 </div>
             );
@@ -147,46 +193,77 @@ function CalendarSchedule(props) {
                 {myComponent}
             </div>
             <div className="text-center button-group mb-2 clearfix rounded p-2" style={{ background: "cyan" }}>
-                <button
-                    className="btn btn-primary btn-md btn-block"
-                    data-toggle="modal"
-                    data-target="#addScheduleModal"
-                    onClick={() => showScheduleModal("addSchedule", currentDate)}
-                >
-                    Create Clinic Schedule
-                </button>
+                {(props.selectedSchedule.length === 0 && (
+                    <button
+                        className="btn btn-primary btn-md btn-block"
+                        data-toggle="modal"
+                        data-target="#addScheduleModal"
+                        onClick={() => showScheduleModal("addSchedule", currentDate)}
+                    >
+                        Create Clinic Schedule
+                    </button>
+                )) || (
+                    <button
+                        className="btn btn-primary btn-md btn-block"
+                        data-toggle="modal"
+                        data-target="#addScheduleModal"
+                        onClick={() => showScheduleModal("editSchedule", currentDate)}
+                    >
+                        Edit Clinic Schedule
+                    </button>
+                )}
+
                 <button
                     className="btn btn-primary btn-md btn-block"
                     data-toggle="modal"
                     data-target="#addAppointmentModal"
                     onClick={() => showScheduleModal("addAppointment", currentDate)}
                 >
-                    Schedule Patient Appointment
+                    Schedule a Patient
                 </button>
             </div>
             {(() => {
                 switch (state.modal.modalMode) {
-                    case "createEvent":
+                    case "addSchedule":
                         return (
                             <Fragment>
-                                <CreateEventForm toggleModal={true} />
+                                <CreateScheduleForm toggleModal={true} />
                             </Fragment>
                         );
-                    case "edit":
-                        return <Fragment>{/* <EditForm toggleModal={true} /> */}</Fragment>;
+                    case "editSchedule":
+                        return (
+                            <Fragment>
+                                <EditScheduleForm toggleModal={true} />
+                            </Fragment>
+                        );
                     case "view":
                         return <Fragment>{/* <ViewModal toggleModal={true} /> */}</Fragment>;
                     default:
                         return null;
                 }
             })()}
+
+            <Modal isOpen={modal} toggle={toggle}>
+                <ModalHeader>Delete Schedule</ModalHeader>
+                <ModalBody>
+                    Deleting this schedule will also <b>delete all patient appointements</b> for this date. Do you want to continue?
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="primary" onClick={() => confirmDelete()}>
+                        Yes
+                    </Button>
+                    <Button color="secondary" onClick={toggle}>
+                        Cancel
+                    </Button>
+                </ModalFooter>
+            </Modal>
         </div>
     );
 }
 
 const mapStateToProps = (state) => ({
     events: state.schedules.events,
-    schedules: state.schedules.schedules,
+    selectedSchedule: state.schedules.schedules,
     patients: state.schedules.patients,
     isLoadingEvents: state.schedules.isLoadingEvents,
     isLoadingSchedules: state.schedules.isLoadingSchedules,
@@ -194,4 +271,4 @@ const mapStateToProps = (state) => ({
     modal: state.modal,
 });
 
-export default connect(mapStateToProps, { getSchedules, getScheduledPatients })(CalendarSchedule);
+export default connect(mapStateToProps, { getScheduleDetails, getScheduledPatients })(CalendarSchedule);
