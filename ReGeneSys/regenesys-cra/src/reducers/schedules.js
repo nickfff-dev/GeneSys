@@ -10,12 +10,14 @@ import {
     EDIT_EVENTSCHEDULE,
     DELETE_EVENTSCHEDULE,
     LOAD_SCHEDULES,
+    GET_AVAILABLE_PATIENTS,
 } from "../actions/types.js";
 
 const initialState = {
     events: [],
     schedules: [],
-    patients: [],
+    scheduledPatients: [],
+    availablePatients: [],
     availablePhysicians: [],
     isLoadingEvents: false,
     isLoadingSchedules: false,
@@ -85,9 +87,16 @@ export default function (state = initialState, action) {
         case GET_SCHEDULED_PATIENTS:
             return {
                 ...state,
-                patients: action.payload,
+                scheduledPatients: action.payload,
                 isLoadingPatients: false,
             };
+        case GET_AVAILABLE_PATIENTS:
+            return {
+                ...state,
+                availablePatients: action.payload,
+                isLoadingPatients: false,
+            };
+
         default:
             return state;
     }

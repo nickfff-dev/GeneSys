@@ -18,16 +18,20 @@ import {
 import Calendar from "react-calendar";
 import { differenceInCalendarDays, parseISO, format } from "date-fns";
 
+import { zonedTimeToUtc, utcToZonedTime } from "date-fns-tz";
+
 import { getScheduleDetails, getScheduledPatients, deleteEvent } from "../../actions/schedules";
 
 import { showModal, hideModal } from "../../actions/modal";
 
 import CreateScheduleForm from "./CreateScheduleForm";
 import EditScheduleForm from "./EditScheduleForm";
+import CreatePatientAppointment from "./CreatePatientAppointment";
 
 export const shortenTime = (time) => {
-    let splitTime = time.split(":");
-    let shortened = splitTime[0] + ":" + splitTime[1];
+    let shortened = format(utcToZonedTime(time, Intl.DateTimeFormat().resolvedOptions().timeZone), "HH:mm a");
+
+    console.log(format(utcToZonedTime(time, Intl.DateTimeFormat().resolvedOptions().timeZone), "yyyy-MM-dd HH:mm"));
 
     return shortened;
 };
@@ -236,8 +240,12 @@ function CalendarSchedule(props) {
                                 <EditScheduleForm toggleModal={true} />
                             </Fragment>
                         );
-                    case "view":
-                        return <Fragment>{/* <ViewModal toggleModal={true} /> */}</Fragment>;
+                    case "addAppointment":
+                        return (
+                            <Fragment>
+                                <CreatePatientAppointment toggleModal={true} />
+                            </Fragment>
+                        );
                     default:
                         return null;
                 }

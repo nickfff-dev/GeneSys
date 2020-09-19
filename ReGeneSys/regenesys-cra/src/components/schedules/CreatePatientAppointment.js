@@ -2,9 +2,7 @@ import React, { useEffect, useState } from "react";
 import { connect, useDispatch } from "react-redux";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 
-import { getSchedules, getAvailablePhysicians, createEventSchedule } from "../../actions/schedules";
-
-import { TimePicker } from "antd";
+import { getAvailablePatients, createPatientAppointment } from "../../actions/schedules";
 
 import { format } from "date-fns";
 
@@ -21,35 +19,36 @@ function pageInitial() {
     return 1;
 }
 
-function CreateScheduleForm(props) {
+function CreatePatientAppointment(props) {
     const [page, setPage] = useState(() => pageInitial());
     const [modal, setModal] = useState(props.toggleModal);
     const [nestedModal, setNestedModal] = useState(false);
     const [closeAll, setCloseAll] = useState(true);
-    const [isLoading, setIsLoading] = useState(true);
-    const [selectedPhysician, setSelectedPhysician] = useState([]);
+    const [selectedPatient, setSelectedPatient] = useState([]);
+
     const dispatch = useDispatch();
 
     useEffect(() => {
-        getPhysicians(props.modal.modalProps);
+        getPatients();
     }, []);
 
     const closeModal = () => {
         dispatch(hideModal());
     };
 
-    const getPhysicians = (date) => {
-        dispatch(getAvailablePhysicians(format(date, "yyyy-MM-dd")));
-        generateOptions(props.availablePhysicians);
+    const getPatients = () => {
+        console.log(props.selectedSchedule[0].pk);
+        dispatch(getAvailablePatients(props.selectedSchedule[0].pk));
+        generateOptions(props.availablePatients);
     };
 
     const generateOptions = () => {
-        const availablePhysicians = [];
-        props.availablePhysicians.forEach((physician) => {
-            availablePhysicians.push({ value: physician.id, label: physician.firstName + " " + physician.lastName });
+        const availablePatients = [];
+        props.availablePatients.forEach((patient) => {
+            availablePatients.push({ value: patient.patientId, label: patient.firstName + " " + patient.lastName });
         });
 
-        return availablePhysicians;
+        return availablePatients;
     };
 
     const toggle = () => {
@@ -82,7 +81,7 @@ function CreateScheduleForm(props) {
 
     const validatePage = () => {
         if (page === 1) {
-            const check = trigger(["name", "location", "description", "startTime", "endTime"]);
+            const check = trigger(["patient", "timeStart", "timeEnd"]);
             return check;
         } else {
             const check = trigger(["physician"]);
@@ -95,161 +94,74 @@ function CreateScheduleForm(props) {
         mode: "onChange",
         reValidateMode: "onChange",
         defaultValues: {
-            name: "",
-            date: "",
-            location: "",
-            eventType: "clinic",
-            startTime: "",
-            endTime: "",
-            description: "",
-            attendees: [],
+            patient: "",
+            schedule: "",
             physician: "",
+            timeStart: "",
+            timeEnd: "",
         },
     });
 
     const onSubmit = (data) => {
-        const { name, location, startTime, endTime, description, physician } = data;
+        const { patient, schedule, physician, timeStart, timeEnd, appointmentType } = data;
 
-        const physicianCollection = [];
-
-        physician.forEach((element) => {
-            physicianCollection.push(element["value"]);
-        });
-
-        const date = format(props.modal.modalProps, "yyyy-MM-dd");
-
-        const event = {
-            name,
-            date: date,
-            location,
-            eventType: "clinic",
-            startTime: new Date(date + " " + startTime),
-            endTime: new Date(date + " " + endTime),
-            description,
-            attendees: physicianCollection,
+        const appointmentToCreate = {
+            patient: patient["value"],
+            schedule,
+            physician,
+            timeStart,
+            timeEnd,
+            appointmentType,
         };
 
-        const scheduleToCreate = {
-            event,
-            physician: physicianCollection,
-        };
-
-        // console.log(format(event.date + event.startTime, "yyyy-MM-ddTHH:mm"));
-
-        dispatch(createEventSchedule(scheduleToCreate));
-        // toggleAll();
+        console.log(appointmentToCreate);
+        dispatch(createPatientAppointment(appointmentToCreate));
+        toggleAll();
     };
 
     return (
         <div>
-            <Modal isOpen={modal} toggle={toggle} size="md" backdrop="static" id="haha" keyboard={false}>
+            <Modal isOpen={modal} toggle={toggle} size="md" backdrop="static" keyboard={false}>
                 <ModalHeader toggle={toggle}>
-                    Create Schedule for <i>Date</i>
+                    Create Patient Appointment for <i>Physician</i>
                 </ModalHeader>
                 <ModalBody>
                     <form id="create-form" onSubmit={handleSubmit(onSubmit)}>
                         <div id="page-one" className={page === 1 ? "" : "d-none"}>
                             <div className="form-row">
                                 <div className="form-group col-12">
-                                    <label>Schedule Name</label>
-                                    <input
-                                        className="form-control"
-                                        type="text"
-                                        name="name"
-                                        ref={register({
-                                            required: "This input is required.",
-                                            minLength: {
-                                                value: 2,
-                                                message: "This input is too short.",
-                                            },
-                                            maxLength: {
-                                                value: 50,
-                                                message: "This input is too long.",
-                                            },
-                                        })}
-                                    />
-                                    <ErrorMessage
-                                        errors={errors}
-                                        name="name"
-                                        render={({ messages }) => {
-                                            console.log("messages", messages);
-                                            return messages
-                                                ? _.entries(messages).map(([type, message]) => (
-                                                      <p className="text-danger" key={type}>
-                                                          {message}
-                                                      </p>
-                                                  ))
-                                                : null;
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                            <div className="form-row">
-                                <div className="form-group col-12">
-                                    <label>Location</label>
-                                    <input
-                                        className="form-control"
-                                        type="text"
-                                        name="location"
-                                        ref={register({
-                                            required: "This input is required.",
-                                            minLength: {
-                                                value: 2,
-                                                message: "This input is too short.",
-                                            },
-                                            maxLength: {
-                                                value: 100,
-                                                message: "This input is too long.",
-                                            },
-                                        })}
-                                    />
-                                    <ErrorMessage
-                                        errors={errors}
-                                        name="location"
-                                        render={({ messages }) => {
-                                            console.log("messages", messages);
-                                            return messages
-                                                ? _.entries(messages).map(([type, message]) => (
-                                                      <p className="text-danger" key={type}>
-                                                          {message}
-                                                      </p>
-                                                  ))
-                                                : null;
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                            <div className="form-row">
-                                <div id="ace" className="form-group col-6">
-                                    <label>Start Time</label>
-                                    {/* <Controller
-                                        as={TimePicker}
-                                        getPopupContainer={() => document.getElementById("haha")}
-                                        className=""
-                                        name="startTime"
-                                        bordered={false}
-                                        size="large"
+                                    <label>Select Patient</label>
+                                    <Controller
+                                        as={Select}
+                                        options={generateOptions()}
+                                        name="patient"
+                                        noOptionsMessage={() => "No available physicians"}
+                                        placeholder="Select Patient"
+                                        onChange={setSelectedPatient}
+                                        className="basic-single"
+                                        isClearable
                                         control={control}
                                         ref={register({
                                             required: "This is required",
-                                            validate: {
-                                                lesserThanEndTime: (value) => {
-                                                    const { endTime } = getValues();
-                                                    return value < endTime || endTime.length === 0 || "Must be before end time";
-                                                },
-                                            },
                                         })}
-                                    /> */}
+                                    />
+                                    {errors.patient?.type === "required" && <p className="text-danger mb-0">This is required</p>}
+                                </div>
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group col-6">
+                                    <label>Start Time</label>
                                     <input
                                         className="form-control"
                                         type="time"
-                                        step="1800"
                                         name="startTime"
                                         ref={register({
                                             required: "This is required",
                                             validate: {
                                                 lesserThanEndTime: (value) => {
                                                     const { endTime } = getValues();
+                                                    console.log(value);
+                                                    console.log(endTime);
                                                     return value < endTime || endTime.length === 0 || "Must be before end time";
                                                 },
                                             },
@@ -277,11 +189,14 @@ function CreateScheduleForm(props) {
                                         className="form-control"
                                         type="time"
                                         name="endTime"
+                                        step="300"
                                         ref={register({
                                             required: "This is required",
                                             validate: {
                                                 lesserThanEndTime: (value) => {
                                                     const { startTime } = getValues();
+                                                    console.log(value);
+                                                    console.log(startTime);
                                                     return value > startTime || startTime.length === 0 || "Must be after start time";
                                                 },
                                             },
@@ -303,65 +218,8 @@ function CreateScheduleForm(props) {
                                     />
                                 </div>
                             </div>
-                            <div className="form-row">
-                                <div className="form-group col-12">
-                                    <label>Description</label>
-                                    <textarea
-                                        className="form-control"
-                                        rows="5"
-                                        name="description"
-                                        ref={register({
-                                            required: "This is required",
-                                            maxLength: {
-                                                value: 225,
-                                                message: "This input is too long",
-                                            },
-                                        })}
-                                    />
-                                    <ErrorMessage
-                                        errors={errors}
-                                        name="description"
-                                        render={({ messages }) => {
-                                            console.log("messages", messages);
-                                            return messages
-                                                ? _.entries(messages).map(([type, message]) => (
-                                                      <p className="text-danger" key={type}>
-                                                          {message}
-                                                      </p>
-                                                  ))
-                                                : null;
-                                        }}
-                                    />
-                                </div>
-                            </div>
                         </div>
-                        <div id="page-two" className={page === 2 ? "" : "d-none"}>
-                            <div className="form-row">
-                                <div className="form-group col-12">
-                                    <label>Assign Physician/s</label>
-                                    <Controller
-                                        as={
-                                            <Select
-                                                components={makeAnimated()}
-                                                onChange={setSelectedPhysician}
-                                                className="basic-single"
-                                                placeholder="Select Physician"
-                                                options={generateOptions()}
-                                                noOptionsMessage={() => "No available physicians"}
-                                                isSearchable
-                                                isClearable
-                                                isMulti
-                                                name="physician"
-                                            />
-                                        }
-                                        name="physician"
-                                        control={control}
-                                        rules={{ required: true }}
-                                    />
-                                    {errors.physician?.type === "required" && <p className="text-danger mb-0">This is required</p>}
-                                </div>
-                            </div>
-                        </div>
+                        <div id="page-two" className={page === 2 ? "" : "d-none"}></div>
 
                         <div id="page-three" className={page === 3 ? "" : "d-none"}>
                             <div className="form-row">
@@ -461,9 +319,9 @@ function CreateScheduleForm(props) {
 }
 
 const mapStateToProps = (state) => ({
-    availablePhysicians: state.schedules.availablePhysicians,
+    availablePatients: state.schedules.availablePatients,
     selectedSchedule: state.schedules.schedules,
     modal: state.modal,
 });
 
-export default connect(mapStateToProps, { getAvailablePhysicians })(CreateScheduleForm);
+export default connect(mapStateToProps, { getAvailablePatients })(CreatePatientAppointment);

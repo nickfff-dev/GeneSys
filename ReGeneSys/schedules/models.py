@@ -10,8 +10,8 @@ class Event(models.Model):
     date = models.DateField()
     location = models.CharField(max_length=75)
     event_type = models.CharField(max_length=25)
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
     description = models.TextField(max_length=225)
     attendees = models.ManyToManyField(settings.AUTH_USER_MODEL,
                                        related_name="attendees")
@@ -43,8 +43,9 @@ class ClinicSchedulePatient(models.Model):
     physician = models.ForeignKey(settings.AUTH_USER_MODEL,
                                   on_delete=models.CASCADE,
                                   related_name="scheduled_physician")
-    time_start = models.TimeField()
-    time_end = models.TimeField()
+    time_start = models.DateTimeField()
+    time_end = models.DateTimeField()
+    appointment_type = models.CharField(max_length=5)
     status = models.CharField(max_length=15)
 
     def __str__(self):

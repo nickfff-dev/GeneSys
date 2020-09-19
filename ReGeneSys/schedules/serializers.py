@@ -1,10 +1,31 @@
 import json
+import pytz
+
+from dateutil import tz, parser
+from datetime import datetime, timezone
+
 from rest_framework import serializers
 from .models import Event, ClinicSchedule, ClinicSchedulePatient
 from patients.models import Patient
 from patients.serializers import PatientSerializer, PatientContactClinicalSerializer
 from accounts.serializers import UserSerializer
 from django.contrib.auth.models import User
+
+
+def local_to_UTC(local_time):
+
+    # utc_datetime = local_time.astimezone(tz.UTC)
+
+    # test = datetime.strptime(local_time, '%Y-%m-%d %H:%M:%S.%f%Z')
+    test = parser.parse(local_time)
+    print(local_time)
+    print(test)
+
+    # utc_datetime = datetime.fromtimestamp(,                                          tz=timezone.utc)
+
+    print(utc_datetime)
+
+    return utc_datetime
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -16,6 +37,7 @@ class EventSerializer(serializers.ModelSerializer):
                   'end_time', 'description', 'attendees')
 
     def save(self, validated_data):
+
         instance = Event.objects.create(
             name=validated_data['name'],
             date=validated_data['date'],
@@ -41,9 +63,16 @@ class ClinicScheduleSerializer(serializers.ModelSerializer):
     def save(self, validated_data):
         event_data = validated_data.pop('event')
         physician_data = validated_data.pop('physician')
+
+        utc_date = datetime.strftime(
+            datetime.strptime(event_data['start_time'],
+                              "%Y-%m-%dT%H:%M:%S.%f%z"), "%Y-%m-%d")
+
+        print(utc_date)
+
         event_instance = Event.objects.create(
             name=event_data['name'],
-            date=event_data['date'],
+            date=utc_date,
             location=event_data['location'],
             event_type=event_data['event_type'],
             start_time=event_data['start_time'],
@@ -103,7 +132,28 @@ class ClinicSchedulePatientSerializer(serializers.ModelSerializer):
             status=validated_data['status'])
         return patient_schedule_instance
 
-    # def update(self, instance, validated_data):
+    def update(self, instance, validated_data):
+
+        print(self)
+
+        validated_data['schedule'] = ClinicSchedule.objects.get(
+            pk=validated_data['schedule'])
+        validated_data['patient'] = Patient.objects.get(
+            patient_id=validated_data['patient'])
+        validated_data['physician'] = User.objects.get(
+            pk=validated_data['physician'])
+
+        instance.schedule = validated_data.get('schedule', instance.schedule)
+        instance.patient = validated_data.get('patient', instance.patient)
+        instance.physician = validated_data.get('physician',
+                                                instance.physician)
+        instance.time_start = validated_data.get('time_start',
+                                                 instance.time_start)
+        instance.time_end = validated_data.get('time_end', instance.time_end)
+        instance.status = validated_data.get('status', instance.status)
+        instance.save()
+
+        return instance
 
 
 # class PatientClinicScheduleSerializer(serializers.ModelSerializer):

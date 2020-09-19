@@ -11,6 +11,8 @@ import {
     EDIT_EVENTSCHEDULE,
     DELETE_EVENTSCHEDULE,
     LOAD_SCHEDULES,
+    GET_AVAILABLE_PATIENTS,
+    CREATE_PATIENT_APPOINTMENT,
 } from "./types";
 import { EVENT_API, GET_SCHEDULE_API, GET_SCHEDULED_PATIENTS_API, SCHEDULE_API } from "../constants";
 import { snakeCaseKeysToCamel, camelCaseKeysToSnake } from "../actions/utils";
@@ -44,7 +46,7 @@ export const getScheduleDetails = (dateToSearch) => (dispatch, getState) => {
 //GET PATIENTS BY SCHEDULE
 export const getScheduledPatients = (scheduleId, physicianId) => (dispatch, getState) => {
     axios
-        .get(GET_SCHEDULED_PATIENTS_API, { params: { schedule: scheduleId, physician: physicianId } }, tokenConfig(getState))
+        .get(GET_SCHEDULED_PATIENTS_API + "all/", { params: { schedule: scheduleId, physician: physicianId } }, tokenConfig(getState))
         .then((res) => {
             dispatch({
                 type: GET_SCHEDULED_PATIENTS,
@@ -109,6 +111,35 @@ export const deleteEvent = (eventScheduleId) => (dispatch, getState) => {
             });
             dispatch({
                 type: DELETE_EVENTSCHEDULE,
+                payload: snakeCaseKeysToCamel(res.data),
+            });
+            return res;
+        })
+        .catch((err) => dispatch(returnErrors(err.response.data, err.response.status)));
+};
+
+//GET AVAILABLE PATIENTS FOR APPOINTMENT
+export const getAvailablePatients = (eventScheduleId) => (dispatch, getState) => {
+    axios
+        .get(GET_SCHEDULED_PATIENTS_API + "available/", { params: { schedule: eventScheduleId } }, tokenConfig(getState))
+        .then((res) => {
+            dispatch({
+                type: GET_AVAILABLE_PATIENTS,
+                payload: snakeCaseKeysToCamel(res.data),
+            });
+            return res;
+        })
+        .catch((err) => dispatch(returnErrors(err.response.data, err.response.status)));
+};
+
+//CREATE PATIENT APPOINTMENT
+export const createPatientAppointment = (appointment) => (dispatch, getState) => {
+    axios
+        .post(SCHEDULE_API, camelCaseKeysToSnake(appointment), tokenConfig(getState))
+        .then((res) => {
+            dispatch(createMessage({ addAppointment: "Appointment Created" }));
+            dispatch({
+                type: CREATE_PATIENT_APPOINTMENT,
                 payload: snakeCaseKeysToCamel(res.data),
             });
             return res;

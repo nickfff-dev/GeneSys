@@ -92,7 +92,7 @@ function EditScheduleForm(props) {
             const check = trigger(["name", "location", "description", "startTime", "endTime"]);
             return check;
         } else {
-            const check = trigger(["ReactSelect"]);
+            const check = trigger(["physicians"]);
             return check;
         }
     };
@@ -115,11 +115,11 @@ function EditScheduleForm(props) {
     });
 
     const onSubmit = (data) => {
-        const { name, location, startTime, endTime, description, ReactSelect } = data;
+        const { name, location, startTime, endTime, description, physicians } = data;
 
         const physicianCollection = [];
 
-        ReactSelect.forEach((element) => {
+        physicians.forEach((element) => {
             physicianCollection.push(element["value"]);
         });
 
@@ -331,7 +331,7 @@ function EditScheduleForm(props) {
                                         as={Select}
                                         options={generateOptions()}
                                         defaultValue={defaultPhysician}
-                                        name="ReactSelect"
+                                        name="physicians"
                                         noOptionsMessage={() => "No available physicians"}
                                         placeholder="Select Physician"
                                         onChange={setSelectedPhysician}
@@ -363,7 +363,7 @@ function EditScheduleForm(props) {
                                         control={control}
                                         rules={{ required: true }}
                                     /> */}
-                                    {errors.ReactSelect?.type === "required" && <p className="text-danger mb-0">This is required</p>}
+                                    {errors.physicians?.type === "required" && <p className="text-danger mb-0">This is required</p>}
                                 </div>
                             </div>
                         </div>
@@ -426,7 +426,6 @@ function EditScheduleForm(props) {
 }
 
 const mapStateToProps = (state) => ({
-    patients: state.schedules.patients,
     availablePhysicians: state.schedules.availablePhysicians,
     selectedSchedule: state.schedules.schedules,
     modal: state.modal,

@@ -10,7 +10,9 @@ router.register('api/schedules/search_available_physicians/',
                 ClinicScheduleViewSet, 'search_available_physicians')
 router.register('api/scheduledpatients', ClinicSchedulePatientViewSet,
                 'patients_by_schedule')
-router.register('api/scheduledpatients/all', ClinicSchedulePatientViewSet,
+router.register('api/scheduledpatients/all/', ClinicSchedulePatientViewSet,
                 'patients_by_schedule')
+router.register('api/scheduledpatients/available/',
+                ClinicSchedulePatientViewSet, 'patients_by_schedule')
 
 urlpatterns = router.urls

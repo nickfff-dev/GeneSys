@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from .serializers import EventSerializer, ClinicScheduleSerializer, ClinicSchedulePatientSerializer
 from patients.models import Patient
+from patients.serializers import PatientContactClinicalSerializer
 from accounts.serializers import UserSerializer
 from django.contrib.auth.models import User
 
@@ -116,16 +117,41 @@ class ClinicSchedulePatientViewSet(viewsets.ModelViewSet):
         serializer.update(instance, request.data)
         return Response(serializer.data)
 
+    #Gets all scheduled patients for given schedule
     @action(detail=False, methods=['get'])
     def all(self, request, pk=None):
 
-        date = request.GET.get('schedule')
+        schedule = request.GET.get('schedule')
+        physician = request.GET.get('physician')
 
-        schedule = ClinicSchedulePatient.objects.filter(schedule__pk=date)
-        print(date)
+        scheduled_patients = ClinicSchedulePatient.objects.filter(
+            schedule=schedule, physician=physician)
+        print(scheduled_patients)
 
         return Response(
-            ClinicSchedulePatientSerializer(schedule, many=True).data)
+            ClinicSchedulePatientSerializer(scheduled_patients,
+                                            many=True).data)
+
+    #Gets all available patients for schedule
+    @action(detail=False, methods=['get'])
+    def available(self, request, pk=None):
+
+        date = request.GET.get('schedule')
+
+        scheduled_patients = ClinicSchedulePatient.objects.filter(
+            schedule__pk=date).values('patient')
+        print(scheduled_patients)
+
+        patients = Patient.objects.filter(clinical__status="active")
+
+        for patient in scheduled_patients:
+            patients = patients.exclude(patient_id=patient['patient'])
+
+        return Response(
+            PatientContactClinicalSerializer(patients, many=True).data)
+
+        # return Response(
+        #     ClinicSchedulePatientSerializer(schedule, many=True).data)
 
 
 #Schedule Viewset

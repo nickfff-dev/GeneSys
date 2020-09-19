@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { connect, useSelector } from "react-redux";
 import { useTable, useSortBy, useGlobalFilter, usePagination } from "react-table";
-import { columns, data, data2 } from "./DataSource";
+
 import { format } from "date-fns";
 import { split } from "lodash";
 import { shortenTime } from "./CalendarSchedule";
@@ -13,7 +13,33 @@ function TableSchedule(props) {
     // const patients = useSelector((state) => state.schedules.patients);
     // const data = useMemo(() => getPatientData(props.patients), [patients]);
 
-    const data = useMemo(() => getPatientData(props.patients), [props.patients]);
+    const data = useMemo(() => getPatientData(props.scheduledPatients), [props.scheduledPatients]);
+
+    const columns = useMemo(
+        () => [
+            {
+                Header: "Time",
+                accessor: "col1", // accessor is the "key" in the data
+            },
+            {
+                Header: "Patient",
+                accessor: "col2",
+            },
+            {
+                Header: "Clinic Type",
+                accessor: "col3",
+            },
+            {
+                Header: "Status",
+                accessor: "col4",
+            },
+            {
+                Header: "",
+                accessor: "col5",
+            },
+        ],
+        []
+    );
 
     function getPatientData(patients) {
         var allData = [];
@@ -108,7 +134,7 @@ function TableSchedule(props) {
 }
 
 const mapStateToProps = (state) => ({
-    patients: state.schedules.patients,
+    scheduledPatients: state.schedules.scheduledPatients,
     isLoadingPatients: state.schedules.isLoadingPatients,
     modal: state.modal,
 });
