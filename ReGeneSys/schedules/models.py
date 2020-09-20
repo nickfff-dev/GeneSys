@@ -7,7 +7,7 @@ from patients.models import Patient
 
 class Event(models.Model):
     name = models.CharField(max_length=75)
-    date = models.DateField()
+    date = models.DateTimeField()
     location = models.CharField(max_length=75)
     event_type = models.CharField(max_length=25)
     start_time = models.DateTimeField()
@@ -45,7 +45,7 @@ class ClinicSchedulePatient(models.Model):
                                   related_name="scheduled_physician")
     time_start = models.DateTimeField()
     time_end = models.DateTimeField()
-    appointment_type = models.CharField(max_length=5)
+    appointment_type = models.CharField(max_length=5, default="none")
     status = models.CharField(max_length=15)
 
     def __str__(self):

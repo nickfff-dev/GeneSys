@@ -15,11 +15,18 @@ from django.contrib.auth.models import User
 def local_to_UTC(local_time):
 
     # utc_datetime = local_time.astimezone(tz.UTC)
+    # print(parser.parse(local_time))
 
-    # test = datetime.strptime(local_time, '%Y-%m-%d %H:%M:%S.%f%Z')
-    test = parser.parse(local_time)
-    print(local_time)
+    print("localtime " + local_time )
+
+    test = datetime.strptime(local_time, '%Y-%m-%dT%H:%M:%S.%f%z')
+    # test = parser.parse(local_time)
+    # print(local_time)
     print(test)
+    utc_datetime = test.astimezone(tz.UTC)
+
+    # utc_datetime = datetime.strftime(utc_datetime, '%Y-%m-%d')
+
 
     # utc_datetime = datetime.fromtimestamp(,                                          tz=timezone.utc)
 
@@ -64,15 +71,16 @@ class ClinicScheduleSerializer(serializers.ModelSerializer):
         event_data = validated_data.pop('event')
         physician_data = validated_data.pop('physician')
 
-        utc_date = datetime.strftime(
-            datetime.strptime(event_data['start_time'],
-                              "%Y-%m-%dT%H:%M:%S.%f%z"), "%Y-%m-%d")
+        # utc_date = datetime.strftime(
+        #     datetime.strptime(event_data['start_time'],
+        #                       "%Y-%m-%dT%H:%M:%S.%f%z"), "%Y-%m-%d")
 
-        print(utc_date)
+        # print(utc_date)
+
 
         event_instance = Event.objects.create(
             name=event_data['name'],
-            date=utc_date,
+            date=event_data['date'],
             location=event_data['location'],
             event_type=event_data['event_type'],
             start_time=event_data['start_time'],

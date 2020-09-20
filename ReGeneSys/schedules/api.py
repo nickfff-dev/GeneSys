@@ -3,7 +3,7 @@ from .models import Event, ClinicSchedule, ClinicSchedulePatient
 from rest_framework import generics, viewsets, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from .serializers import EventSerializer, ClinicScheduleSerializer, ClinicSchedulePatientSerializer
+from .serializers import EventSerializer, ClinicScheduleSerializer, ClinicSchedulePatientSerializer, local_to_UTC
 from patients.models import Patient
 from patients.serializers import PatientContactClinicalSerializer
 from accounts.serializers import UserSerializer
@@ -59,6 +59,8 @@ class ClinicScheduleViewSet(viewsets.ModelViewSet):
         schedule_list = []
         date = request.GET.get('date')
 
+        print("date " + str(local_to_UTC(date)))
+
         schedule = ClinicSchedule.objects.filter(event__date=date,
                                                  event__event_type='clinic')
         print(schedule)
@@ -71,7 +73,7 @@ class ClinicScheduleViewSet(viewsets.ModelViewSet):
     def search_available_physicians(self, request, pk=None):
         physician_list = []
         date = request.GET.get('date')
-        print(date)
+        print("search phys date " + date)
 
         physicians = User.objects.all().filter(permissions__is_doctor=True)
         print(physicians)

@@ -99,18 +99,22 @@ function CreatePatientAppointment(props) {
             physician: "",
             timeStart: "",
             timeEnd: "",
+            appointmentType: "",
+            status: ""
         },
     });
 
     const onSubmit = (data) => {
         const { patient, schedule, physician, timeStart, timeEnd, appointmentType } = data;
 
+        const date = format(props.modal.modalProps, "yyyy-MM-dd");
+
         const appointmentToCreate = {
             patient: patient["value"],
-            schedule,
+            schedule: props.selectedSchedule[0],
             physician,
-            timeStart,
-            timeEnd,
+            timeStart: new Date(date + " " + timeStart),
+            timeEnd: new Date(date + " " + timeEnd),
             appointmentType,
         };
 

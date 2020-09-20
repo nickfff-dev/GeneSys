@@ -10,6 +10,8 @@ import { ErrorMessage } from "@hookform/error-message";
 import Select from "react-select";
 import makeAnimated from "react-select/animated";
 
+import {shortenTime} from "./CalendarSchedule"
+
 import _ from "lodash/fp";
 
 import { hideModal } from "../../actions/modal";
@@ -106,13 +108,15 @@ function EditScheduleForm(props) {
             date: selectedSchedule.event.date,
             location: selectedSchedule.event.location,
             eventType: "clinic",
-            startTime: selectedSchedule.event.startTime,
-            endTime: selectedSchedule.event.endTime,
+            startTime: shortenTime(selectedSchedule.event.startTime),
+            endTime: shortenTime(selectedSchedule.event.endTime),
             description: selectedSchedule.event.description,
             attendees: [],
             physician: 7,
         },
     });
+
+    console.log()
 
     const onSubmit = (data) => {
         const { name, location, startTime, endTime, description, physicians } = data;
@@ -123,15 +127,15 @@ function EditScheduleForm(props) {
             physicianCollection.push(element["value"]);
         });
 
-        console.log(selectedPhysician);
+        const date = format(props.modal.modalProps, "yyyy-MM-dd");
 
         const event = {
             name,
-            date: format(props.modal.modalProps, "yyyy-MM-dd"),
+            date: date,
             location,
             eventType: "clinic",
-            startTime,
-            endTime,
+            startTime: new Date(date + " " + startTime),
+            endTime: new Date(date + " " + endTime),
             description,
             attendees: physicianCollection,
         };

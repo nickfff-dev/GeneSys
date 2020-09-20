@@ -28,20 +28,39 @@ import CreateScheduleForm from "./CreateScheduleForm";
 import EditScheduleForm from "./EditScheduleForm";
 import CreatePatientAppointment from "./CreatePatientAppointment";
 
-export const shortenTime = (time) => {
-    let shortened = format(utcToZonedTime(time, Intl.DateTimeFormat().resolvedOptions().timeZone), "HH:mm a");
+export const shortenTime = (time, timeFormat) => {
+    let shortened = ""
 
-    console.log(format(utcToZonedTime(time, Intl.DateTimeFormat().resolvedOptions().timeZone), "yyyy-MM-dd HH:mm"));
+    if (timeFormat === "12H"){
+        shortened = format(utcToLocal(time), "hh:mm a");
+    }
+    else{
+        shortened = format(utcToLocal(time), "HH:mm");
+
+    }
+
+    console.log(format(utcToLocal(time), "yyyy-MM-dd HH:mm"));
 
     return shortened;
 };
+
+export const utcToLocal = (dateTime) =>{
+    let localized = utcToZonedTime(dateTime, Intl.DateTimeFormat().resolvedOptions().timeZone)
+
+    return localized
+}
+
 
 function CalendarSchedule(props) {
     const [currentDate, onChange] = useState(new Date());
     const dispatch = useDispatch();
 
     useEffect(() => {
-        dispatch(getScheduleDetails(format(currentDate, "yyyy-MM-dd")));
+        // console.log("current date " + format(currentDate, "yyyy-MM-dd 00:00:00.00 zzz"))
+        console.log("current date " + format(currentDate, "yyyy-MM-dd 00:00:00 xx"))
+        //This format is needed for the backend localizer
+        dispatch(getScheduleDetails(format(utcToLocal(currentDate), "yyyy-MM-dd'T'00:00:00.000xxx")));
+        // dispatch(getScheduleDetails(currentDate));
     }, []);
 
     const [modal, setModal] = useState(false);
@@ -66,7 +85,12 @@ function CalendarSchedule(props) {
     const datesToAddClassTo = [];
 
     for (var i in props.events) {
-        datesToAddClassTo.push(props.events[i]["date"]);
+        datesToAddClassTo.push(props.events[i]["startTime"]);
+        // console.log("Start Time Not Localized " + props.events[i]["startTime"])
+        // console.log("Start Time Localized " + utcToLocal(props.events[i]["startTime"]))
+        // console.log("Date Not Localized " + props.events[i]["date"])
+        // console.log("Date Localized " + utcToLocal(props.events[i]["date"]))
+
     }
 
     function isSameDay(a, b) {
@@ -81,7 +105,9 @@ function CalendarSchedule(props) {
     }
 
     function onClickDay(value) {
-        dispatch(getScheduleDetails(format(value, "yyyy-MM-dd")));
+        console.log(value)
+        // dispatch(getScheduleDetails(format(value, "yyyy-MM-dd")));
+        dispatch(getScheduleDetails(value));
     }
 
     function getPatients(scheduleId, physicianId) {
@@ -168,7 +194,7 @@ function CalendarSchedule(props) {
                                         {physician.firstName} {physician.lastName}
                                     </CardTitle>
                                     <CardText className="text-black-50 small user-select-none">
-                                        {shortenTime(schedule.event.startTime)} {" - "} {shortenTime(schedule.event.endTime)}
+                                        {shortenTime(schedule.event.startTime, "12H")} {" - "} {shortenTime(schedule.event.endTime, "12H")}
                                     </CardText>
                                 </Card>
                             ))

@@ -116,15 +116,17 @@ function CreateScheduleForm(props) {
             physicianCollection.push(element["value"]);
         });
 
-        const date = format(props.modal.modalProps, "yyyy-MM-dd");
+        // const date = format(props.modal.modalProps, "yyyy-MM-dd");
+
+        const date = props.modal.modalProps
 
         const event = {
             name,
             date: date,
             location,
             eventType: "clinic",
-            startTime: new Date(date + " " + startTime),
-            endTime: new Date(date + " " + endTime),
+            startTime: new Date(format(props.modal.modalProps, "yyyy-MM-dd") + " " + startTime),
+            endTime: new Date(format(props.modal.modalProps, "yyyy-MM-dd") + " " + endTime),
             description,
             attendees: physicianCollection,
         };
@@ -134,7 +136,7 @@ function CreateScheduleForm(props) {
             physician: physicianCollection,
         };
 
-        // console.log(format(event.date + event.startTime, "yyyy-MM-ddTHH:mm"));
+        // console.log(scheduleToCreate);
 
         dispatch(createEventSchedule(scheduleToCreate));
         // toggleAll();
