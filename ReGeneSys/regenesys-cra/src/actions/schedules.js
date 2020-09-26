@@ -107,13 +107,10 @@ export const deleteEvent = (eventScheduleId) => (dispatch, getState) => {
         .then((res) => {
             dispatch(createMessage({ deleteSchedule: "Schedule Deleted" }));
             dispatch({
-                type: LOAD_SCHEDULES,
-            });
-            dispatch({
                 type: DELETE_EVENTSCHEDULE,
                 payload: snakeCaseKeysToCamel(res.data),
             });
-            return res;
+            return eventScheduleId;
         })
         .catch((err) => dispatch(returnErrors(err.response.data, err.response.status)));
 };

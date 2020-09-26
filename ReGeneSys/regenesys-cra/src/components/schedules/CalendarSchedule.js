@@ -29,36 +29,40 @@ import EditScheduleForm from "./EditScheduleForm";
 import CreatePatientAppointment from "./CreatePatientAppointment";
 
 export const shortenTime = (time, timeFormat) => {
-    let shortened = ""
+    let shortened = "";
 
-    if (timeFormat === "12H"){
+    if (timeFormat === "12H") {
         shortened = format(utcToLocal(time), "hh:mm a");
-    }
-    else{
+    } else {
         shortened = format(utcToLocal(time), "HH:mm");
-
     }
-
-    console.log(format(utcToLocal(time), "yyyy-MM-dd HH:mm"));
 
     return shortened;
 };
 
-export const utcToLocal = (dateTime) =>{
-    let localized = utcToZonedTime(dateTime, Intl.DateTimeFormat().resolvedOptions().timeZone)
+export const formatDate = (date) => {
+    const currentDate = format(utcToLocal(date), "yyyy-MM-dd'T'00:00:00.000xxx");
+    return currentDate;
+};
 
-    return localized
+export const utcToLocal = (dateTime) => {
+    let localized = utcToZonedTime(dateTime, Intl.DateTimeFormat().resolvedOptions().timeZone);
+    return localized;
+};
+
+function initializeCurrentDate() {
+    //To achieve this format: Sat Sep 26 2020 00:00:00 GMT+0800 (Singapore Standard Time)
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    return date;
 }
 
-
 function CalendarSchedule(props) {
-    const [currentDate, onChange] = useState(new Date());
+    const [currentDate, onChange] = useState(() => initializeCurrentDate());
+    // const [currentDate, onChange] = useState(new Date());
     const dispatch = useDispatch();
 
     useEffect(() => {
-        // console.log("current date " + format(currentDate, "yyyy-MM-dd 00:00:00.00 zzz"))
-        console.log("current date " + format(currentDate, "yyyy-MM-dd 00:00:00 xx"))
-        //This format is needed for the backend localizer
         dispatch(getScheduleDetails(format(utcToLocal(currentDate), "yyyy-MM-dd'T'00:00:00.000xxx")));
         // dispatch(getScheduleDetails(currentDate));
     }, []);
@@ -86,11 +90,6 @@ function CalendarSchedule(props) {
 
     for (var i in props.events) {
         datesToAddClassTo.push(props.events[i]["startTime"]);
-        // console.log("Start Time Not Localized " + props.events[i]["startTime"])
-        // console.log("Start Time Localized " + utcToLocal(props.events[i]["startTime"]))
-        // console.log("Date Not Localized " + props.events[i]["date"])
-        // console.log("Date Localized " + utcToLocal(props.events[i]["date"]))
-
     }
 
     function isSameDay(a, b) {
@@ -105,7 +104,6 @@ function CalendarSchedule(props) {
     }
 
     function onClickDay(value) {
-        console.log(value)
         // dispatch(getScheduleDetails(format(value, "yyyy-MM-dd")));
         dispatch(getScheduleDetails(value));
     }
@@ -115,10 +113,16 @@ function CalendarSchedule(props) {
     }
 
     function showScheduleModal(type, modalProps) {
+        console.log(utcToLocal(modalProps));
+        console.log(format(utcToLocal(modalProps), "yyyy-MM-dd'T'00:00:00.000xxx"));
+        // const test =
         if (type === "deleteSchedule") {
             toggle();
             dispatch(showModal(type, modalProps));
         } else if (type === "addSchedule") {
+            // console.log(format(utcToLocal(modalProps), "yyyy-MM-dd'T'00:00:00.000xxx"));
+            // console.log(modalProps);
+            // dispatch(showModal(type, format(modalProps, "yyyy-MM-dd'T'00:00:00.000xxx")));
             dispatch(showModal(type, modalProps));
         } else {
             dispatch(showModal(type, modalProps));

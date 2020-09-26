@@ -137,6 +137,8 @@ function Patients(props) {
             contact,
             clinical,
         };
+
+        console.log(userToDischarge);
         dispatch(dischargePatient(userToDischarge));
         toggleAll();
     };
@@ -255,7 +257,7 @@ function Patients(props) {
                         <ModalHeader>Save Changes</ModalHeader>
                         <ModalBody>Are you sure you want to save the changes you made?</ModalBody>
                         <ModalFooter>
-                            <Button color="primary" onClick={() => handleSubmit(onSubmit)}>
+                            <Button color="primary" onClick={handleSubmit(onSubmit)}>
                                 Yes
                             </Button>
                             <Button color="secondary" onClick={() => toggleNested}>

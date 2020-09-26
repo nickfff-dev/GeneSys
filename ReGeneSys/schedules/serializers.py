@@ -17,7 +17,7 @@ def local_to_UTC(local_time):
     # utc_datetime = local_time.astimezone(tz.UTC)
     # print(parser.parse(local_time))
 
-    print("localtime " + local_time )
+    print("localtime " + local_time)
 
     test = datetime.strptime(local_time, '%Y-%m-%dT%H:%M:%S.%f%z')
     # test = parser.parse(local_time)
@@ -26,7 +26,6 @@ def local_to_UTC(local_time):
     utc_datetime = test.astimezone(tz.UTC)
 
     # utc_datetime = datetime.strftime(utc_datetime, '%Y-%m-%d')
-
 
     # utc_datetime = datetime.fromtimestamp(,                                          tz=timezone.utc)
 
@@ -71,12 +70,7 @@ class ClinicScheduleSerializer(serializers.ModelSerializer):
         event_data = validated_data.pop('event')
         physician_data = validated_data.pop('physician')
 
-        # utc_date = datetime.strftime(
-        #     datetime.strptime(event_data['start_time'],
-        #                       "%Y-%m-%dT%H:%M:%S.%f%z"), "%Y-%m-%d")
-
-        # print(utc_date)
-
+        print(event_data)
 
         event_instance = Event.objects.create(
             name=event_data['name'],
@@ -89,10 +83,8 @@ class ClinicScheduleSerializer(serializers.ModelSerializer):
             created_by=event_data['created_by'])
         event_instance.attendees.set(event_data['attendees'])
         physicians = User.objects.all().filter(pk__in=physician_data)
-        print(physicians)
         schedule_instance = ClinicSchedule.objects.create(event=event_instance)
         schedule_instance.physician.set(physician_data)
-        print(schedule_instance)
 
         return schedule_instance
 

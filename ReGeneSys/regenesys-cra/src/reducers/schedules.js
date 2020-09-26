@@ -69,12 +69,13 @@ export default function (state = initialState, action) {
         case EDIT_EVENTSCHEDULE:
             return {
                 ...state,
-                schedules: state.schedules.map((schedule) => (schedule.pk === action.payload.pk ? action.payload : schedule)),
+                schedules: state.schedules.map((schedule) => (schedule.pk === action.payload.pk ? action.payload : schedule.pk)),
             };
         case DELETE_EVENTSCHEDULE:
+            console.log(action.payload);
             return {
                 ...state,
-                schedules: state.schedules.filter((schedule) => schedule.pk !== action.payload),
+                schedules: state.schedules.filter((schedule) => schedule.pk !== action.payload.pk),
                 isLoadingSchedules: false,
             };
         case GET_AVAILABLE_PHYSICIANS:

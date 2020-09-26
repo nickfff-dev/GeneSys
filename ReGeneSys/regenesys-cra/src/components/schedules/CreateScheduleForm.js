@@ -118,15 +118,16 @@ function CreateScheduleForm(props) {
 
         // const date = format(props.modal.modalProps, "yyyy-MM-dd");
 
-        const date = props.modal.modalProps
+        //date is in UTC due to react-calendar
+        const date = props.modal.modalProps;
 
         const event = {
             name,
             date: date,
             location,
             eventType: "clinic",
-            startTime: new Date(format(props.modal.modalProps, "yyyy-MM-dd") + " " + startTime),
-            endTime: new Date(format(props.modal.modalProps, "yyyy-MM-dd") + " " + endTime),
+            startTime: new Date(format(date, "yyyy-MM-dd") + " " + startTime),
+            endTime: new Date(format(date, "yyyy-MM-dd") + " " + endTime),
             description,
             attendees: physicianCollection,
         };
@@ -139,7 +140,7 @@ function CreateScheduleForm(props) {
         // console.log(scheduleToCreate);
 
         dispatch(createEventSchedule(scheduleToCreate));
-        // toggleAll();
+        toggleAll();
     };
 
     return (

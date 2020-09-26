@@ -1,9 +1,4 @@
-import {
-    GET_PATIENTS,
-    DELETE_PATIENT,
-    ADD_PATIENT,
-    EDIT_PATIENT,
-} from "../actions/types.js";
+import { GET_PATIENTS, DISCHARGE_PATIENT, ADD_PATIENT, EDIT_PATIENT } from "../actions/types.js";
 
 const initialState = {
     patients: [],
@@ -16,12 +11,10 @@ export default function (state = initialState, action) {
                 ...state,
                 patients: action.payload,
             };
-        case DELETE_PATIENT:
+        case DISCHARGE_PATIENT:
             return {
                 ...state,
-                patients: state.patients.filter(
-                    (patient) => patient.patientId !== action.payload
-                ),
+                patients: state.patients.filter((patient) => patient.patientId !== action.payload.patientId),
             };
         case ADD_PATIENT:
             return {
@@ -31,11 +24,7 @@ export default function (state = initialState, action) {
         case EDIT_PATIENT:
             return {
                 ...state,
-                patients: state.patients.map((patient) =>
-                    patient.patientId === action.payload.patientId
-                        ? action.payload
-                        : patient
-                ),
+                patients: state.patients.map((patient) => (patient.patientId === action.payload.patientId ? action.payload : patient)),
             };
         default:
             return state;

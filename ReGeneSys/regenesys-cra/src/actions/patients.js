@@ -2,7 +2,7 @@ import axios from "axios";
 import { createMessage, returnErrors } from "./messages";
 import { tokenConfig } from "./auth";
 
-import { GET_PATIENTS, DELETE_PATIENT, ADD_PATIENT, EDIT_PATIENT } from "./types";
+import { GET_PATIENTS, DELETE_PATIENT, ADD_PATIENT, EDIT_PATIENT, DISCHARGE_PATIENT } from "./types";
 import { PATIENT_API } from "../constants";
 import { snakeCaseKeysToCamel, camelCaseKeysToSnake } from "./utils";
 
@@ -36,11 +36,12 @@ export const deletePatient = (patientID) => (dispatch, getState) => {
 //DISCHARGE PATIENT
 export const dischargePatient = (patient) => (dispatch, getState) => {
     axios
-        .put(PATIENT_API + `${patient.patientID}/`, patient, tokenConfig(getState))
+        .put(PATIENT_API + `${patient.patientId}/`, camelCaseKeysToSnake(patient), tokenConfig(getState))
         .then((res) => {
+            console.log(snakeCaseKeysToCamel(res.data));
             dispatch(createMessage({ dischargePatient: "Patient Discharged" }));
             dispatch({
-                type: EDIT_PATIENT,
+                type: DISCHARGE_PATIENT,
                 payload: snakeCaseKeysToCamel(res.data),
             });
         })

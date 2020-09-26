@@ -152,9 +152,6 @@ class ClinicSchedulePatientViewSet(viewsets.ModelViewSet):
         return Response(
             PatientContactClinicalSerializer(patients, many=True).data)
 
-        # return Response(
-        #     ClinicSchedulePatientSerializer(schedule, many=True).data)
-
 
 #Schedule Viewset
 # class ScheduleViewSet(viewsets.ModelViewSet):

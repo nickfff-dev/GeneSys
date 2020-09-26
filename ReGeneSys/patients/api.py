@@ -13,7 +13,7 @@ from .serializers import PatientSerializer, PatientContactClinicalSerializer
 class PatientViewSet(viewsets.ModelViewSet):
     serializer_class = PatientContactClinicalSerializer
 
-    queryset = Patient.objects.all()
+    queryset = Patient.objects.filter(clinical__status="active")
 
     permission_classes = [permissions.IsAuthenticated]
 

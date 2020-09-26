@@ -100,7 +100,7 @@ function CreatePatientAppointment(props) {
             timeStart: "",
             timeEnd: "",
             appointmentType: "",
-            status: ""
+            status: "",
         },
     });
 
@@ -113,8 +113,8 @@ function CreatePatientAppointment(props) {
             patient: patient["value"],
             schedule: props.selectedSchedule[0],
             physician,
-            timeStart: new Date(date + " " + timeStart),
-            timeEnd: new Date(date + " " + timeEnd),
+            timeStart: new Date(format(date, "yyyy-MM-dd") + " " + timeStart),
+            timeEnd: new Date(format(date, "yyyy-MM-dd") + " " + timeEnd),
             appointmentType,
         };
 
