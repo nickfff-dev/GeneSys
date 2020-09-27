@@ -83,9 +83,6 @@ function CreatePatientAppointment(props) {
         if (page === 1) {
             const check = trigger(["patient", "timeStart", "timeEnd"]);
             return check;
-        } else {
-            const check = trigger(["physician"]);
-            return check;
         }
     };
 
@@ -107,15 +104,17 @@ function CreatePatientAppointment(props) {
     const onSubmit = (data) => {
         const { patient, schedule, physician, timeStart, timeEnd, appointmentType } = data;
 
-        const date = format(props.modal.modalProps, "yyyy-MM-dd");
+        // const date = format(props.modal.modalProps, "yyyy-MM-dd");
+        const date = props.modal.modalProps;
 
         const appointmentToCreate = {
             patient: patient["value"],
-            schedule: props.selectedSchedule[0],
-            physician,
+            schedule: props.selectedSchedule[0].pk,
+            physician: props.selectedSchedule[0].physician[0].id,
             timeStart: new Date(format(date, "yyyy-MM-dd") + " " + timeStart),
             timeEnd: new Date(format(date, "yyyy-MM-dd") + " " + timeEnd),
             appointmentType,
+            status: "active",
         };
 
         console.log(appointmentToCreate);
@@ -158,22 +157,22 @@ function CreatePatientAppointment(props) {
                                     <input
                                         className="form-control"
                                         type="time"
-                                        name="startTime"
+                                        name="timeStart"
                                         ref={register({
                                             required: "This is required",
                                             validate: {
                                                 lesserThanEndTime: (value) => {
-                                                    const { endTime } = getValues();
+                                                    const { timeEnd } = getValues();
                                                     console.log(value);
-                                                    console.log(endTime);
-                                                    return value < endTime || endTime.length === 0 || "Must be before end time";
+                                                    console.log(timeEnd);
+                                                    return value < timeEnd || timeEnd.length === 0 || "Must be before end time";
                                                 },
                                             },
                                         })}
                                     />
                                     <ErrorMessage
                                         errors={errors}
-                                        name="startTime"
+                                        name="timeStart"
                                         render={({ messages }) => {
                                             console.log("messages", messages);
                                             return messages
@@ -192,23 +191,23 @@ function CreatePatientAppointment(props) {
                                     <input
                                         className="form-control"
                                         type="time"
-                                        name="endTime"
+                                        name="timeEnd"
                                         step="300"
                                         ref={register({
                                             required: "This is required",
                                             validate: {
                                                 lesserThanEndTime: (value) => {
-                                                    const { startTime } = getValues();
+                                                    const { timeStart } = getValues();
                                                     console.log(value);
-                                                    console.log(startTime);
-                                                    return value > startTime || startTime.length === 0 || "Must be after start time";
+                                                    console.log(timeStart);
+                                                    return value > timeStart || timeStart.length === 0 || "Must be after start time";
                                                 },
                                             },
                                         })}
                                     />
                                     <ErrorMessage
                                         errors={errors}
-                                        name="endTime"
+                                        name="timeEnd"
                                         render={({ messages }) => {
                                             console.log("messages", messages);
                                             return messages
@@ -223,7 +222,7 @@ function CreatePatientAppointment(props) {
                                 </div>
                             </div>
                         </div>
-                        <div id="page-two" className={page === 2 ? "" : "d-none"}></div>
+                        {/* <div id="page-two" className={page === 2 ? "" : "d-none"}></div>
 
                         <div id="page-three" className={page === 3 ? "" : "d-none"}>
                             <div className="form-row">
@@ -263,7 +262,7 @@ function CreatePatientAppointment(props) {
                                     />
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
                     </form>
 
                     <Modal isOpen={nestedModal} toggle={toggleNested} onClosed={closeAll ? toggle : undefined}>
@@ -280,12 +279,12 @@ function CreatePatientAppointment(props) {
                     </Modal>
                 </ModalBody>
                 <ModalFooter>
-                    {page > 1 && (
+                    {/* {page > 1 && (
                         <button type="button" onClick={previousPage} className="btn btn-primary">
                             Previous Page
                         </button>
-                    )}
-                    {page < 2 && (
+                    )} */}
+                    {/* {page < 2 && (
                         <button
                             type="button"
                             className="btn btn-primary"
@@ -298,8 +297,8 @@ function CreatePatientAppointment(props) {
                         >
                             Next Page
                         </button>
-                    )}
-                    {page === 2 && (
+                    )} */}
+                    {/* {page === 2 && ( */}
                         <button
                             type="button"
                             className="btn btn-primary"
@@ -308,11 +307,12 @@ function CreatePatientAppointment(props) {
                                 if (pageValid === true) {
                                     toggleNested();
                                 }
+                                console.log(pageValid)
                             }}
                         >
                             Save
                         </button>
-                    )}
+                    {/* )} */}
                     <button type="button" className="btn btn-secondary" data-dismiss="modal" onClick={toggle}>
                         Close
                     </button>
@@ -324,6 +324,7 @@ function CreatePatientAppointment(props) {
 
 const mapStateToProps = (state) => ({
     availablePatients: state.schedules.availablePatients,
+    scheduledPatients: state.schedules.scheduledPatients,
     selectedSchedule: state.schedules.schedules,
     modal: state.modal,
 });

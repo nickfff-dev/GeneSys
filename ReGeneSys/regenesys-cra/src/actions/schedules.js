@@ -132,7 +132,7 @@ export const getAvailablePatients = (eventScheduleId) => (dispatch, getState) =>
 //CREATE PATIENT APPOINTMENT
 export const createPatientAppointment = (appointment) => (dispatch, getState) => {
     axios
-        .post(SCHEDULE_API, camelCaseKeysToSnake(appointment), tokenConfig(getState))
+        .post(GET_SCHEDULED_PATIENTS_API, camelCaseKeysToSnake(appointment), tokenConfig(getState))
         .then((res) => {
             dispatch(createMessage({ addAppointment: "Appointment Created" }));
             dispatch({

@@ -28,6 +28,7 @@ function CreateScheduleForm(props) {
     const [closeAll, setCloseAll] = useState(true);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedPhysician, setSelectedPhysician] = useState([]);
+    const [selectedStartTime, setSelectedStartTime] = useState();
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -42,6 +43,36 @@ function CreateScheduleForm(props) {
         dispatch(getAvailablePhysicians(format(date, "yyyy-MM-dd")));
         generateOptions(props.availablePhysicians);
     };
+    
+    const generateTimeOptions = () => {
+        const startTimeOptions = []
+        const halfHours = ["00", "30"];
+        for(var i = 0; i < 24; i++){
+            for(var j = 0; j < halfHours.length; j ++){
+                if(i < 12){
+                    var hourLabel = i + ":" + halfHours[j] + " AM";
+                }
+                else if(i === 12){
+                    var hourLabel = i + ":" + halfHours[j] + " PM";
+                }
+                else{
+                    var hourLabel = i - 12 + ":" + halfHours[j] + " PM";     
+                }
+                var hourValue = i + ":" + halfHours[j];
+                if (i < 10){
+                    hourValue = "0" + hourValue;
+                }
+                startTimeOptions.push({value: hourValue, label: hourLabel})
+            }
+        }
+        return startTimeOptions
+    }
+
+    const generateEndTimeOptions = (selectedStartTime) => {
+
+        console.log("Selected Start Time Here " + selectedStartTime)
+        
+    }
 
     const generateOptions = () => {
         const availablePhysicians = [];
@@ -243,7 +274,36 @@ function CreateScheduleForm(props) {
                                             },
                                         })}
                                     /> */}
-                                    <input
+                                    <Controller
+                                        as={
+                                            <Select
+                                                // components={makeAnimated()}
+                                                onChange={setSelectedStartTime}
+                                                
+                                                className="basic-single"
+                                                placeholder="Select Start Time"
+                                                options={generateTimeOptions()}
+                                                // noOptionsMessage={() => "No available physicians"}
+                                                isSearchable = { false }
+                                                isClearable
+                                                // isMulti
+                                                // name="physician"
+                                                ref={register({
+                                                    required: "This is required",
+                                                    validate: {
+                                                        lesserThanEndTime: (value) => {
+                                                            const { endTime } = getValues();
+                                                            return value < endTime || endTime.length === 0 || "Must be before end time";
+                                                        },
+                                                    },
+                                                })}
+                                            />
+                                        }
+                                        name="startTime"
+                                        control={control}
+                                        // rules={{ required: true }}
+                                    />
+                                    {/* <input
                                         className="form-control"
                                         type="time"
                                         step="1800"
@@ -257,7 +317,7 @@ function CreateScheduleForm(props) {
                                                 },
                                             },
                                         })}
-                                    />
+                                    /> */}
                                     <ErrorMessage
                                         errors={errors}
                                         name="startTime"
@@ -276,7 +336,7 @@ function CreateScheduleForm(props) {
 
                                 <div className="form-group col-6">
                                     <label>End Time</label>
-                                    <input
+                                    {/* <input
                                         className="form-control"
                                         type="time"
                                         name="endTime"
@@ -289,6 +349,34 @@ function CreateScheduleForm(props) {
                                                 },
                                             },
                                         })}
+                                    /> */}
+                                    <Controller
+                                        as={
+                                            <Select
+                                                // components={makeAnimated()}
+                                                // onChange={setSelectedPhysician}
+                                                className="basic-single"
+                                                placeholder="Select End Time"
+                                                options={generateEndTimeOptions(selectedStartTime)}
+                                                // noOptionsMessage={() => "No available physicians"}
+                                                isSearchable = { false }
+                                                isClearable
+                                                // isMulti
+                                                // name="physician"
+                                                ref={register({
+                                                    required: "This is required",
+                                                    validate: {
+                                                        lesserThanEndTime: (value) => {
+                                                            const { startTime } = getValues();
+                                                            return value > startTime || startTime.length === 0 || "Must be after start time";
+                                                        },
+                                                    },
+                                                })}
+                                            />
+                                        }
+                                        name="endTime"
+                                        control={control}
+                                        // rules={{ required: true }}
                                     />
                                     <ErrorMessage
                                         errors={errors}

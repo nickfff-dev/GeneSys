@@ -11,6 +11,8 @@ import {
     DELETE_EVENTSCHEDULE,
     LOAD_SCHEDULES,
     GET_AVAILABLE_PATIENTS,
+    CREATE_PATIENT_APPOINTMENT
+
 } from "../actions/types.js";
 
 const initialState = {
@@ -83,7 +85,11 @@ export default function (state = initialState, action) {
                 ...state,
                 availablePhysicians: action.payload,
             };
-
+        case CREATE_PATIENT_APPOINTMENT:
+            return {
+                ...state,
+                scheduledPatients: [...state.scheduledPatients, action.payload],
+            };
         //PATIENTS
         case GET_SCHEDULED_PATIENTS:
             return {

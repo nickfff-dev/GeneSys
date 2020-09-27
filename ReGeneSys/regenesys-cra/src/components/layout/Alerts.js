@@ -36,6 +36,8 @@ export class Alerts extends Component {
             if (message.addSchedule) alert.success(message.addSchedule);
             if (message.editSchedule) alert.success(message.editSchedule);
             if (message.deleteSchedule) alert.success(message.deleteSchedule);
+            if (message.addAppointment) alert.success(message.addAppointment);
+
         }
     }
 
