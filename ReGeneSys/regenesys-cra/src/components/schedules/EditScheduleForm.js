@@ -12,9 +12,10 @@ import makeAnimated from "react-select/animated";
 
 import { shortenTime } from "./CalendarSchedule";
 
-import _ from "lodash/fp";
+import _ from "lodash";
 
 import { hideModal } from "../../actions/modal";
+import { array } from "prop-types";
 
 function pageInitial() {
     return 1;
@@ -27,15 +28,22 @@ function EditScheduleForm(props) {
     const [closeAll, setCloseAll] = useState(true);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedPhysician, setSelectedPhysician] = useState([]);
+    const [inputTimeResetCounter, setInputTimeResetCounter] = useState(false);
     const dispatch = useDispatch();
 
     useEffect(() => {
         getPhysicians(props.modal.modalProps);
     }, []);
 
+    useEffect(() => {
+        getDefaultTimes();
+    });
+
     const selectedSchedule = props.selectedSchedule[0];
 
     const defaultPhysician = [];
+    const defaultStartTime = [];
+    const defaultEndTime = [];
 
     const closeModal = () => {
         dispatch(hideModal());
@@ -50,8 +58,59 @@ function EditScheduleForm(props) {
                 label: selectedSchedule.physician[i].firstName + " " + selectedSchedule.physician[i].lastName,
             });
         }
-        console.log(defaultPhysician);
     };
+
+    const getDefaultTimes = () => {
+        const timeOptions = generateTimeOptions();
+        const startTime = shortenTime(selectedSchedule.event.startTime);
+        const endTime = shortenTime(selectedSchedule.event.endTime);
+
+        if (defaultStartTime.length < 1) {
+            defaultStartTime.push(_.find(timeOptions, ["value", startTime]));
+            defaultEndTime.push(_.find(timeOptions, ["value", endTime]));
+        }
+        // console.log(startTime.toString());
+        // console.log(_.find(timeOptions, ["value", "05:00"]));
+        // console.log(_.find(options, ["value", "05:00"]));
+        // console.log(defaultStartTime);
+        // console.log(defaultEndTime);
+        // console.log("2");
+    };
+
+    const generateTimeOptions = () => {
+        const timeOptions = [];
+        const halfHours = ["00", "30"];
+        for (var i = 0; i < 24; i++) {
+            for (var j = 0; j < halfHours.length; j++) {
+                if (i < 12) {
+                    var hourLabel = i + ":" + halfHours[j] + " AM";
+                } else if (i === 12) {
+                    var hourLabel = i + ":" + halfHours[j] + " PM";
+                } else {
+                    var hourLabel = i - 12 + ":" + halfHours[j] + " PM";
+                }
+                var hourValue = i + ":" + halfHours[j];
+                if (i < 10) {
+                    hourValue = "0" + hourValue;
+                }
+
+                timeOptions.push({ value: hourValue, label: hourLabel });
+
+                // if (shortenTime(selectedSchedule.event.startTime) === hourValue && defaultStartTime < 1) {
+                //     defaultStartTime = { value: hourValue, label: hourLabel };
+                // }
+                // if (shortenTime(selectedSchedule.event.endTime) === hourValue && defaultEndTime < 1) {
+                //     defaultEndTime = { value: hourValue, label: hourLabel };
+                // }
+            }
+        }
+        return timeOptions;
+    };
+
+    // console.log("START");
+    // console.log(defaultStartTime);
+    // console.log("END");
+    // console.log(defaultEndTime);
 
     const generateOptions = () => {
         const availablePhysicians = [];
@@ -99,7 +158,40 @@ function EditScheduleForm(props) {
         }
     };
 
-    const { register, errors, control, handleSubmit, trigger, getValues } = useForm({
+    const resetOppositeTime = (inputChanged) => {
+        if (inputTimeResetCounter === false) {
+            var defaultValue = [];
+            if (inputChanged === "start") {
+                const { endTime } = getValues();
+                reset({
+                    name: selectedSchedule.event.name,
+                    date: selectedSchedule.event.date,
+                    location: selectedSchedule.event.location,
+                    eventType: "clinic",
+                    endTime: endTime,
+                    description: selectedSchedule.event.description,
+                    attendees: [],
+                    physician: "",
+                });
+            } else {
+                const { startTime } = getValues();
+                defaultValue.push(startTime);
+                reset({
+                    name: selectedSchedule.event.name,
+                    date: selectedSchedule.event.date,
+                    location: selectedSchedule.event.location,
+                    eventType: "clinic",
+                    startTime: startTime,
+                    description: selectedSchedule.event.description,
+                    attendees: [],
+                    physician: "",
+                });
+            }
+            setInputTimeResetCounter();
+        }
+    };
+
+    const { register, errors, control, handleSubmit, trigger, getValues, reset } = useForm({
         criteriaMode: "all",
         mode: "onChange",
         reValidateMode: "onChange",
@@ -108,15 +200,13 @@ function EditScheduleForm(props) {
             date: selectedSchedule.event.date,
             location: selectedSchedule.event.location,
             eventType: "clinic",
-            startTime: shortenTime(selectedSchedule.event.startTime),
-            endTime: shortenTime(selectedSchedule.event.endTime),
+            startTime: defaultStartTime,
+            endTime: defaultEndTime,
             description: selectedSchedule.event.description,
             attendees: [],
-            physician: 7,
+            physician: "",
         },
     });
-
-    console.log();
 
     const onSubmit = (data) => {
         const { name, location, startTime, endTime, description, physicians } = data;
@@ -135,8 +225,8 @@ function EditScheduleForm(props) {
             date: date,
             location,
             eventType: "clinic",
-            startTime: new Date(format(date, "yyyy-MM-dd") + " " + startTime),
-            endTime: new Date(format(date, "yyyy-MM-dd") + " " + endTime),
+            startTime: new Date(format(date, "yyyy-MM-dd") + " " + getValueArrayOrObject(startTime)),
+            endTime: new Date(format(date, "yyyy-MM-dd") + " " + getValueArrayOrObject(endTime)),
             description,
             attendees: physicianCollection,
         };
@@ -150,6 +240,16 @@ function EditScheduleForm(props) {
         console.log(event);
         toggleAll();
     };
+
+    function getValueArrayOrObject(value) {
+        if (Array.isArray(value)) {
+            value = _.first(value).value;
+            return value;
+        } else if (typeof value === "object") {
+            value = value.value;
+            return value;
+        }
+    }
 
     return (
         <div>
@@ -233,7 +333,7 @@ function EditScheduleForm(props) {
                             <div className="form-row">
                                 <div className="form-group col-6">
                                     <label>Start Time</label>
-                                    <input
+                                    {/* <input
                                         className="form-control"
                                         type="time"
                                         step="1800"
@@ -247,6 +347,69 @@ function EditScheduleForm(props) {
                                                 },
                                             },
                                         })}
+                                    /> */}
+                                    <Controller
+                                        // as={
+                                        //     <Select
+                                        //         // components={makeAnimated()}
+                                        //         className="basic-single"
+                                        //         placeholder="Select Start Time"
+                                        //         options={generateTimeOptions("start")}
+                                        //         // defaultValue={defaultStartTime}
+                                        //         // noOptionsMessage={() => "No available physicians"}
+                                        //         // isMulti
+                                        //         // name="physician"
+                                        //         name="startTime"
+                                        //         onFocus={() => resetOppositeTime("start")}
+                                        //         // onChange={() => resetEndTime()}
+                                        //         // onClick={() => reset({ endTime: "bill" })}
+                                        //     />
+                                        // }
+                                        as={Select}
+                                        // components={makeAnimated()}
+                                        className="basic-single"
+                                        placeholder="Select Start Time"
+                                        options={generateTimeOptions("start")}
+                                        // defaultValue={defaultStartTime}
+                                        // noOptionsMessage={() => "No available physicians"}
+                                        // isMulti
+                                        // name="physician"
+                                        onFocus={() => resetOppositeTime("start")}
+                                        // onChange={() => resetEndTime()}
+                                        // onClick={() => reset({ endTime: "bill" })}
+
+                                        name="startTime"
+                                        control={control}
+                                        rules={{
+                                            required: "This is required",
+                                            validate: {
+                                                lesserThanEndTime: (value) => {
+                                                    var { endTime } = getValues();
+                                                    if (endTime) {
+                                                        //Default values are in array form. This is to fix value checking
+                                                        if (Array.isArray(value) || Array.isArray(endTime)) {
+                                                            value = getValueArrayOrObject(value);
+                                                            endTime = getValueArrayOrObject(endTime);
+
+                                                            // if (Array.isArray(value)) {
+                                                            //     value = value[0].value;
+                                                            // } else if (typeof value === "object") {
+                                                            // }
+
+                                                            // if (Array.isArray(endTime)) {
+                                                            //     endTime = endTime[0].value;
+                                                            // }
+                                                            // // else if() {
+
+                                                            // // }
+
+                                                            return value < endTime || endTime.length === 0 || "Must be before end time";
+                                                        }
+                                                        return value.value < endTime.value || endTime.value.length === 0 || "Must be before end time";
+                                                    }
+                                                },
+                                            },
+                                        }}
                                     />
                                     <ErrorMessage
                                         errors={errors}
@@ -266,7 +429,7 @@ function EditScheduleForm(props) {
 
                                 <div className="form-group col-6">
                                     <label>End Time</label>
-                                    <input
+                                    {/* <input
                                         className="form-control"
                                         type="time"
                                         name="endTime"
@@ -279,6 +442,113 @@ function EditScheduleForm(props) {
                                                 },
                                             },
                                         })}
+                                    /> */}
+                                    <Controller
+                                        // as={
+                                        //     <Select
+                                        //         // components={makeAnimated()}
+                                        //         // onChange={setSelectedPhysician}
+                                        //         className="basic-single"
+                                        //         placeholder="Select End Time"
+                                        //         options={generateTimeOptions()}
+                                        //         onFocus={() => resetOppositeTime("end")}
+                                        //         // defaultValue={defaultEndTime}
+                                        //         // noOptionsMessage={() => "No available physicians"}
+                                        //         // isMulti
+                                        //         // name="physician"
+                                        //     />
+                                        // }
+                                        as={Select}
+                                        // components={makeAnimated()}
+                                        // onChange={setSelectedPhysician}
+                                        className="basic-single"
+                                        placeholder="Select End Time"
+                                        options={generateTimeOptions()}
+                                        onFocus={() => resetOppositeTime("end")}
+                                        // defaultValue={defaultEndTime}
+                                        // noOptionsMessage={() => "No available physicians"}
+                                        // isMulti
+                                        // name="physician"
+
+                                        name="endTime"
+                                        control={control}
+                                        rules={{
+                                            required: "This is required",
+                                            validate: {
+                                                lesserThanEndTime: (value) => {
+                                                    var { startTime } = getValues();
+                                                    if (startTime && value != "") {
+                                                        if (Array.isArray(value) || Array.isArray(startTime)) {
+                                                            // if (Array.isArray(value)) {
+                                                            //     console.log("value is Array");
+                                                            //     console.log(value);
+                                                            //     value = _.first(value).value;
+                                                            //     console.log(value);
+                                                            // } else if (typeof value === "object") {
+                                                            //     console.log("value is Object");
+                                                            //     console.log(value);
+                                                            //     value = value.value;
+                                                            //     console.log(value);
+                                                            // }
+                                                            value = getValueArrayOrObject(value);
+                                                            startTime = getValueArrayOrObject(startTime);
+
+                                                            // if (Array.isArray(startTime)) {
+                                                            //     console.log("startTime is array");
+                                                            //     console.log(startTime);
+                                                            //     startTime = _.first(startTime).value;
+                                                            //     // console.log(startTime);
+                                                            // } else if (typeof startTime === "object") {
+                                                            //     console.log("startTime is Object");
+                                                            //     console.log(startTime);
+                                                            //     startTime = startTime.value;
+                                                            //     console.log(startTime);
+                                                            // }
+                                                            // value = _.first(value).value;
+                                                            // startTime = _.first(startTime).value;
+
+                                                            // console.log("inside if array");
+                                                            // console.log(value);
+                                                            // console.log(startTime);
+                                                            // console.log(value < startTime);
+                                                            // console.log(startTime.length === 0);
+
+                                                            return value > startTime || startTime.length === 0 || "Must be after start time";
+                                                        }
+                                                        // console.log("inside");
+                                                        // console.log(value);
+                                                        // console.log(startTime);
+                                                        // console.log(value < startTime);
+                                                        // console.log(startTime.length === 0);
+                                                        return (
+                                                            value.value > startTime.value ||
+                                                            startTime.value.length === 0 ||
+                                                            "Must be after start time"
+                                                        );
+
+                                                        // if (Array.isArray(value)) {
+                                                        //     value = value[0].value;
+                                                        // }
+                                                        // if (Array.isArray(startTime)) {
+                                                        //     startTime = startTime[0].value;
+                                                        // }
+                                                        // console.log("end");
+                                                        // console.log(value);
+                                                        // console.log(startTime);
+                                                        // console.log(value < startTime);
+                                                        // console.log(startTime.length === 0);
+                                                        // return value > startTime || startTime.length === 0 || "Must be after start time";
+                                                    }
+                                                    // else if (startTime[0].length != 0){
+                                                    //     return (
+                                                    //         value.value > startTime.value ||
+                                                    //         startTime.value.length === 0 ||
+                                                    //         "Must be after start time"
+                                                    //     );
+                                                    // }
+                                                },
+                                            },
+                                        }}
                                     />
                                     <ErrorMessage
                                         errors={errors}
@@ -344,9 +614,9 @@ function EditScheduleForm(props) {
                                         isMulti
                                         isClearable
                                         control={control}
-                                        ref={register({
+                                        rules={{
                                             required: "This is required",
-                                        })}
+                                        }}
                                     />
                                     {/* <Controller
                                         as={

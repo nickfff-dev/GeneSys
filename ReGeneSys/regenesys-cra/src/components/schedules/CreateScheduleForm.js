@@ -43,36 +43,28 @@ function CreateScheduleForm(props) {
         dispatch(getAvailablePhysicians(format(date, "yyyy-MM-dd")));
         generateOptions(props.availablePhysicians);
     };
-    
+
     const generateTimeOptions = () => {
-        const startTimeOptions = []
+        const startTimeOptions = [];
         const halfHours = ["00", "30"];
-        for(var i = 0; i < 24; i++){
-            for(var j = 0; j < halfHours.length; j ++){
-                if(i < 12){
+        for (var i = 0; i < 24; i++) {
+            for (var j = 0; j < halfHours.length; j++) {
+                if (i < 12) {
                     var hourLabel = i + ":" + halfHours[j] + " AM";
-                }
-                else if(i === 12){
+                } else if (i === 12) {
                     var hourLabel = i + ":" + halfHours[j] + " PM";
-                }
-                else{
-                    var hourLabel = i - 12 + ":" + halfHours[j] + " PM";     
+                } else {
+                    var hourLabel = i - 12 + ":" + halfHours[j] + " PM";
                 }
                 var hourValue = i + ":" + halfHours[j];
-                if (i < 10){
+                if (i < 10) {
                     hourValue = "0" + hourValue;
                 }
-                startTimeOptions.push({value: hourValue, label: hourLabel})
+                startTimeOptions.push({ value: hourValue, label: hourLabel });
             }
         }
-        return startTimeOptions
-    }
-
-    const generateEndTimeOptions = (selectedStartTime) => {
-
-        console.log("Selected Start Time Here " + selectedStartTime)
-        
-    }
+        return startTimeOptions;
+    };
 
     const generateOptions = () => {
         const availablePhysicians = [];
@@ -157,8 +149,8 @@ function CreateScheduleForm(props) {
             date: date,
             location,
             eventType: "clinic",
-            startTime: new Date(format(date, "yyyy-MM-dd") + " " + startTime),
-            endTime: new Date(format(date, "yyyy-MM-dd") + " " + endTime),
+            startTime: new Date(format(date, "yyyy-MM-dd") + " " + startTime.value),
+            endTime: new Date(format(date, "yyyy-MM-dd") + " " + endTime.value),
             description,
             attendees: physicianCollection,
         };
@@ -278,30 +270,28 @@ function CreateScheduleForm(props) {
                                         as={
                                             <Select
                                                 // components={makeAnimated()}
-                                                onChange={setSelectedStartTime}
-                                                
                                                 className="basic-single"
                                                 placeholder="Select Start Time"
                                                 options={generateTimeOptions()}
                                                 // noOptionsMessage={() => "No available physicians"}
-                                                isSearchable = { false }
-                                                isClearable
                                                 // isMulti
                                                 // name="physician"
-                                                ref={register({
-                                                    required: "This is required",
-                                                    validate: {
-                                                        lesserThanEndTime: (value) => {
-                                                            const { endTime } = getValues();
-                                                            return value < endTime || endTime.length === 0 || "Must be before end time";
-                                                        },
-                                                    },
-                                                })}
+                                                name="startTime"
                                             />
                                         }
                                         name="startTime"
                                         control={control}
-                                        // rules={{ required: true }}
+                                        rules={{
+                                            required: "This is required",
+                                            validate: {
+                                                lesserThanEndTime: (value) => {
+                                                    const { endTime } = getValues();
+                                                    if (endTime != "") {
+                                                        return value.value < endTime.value || endTime.value.length === 0 || "Must be before end time";
+                                                    }
+                                                },
+                                            },
+                                        }}
                                     />
                                     {/* <input
                                         className="form-control"
@@ -357,26 +347,33 @@ function CreateScheduleForm(props) {
                                                 // onChange={setSelectedPhysician}
                                                 className="basic-single"
                                                 placeholder="Select End Time"
-                                                options={generateEndTimeOptions(selectedStartTime)}
+                                                options={generateTimeOptions()}
                                                 // noOptionsMessage={() => "No available physicians"}
-                                                isSearchable = { false }
-                                                isClearable
                                                 // isMulti
                                                 // name="physician"
-                                                ref={register({
-                                                    required: "This is required",
-                                                    validate: {
-                                                        lesserThanEndTime: (value) => {
-                                                            const { startTime } = getValues();
-                                                            return value > startTime || startTime.length === 0 || "Must be after start time";
-                                                        },
-                                                    },
-                                                })}
+                                                name="endTime"
                                             />
                                         }
                                         name="endTime"
                                         control={control}
-                                        // rules={{ required: true }}
+                                        rules={{
+                                            required: "This is required",
+                                            validate: {
+                                                lesserThanEndTime: (value) => {
+                                                    const { startTime } = getValues();
+                                                    console.log("end");
+                                                    console.log(value.value);
+                                                    console.log(startTime.value);
+                                                    if (startTime != "") {
+                                                        return (
+                                                            value.value > startTime.value ||
+                                                            startTime.value.length === 0 ||
+                                                            "Must be after start time"
+                                                        );
+                                                    }
+                                                },
+                                            },
+                                        }}
                                     />
                                     <ErrorMessage
                                         errors={errors}

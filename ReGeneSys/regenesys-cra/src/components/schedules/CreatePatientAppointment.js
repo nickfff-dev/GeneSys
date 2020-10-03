@@ -299,19 +299,19 @@ function CreatePatientAppointment(props) {
                         </button>
                     )} */}
                     {/* {page === 2 && ( */}
-                        <button
-                            type="button"
-                            className="btn btn-primary"
-                            onClick={async () => {
-                                const pageValid = await validatePage();
-                                if (pageValid === true) {
-                                    toggleNested();
-                                }
-                                console.log(pageValid)
-                            }}
-                        >
-                            Save
-                        </button>
+                    <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={async () => {
+                            const pageValid = await validatePage();
+                            if (pageValid === true) {
+                                toggleNested();
+                            }
+                            console.log(pageValid);
+                        }}
+                    >
+                        Save
+                    </button>
                     {/* )} */}
                     <button type="button" className="btn btn-secondary" data-dismiss="modal" onClick={toggle}>
                         Close
