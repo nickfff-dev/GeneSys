@@ -405,7 +405,7 @@ function EditScheduleForm(props) {
 
                                                             return value < endTime || endTime.length === 0 || "Must be before end time";
                                                         }
-                                                        return value.value < endTime.value || endTime.value.length === 0 || "Must be before end time";
+                                                        // return value.value < endTime.value || endTime.value.length === 0 || "Must be before end time";
                                                     }
                                                 },
                                             },
@@ -520,11 +520,7 @@ function EditScheduleForm(props) {
                                                         // console.log(startTime);
                                                         // console.log(value < startTime);
                                                         // console.log(startTime.length === 0);
-                                                        return (
-                                                            value.value > startTime.value ||
-                                                            startTime.value.length === 0 ||
-                                                            "Must be after start time"
-                                                        );
+                                                        return (value.value > startTime.value || startTime.value.length === 0 || "Must be after start time");
 
                                                         // if (Array.isArray(value)) {
                                                         //     value = value[0].value;

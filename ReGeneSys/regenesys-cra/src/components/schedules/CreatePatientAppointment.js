@@ -3,6 +3,10 @@ import { connect, useDispatch } from "react-redux";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 
 import { getAvailablePatients, createPatientAppointment } from "../../actions/schedules";
+import { shortenTime } from "./CalendarSchedule";
+import { hideModal } from "../../actions/modal";
+
+
 
 import { format } from "date-fns";
 
@@ -11,9 +15,8 @@ import { ErrorMessage } from "@hookform/error-message";
 import Select from "react-select";
 import makeAnimated from "react-select/animated";
 
-import _ from "lodash/fp";
+import _ from "lodash";
 
-import { hideModal } from "../../actions/modal";
 
 function pageInitial() {
     return 1;
@@ -28,9 +31,23 @@ function CreatePatientAppointment(props) {
 
     const dispatch = useDispatch();
 
+    const selectedSchedule = props.selectedSchedule[0];
+    var defaultStartTime = [];
+    var defaultEndTime = [];
+    var timeOptions = [];
+
+
     useEffect(() => {
+        getTimeLimit();
         getPatients();
+        generateTime();
     }, []);
+
+    useEffect(() => {
+    });
+
+    useEffect(() => {
+    });
 
     const closeModal = () => {
         dispatch(hideModal());
@@ -39,17 +56,84 @@ function CreatePatientAppointment(props) {
     const getPatients = () => {
         console.log(props.selectedSchedule[0].pk);
         dispatch(getAvailablePatients(props.selectedSchedule[0].pk));
-        generateOptions(props.availablePatients);
+        generatePatientOptions(props.availablePatients);
     };
 
-    const generateOptions = () => {
+    const generatePatientOptions = () => {
         const availablePatients = [];
         props.availablePatients.forEach((patient) => {
             availablePatients.push({ value: patient.patientId, label: patient.firstName + " " + patient.lastName });
         });
-
         return availablePatients;
     };
+
+    const getTimeLimit = () => {
+        timeOptions = generateTime();
+        let startTime = shortenTime(selectedSchedule.event.startTime);
+        let endTime = shortenTime(selectedSchedule.event.endTime);
+
+        if (defaultStartTime.length < 1) {
+            defaultStartTime = _.find(timeOptions, ["value", startTime]);
+            defaultEndTime = _.find(timeOptions, ["value", endTime]);
+        }
+        // console.log("getTimeLimit")
+        // console.log(defaultStartTime)
+        // console.log(defaultEndTime)
+    };
+
+    const generateTime = () => {
+        let timeOptions = [];
+        let halfHours = ["00", "30"];
+        for (var i = 0; i < 24; i++) {
+            for (var j = 0; j < halfHours.length; j++) {
+                if (i < 12) {
+                    var hourLabel = i + ":" + halfHours[j] + " AM";
+                } else if (i === 12) {
+                    var hourLabel = i + ":" + halfHours[j] + " PM";
+                } else {
+                    var hourLabel = i - 12 + ":" + halfHours[j] + " PM";
+                }
+                var hourValue = i + ":" + halfHours[j];
+                if (i < 10) {
+                    hourValue = "0" + hourValue;
+                }
+                timeOptions.push({ value: hourValue, label: hourLabel });
+            }
+        }
+        // console.log("generateTime")
+        // console.log(timeOptions)
+        return timeOptions
+    };
+
+    const generateTimeOptions = (time) => {
+        timeOptions = generateTime();
+        getTimeLimit();
+        let startIndex = _.findIndex(timeOptions, defaultStartTime);
+        let endIndex = _.findIndex(timeOptions, defaultEndTime);
+        let options = _.slice(timeOptions, [startIndex], [endIndex + 1])
+        let scheduledPatients = props.scheduledPatients
+
+        for (let i = 0; i < scheduledPatients.length; i++ ){
+            // console.log(scheduledPatients[i].timeStart)
+            let timeStart = shortenTime(scheduledPatients[i].timeStart)
+            // console.log(timeStart)
+            let timeEnd = shortenTime(scheduledPatients[i].timeEnd)
+            let index = _.findIndex(options, {'value': timeStart})
+            options[index]["isDisabled"] = true
+            // _.concat(options[index], {"isdisabled": true})
+            // console.log(options[index])
+
+            index = _.findIndex(timeOptions, {'value': timeEnd})
+            options[index]["isDisabled"] = true
+            // console.log(scheduledPatients[i])
+            
+        }
+
+        // console.log("generateTimeOptions")
+        // console.log(options)
+
+        return options
+    }
 
     const toggle = () => {
         setModal(!modal);
@@ -136,7 +220,7 @@ function CreatePatientAppointment(props) {
                                     <label>Select Patient</label>
                                     <Controller
                                         as={Select}
-                                        options={generateOptions()}
+                                        options={generatePatientOptions()}
                                         name="patient"
                                         noOptionsMessage={() => "No available physicians"}
                                         placeholder="Select Patient"
@@ -154,21 +238,24 @@ function CreatePatientAppointment(props) {
                             <div className="form-row">
                                 <div className="form-group col-6">
                                     <label>Start Time</label>
-                                    <input
-                                        className="form-control"
-                                        type="time"
+                                    <Controller
+                                        as={Select}
+                                        className="basic-single"
+                                        placeholder="Select Start Time"
+                                        options={generateTimeOptions()}
                                         name="timeStart"
-                                        ref={register({
+                                        control={control}
+                                        rules={{
                                             required: "This is required",
                                             validate: {
                                                 lesserThanEndTime: (value) => {
-                                                    const { timeEnd } = getValues();
-                                                    console.log(value);
-                                                    console.log(timeEnd);
-                                                    return value < timeEnd || timeEnd.length === 0 || "Must be before end time";
+                                                    const { endTime } = getValues();
+                                                    if (endTime != "") {
+                                                        return value.value < endTime.value || endTime.value.length === 0 || "Must be before end time";
+                                                    }
                                                 },
                                             },
-                                        })}
+                                        }}
                                     />
                                     <ErrorMessage
                                         errors={errors}

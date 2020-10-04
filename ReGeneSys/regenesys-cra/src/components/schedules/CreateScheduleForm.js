@@ -41,11 +41,11 @@ function CreateScheduleForm(props) {
 
     const getPhysicians = (date) => {
         dispatch(getAvailablePhysicians(format(date, "yyyy-MM-dd")));
-        generateOptions(props.availablePhysicians);
+        generatePhysicianOptions(props.availablePhysicians);
     };
 
     const generateTimeOptions = () => {
-        const startTimeOptions = [];
+        const timeOptions = [];
         const halfHours = ["00", "30"];
         for (var i = 0; i < 24; i++) {
             for (var j = 0; j < halfHours.length; j++) {
@@ -60,13 +60,13 @@ function CreateScheduleForm(props) {
                 if (i < 10) {
                     hourValue = "0" + hourValue;
                 }
-                startTimeOptions.push({ value: hourValue, label: hourLabel });
+                timeOptions.push({ value: hourValue, label: hourLabel });
             }
         }
-        return startTimeOptions;
+        return timeOptions;
     };
 
-    const generateOptions = () => {
+    const generatePhysicianOptions = () => {
         const availablePhysicians = [];
         props.availablePhysicians.forEach((physician) => {
             availablePhysicians.push({ value: physician.id, label: physician.firstName + " " + physician.lastName });
@@ -267,18 +267,10 @@ function CreateScheduleForm(props) {
                                         })}
                                     /> */}
                                     <Controller
-                                        as={
-                                            <Select
-                                                // components={makeAnimated()}
-                                                className="basic-single"
-                                                placeholder="Select Start Time"
-                                                options={generateTimeOptions()}
-                                                // noOptionsMessage={() => "No available physicians"}
-                                                // isMulti
-                                                // name="physician"
-                                                name="startTime"
-                                            />
-                                        }
+                                        as={Select}
+                                        className="basic-single"
+                                        placeholder="Select Start Time"
+                                        options={generateTimeOptions()}
                                         name="startTime"
                                         control={control}
                                         rules={{
@@ -293,21 +285,6 @@ function CreateScheduleForm(props) {
                                             },
                                         }}
                                     />
-                                    {/* <input
-                                        className="form-control"
-                                        type="time"
-                                        step="1800"
-                                        name="startTime"
-                                        ref={register({
-                                            required: "This is required",
-                                            validate: {
-                                                lesserThanEndTime: (value) => {
-                                                    const { endTime } = getValues();
-                                                    return value < endTime || endTime.length === 0 || "Must be before end time";
-                                                },
-                                            },
-                                        })}
-                                    /> */}
                                     <ErrorMessage
                                         errors={errors}
                                         name="startTime"
@@ -434,7 +411,7 @@ function CreateScheduleForm(props) {
                                                 onChange={setSelectedPhysician}
                                                 className="basic-single"
                                                 placeholder="Select Physician"
-                                                options={generateOptions()}
+                                                options={generatePhysicianOptions()}
                                                 noOptionsMessage={() => "No available physicians"}
                                                 isSearchable
                                                 isClearable
