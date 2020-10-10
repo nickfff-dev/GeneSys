@@ -114,8 +114,8 @@ class ClinicSchedulePatientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ClinicSchedulePatient
-        fields = ('schedule', 'patient', 'physician', 'time_start', 'time_end',
-                  'status')
+        fields = ('pk', 'schedule', 'patient', 'physician', 'start_time',
+                  'end_time', 'status')
 
     def save(self, validated_data):
 
@@ -129,11 +129,10 @@ class ClinicSchedulePatientSerializer(serializers.ModelSerializer):
             schedule=schedule,
             patient=patient,
             physician=physician,
-            time_start=validated_data['time_start'],
-            time_end=validated_data['time_end'],
+            start_time=validated_data['start_time'],
+            end_time=validated_data['end_time'],
             status=validated_data['status'])
         return patient_schedule_instance
-        
 
     def update(self, instance, validated_data):
 
@@ -150,9 +149,9 @@ class ClinicSchedulePatientSerializer(serializers.ModelSerializer):
         instance.patient = validated_data.get('patient', instance.patient)
         instance.physician = validated_data.get('physician',
                                                 instance.physician)
-        instance.time_start = validated_data.get('time_start',
-                                                 instance.time_start)
-        instance.time_end = validated_data.get('time_end', instance.time_end)
+        instance.start_time = validated_data.get('start_time',
+                                                 instance.start_time)
+        instance.end_time = validated_data.get('end_time', instance.end_time)
         instance.status = validated_data.get('status', instance.status)
         instance.save()
 

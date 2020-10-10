@@ -1,10 +1,11 @@
 import React, { useMemo } from "react";
-import { connect, useSelector } from "react-redux";
+import { connect, useDispatch } from "react-redux";
 import { useTable, useSortBy, useGlobalFilter, usePagination } from "react-table";
 
 import { format } from "date-fns";
 import { split } from "lodash";
 import { shortenTime } from "./CalendarSchedule";
+import { showModal } from "../../actions/modal";
 
 function TableSchedule(props) {
     // const APIValue = useSelector((state) => state);
@@ -13,8 +14,10 @@ function TableSchedule(props) {
     // const patients = useSelector((state) => state.schedules.patients);
     // const data = useMemo(() => getPatientData(props.patients), [patients]);
 
-    const data = useMemo(() => getPatientData(props.scheduledPatients), [props.scheduledPatients]);
+    const dispatch = useDispatch();
 
+    //useMemo is required by react-table.
+    const data = useMemo(() => getPatientData(props.scheduledPatients), [props.scheduledPatients]);
     const columns = useMemo(
         () => [
             {
@@ -45,13 +48,13 @@ function TableSchedule(props) {
         var allData = [];
         patients.forEach((element) => {
             var row = {
-                col1: shortenTime(element.timeStart) + " - " + shortenTime(element.timeEnd),
+                col1: shortenTime(element.startTime) + " - " + shortenTime(element.endTime),
                 col2: element.patient.patientId,
                 col3: element.patient.clinical.patientType,
                 col4: element.status,
                 col5: (
                     <div>
-                        <button>edit</button>
+                        <button onClick={() => dispatch(showModal("editAppointment", element.pk))}>edit</button>
                         <button>delete</button>
                     </div>
                 ),
@@ -136,6 +139,7 @@ function TableSchedule(props) {
 const mapStateToProps = (state) => ({
     scheduledPatients: state.schedules.scheduledPatients,
     isLoadingPatients: state.schedules.isLoadingPatients,
+    selectedSchedule: state.schedules.schedules,
     modal: state.modal,
 });
 

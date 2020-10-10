@@ -17,16 +17,17 @@ import {
 
 import Calendar from "react-calendar";
 import { differenceInCalendarDays, parseISO, format } from "date-fns";
+import _ from "lodash";
 
 import { zonedTimeToUtc, utcToZonedTime } from "date-fns-tz";
 
-import { getScheduleDetails, getScheduledPatients, deleteEvent } from "../../actions/schedules";
-
+import { getScheduleDetails, getScheduledPatients, deleteEvent, showOverlay } from "../../actions/schedules";
 import { showModal, hideModal } from "../../actions/modal";
-
 import CreateScheduleForm from "./CreateScheduleForm";
 import EditScheduleForm from "./EditScheduleForm";
 import CreatePatientAppointment from "./CreatePatientAppointment";
+import EditPatientAppointment from "./EditPatientAppointment";
+import { LOAD_OVERLAY } from "../../actions/types";
 
 export const shortenTime = (time, timeFormat) => {
     let shortened = "";
@@ -48,6 +49,16 @@ export const formatDate = (date) => {
 export const utcToLocal = (dateTime) => {
     let localized = utcToZonedTime(dateTime, Intl.DateTimeFormat().resolvedOptions().timeZone);
     return localized;
+};
+
+export const getValueFromArrayOrObject = (value) => {
+    if (Array.isArray(value)) {
+        value = _.first(value).value;
+        return value;
+    } else if (typeof value === "object") {
+        value = value.value;
+        return value;
+    }
 };
 
 function initializeCurrentDate() {
@@ -112,7 +123,16 @@ function CalendarSchedule(props) {
         dispatch(getScheduledPatients(scheduleId, physicianId));
     }
 
+    //Handles showing of add/edit appointment modal
+
+    const confirmDelete = () => {
+        dispatch(deleteEvent(props.selectedSchedule[0].event.pk));
+        toggle();
+    };
+
     function showScheduleModal(type, modalProps) {
+        dispatch(showOverlay("I was called 2"));
+        console.log("I was called");
         // console.log(utcToLocal(modalProps));
         // console.log(format(utcToLocal(modalProps), "yyyy-MM-dd'T'00:00:00.000xxx"));
         // const test =
@@ -128,11 +148,6 @@ function CalendarSchedule(props) {
             dispatch(showModal(type, modalProps));
         }
     }
-
-    const confirmDelete = () => {
-        dispatch(deleteEvent(props.selectedSchedule[0].event.pk));
-        toggle();
-    };
 
     let componentHeader;
     let myComponent;
@@ -256,7 +271,39 @@ function CalendarSchedule(props) {
                     Schedule a Patient
                 </button>
             </div>
-            {(() => {
+            {/* {( && ()) ||()} */}
+            {(props.isLoadingOverlay === true && <div className="text-center h-100">Loading stuff...</div>) ||
+                (() => {
+                    switch (state.modal.modalMode) {
+                        case "addSchedule":
+                            return (
+                                <Fragment>
+                                    <CreateScheduleForm toggleModal={true} />
+                                </Fragment>
+                            );
+                        case "editSchedule":
+                            return (
+                                <Fragment>
+                                    <EditScheduleForm toggleModal={true} />
+                                </Fragment>
+                            );
+                        case "addAppointment":
+                            return (
+                                <Fragment>
+                                    <CreatePatientAppointment toggleModal={true} />
+                                </Fragment>
+                            );
+                        case "editAppointment":
+                            return (
+                                <Fragment>
+                                    <EditPatientAppointment toggleModal={true} />
+                                </Fragment>
+                            );
+                        default:
+                            return null;
+                    }
+                })()}
+            {/* {(() => {
                 switch (state.modal.modalMode) {
                     case "addSchedule":
                         return (
@@ -276,10 +323,16 @@ function CalendarSchedule(props) {
                                 <CreatePatientAppointment toggleModal={true} />
                             </Fragment>
                         );
+                    case "editAppointment":
+                        return (
+                            <Fragment>
+                                <EditPatientAppointment toggleModal={true} />
+                            </Fragment>
+                        );
                     default:
                         return null;
                 }
-            })()}
+            })()} */}
 
             <Modal isOpen={modal} toggle={toggle}>
                 <ModalHeader>Delete Schedule</ModalHeader>
@@ -306,6 +359,7 @@ const mapStateToProps = (state) => ({
     isLoadingEvents: state.schedules.isLoadingEvents,
     isLoadingSchedules: state.schedules.isLoadingSchedules,
     isLoadingPatients: state.schedules.isLoadingPatients,
+    isLoadingOverlay: state.schedules.isLoadingOverlay,
     modal: state.modal,
 });
 

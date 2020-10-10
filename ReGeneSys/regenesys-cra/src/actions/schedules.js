@@ -13,9 +13,20 @@ import {
     LOAD_SCHEDULES,
     GET_AVAILABLE_PATIENTS,
     CREATE_PATIENT_APPOINTMENT,
+    GET_PATIENT_APPOINTMENT_DETAILS,
+    EDIT_PATIENT_APPOINTMENT,
+    LOAD_OVERLAY,
+    UNLOAD_OVERLAY,
 } from "./types";
-import { EVENT_API, GET_SCHEDULE_API, GET_SCHEDULED_PATIENTS_API, SCHEDULE_API } from "../constants";
+import { EVENT_API, GET_SCHEDULE_API, SCHEDULED_PATIENTS_API, SCHEDULE_API } from "../constants";
 import { snakeCaseKeysToCamel, camelCaseKeysToSnake } from "../actions/utils";
+
+export const showOverlay = (msg) => (dispatch, getState) => {
+    console.log(msg);
+    dispatch({
+        type: LOAD_OVERLAY,
+    });
+};
 
 //GET EVENTS
 export const getEvents = () => (dispatch, getState) => {
@@ -46,7 +57,7 @@ export const getScheduleDetails = (dateToSearch) => (dispatch, getState) => {
 //GET PATIENTS BY SCHEDULE
 export const getScheduledPatients = (scheduleId, physicianId) => (dispatch, getState) => {
     axios
-        .get(GET_SCHEDULED_PATIENTS_API + "all/", { params: { schedule: scheduleId, physician: physicianId } }, tokenConfig(getState))
+        .get(SCHEDULED_PATIENTS_API + "all/", { params: { schedule: scheduleId, physician: physicianId } }, tokenConfig(getState))
         .then((res) => {
             dispatch({
                 type: GET_SCHEDULED_PATIENTS,
@@ -118,7 +129,7 @@ export const deleteEvent = (eventScheduleId) => (dispatch, getState) => {
 //GET AVAILABLE PATIENTS FOR APPOINTMENT
 export const getAvailablePatients = (eventScheduleId) => (dispatch, getState) => {
     axios
-        .get(GET_SCHEDULED_PATIENTS_API + "available/", { params: { schedule: eventScheduleId } }, tokenConfig(getState))
+        .get(SCHEDULED_PATIENTS_API + "available/", { params: { schedule: eventScheduleId } }, tokenConfig(getState))
         .then((res) => {
             dispatch({
                 type: GET_AVAILABLE_PATIENTS,
@@ -129,10 +140,25 @@ export const getAvailablePatients = (eventScheduleId) => (dispatch, getState) =>
         .catch((err) => dispatch(returnErrors(err.response.data, err.response.status)));
 };
 
+//GET PATIENT APPOINTMENT DETAILS
+export const getAppointmentDetails = (eventScheduleId) => (dispatch, getState) => {
+    // dispatch({ type: LOAD_OVERLAY });
+    axios
+        .get(SCHEDULED_PATIENTS_API + eventScheduleId + "/", tokenConfig(getState))
+        .then((res) => {
+            dispatch({
+                type: GET_PATIENT_APPOINTMENT_DETAILS,
+                payload: snakeCaseKeysToCamel(res.data),
+            });
+            dispatch({ type: UNLOAD_OVERLAY });
+        })
+        .catch((err) => dispatch(returnErrors(err.response.data, err.response.status)));
+};
+
 //CREATE PATIENT APPOINTMENT
 export const createPatientAppointment = (appointment) => (dispatch, getState) => {
     axios
-        .post(GET_SCHEDULED_PATIENTS_API, camelCaseKeysToSnake(appointment), tokenConfig(getState))
+        .post(SCHEDULED_PATIENTS_API, camelCaseKeysToSnake(appointment), tokenConfig(getState))
         .then((res) => {
             dispatch(createMessage({ addAppointment: "Appointment Created" }));
             dispatch({
@@ -143,3 +169,20 @@ export const createPatientAppointment = (appointment) => (dispatch, getState) =>
         })
         .catch((err) => dispatch(returnErrors(err.response.data, err.response.status)));
 };
+
+//EDIT PATIENT APPOINTMENT
+export const editPatientAppointment = (appointmentId, appointment) => (dispatch, getState) => {
+    axios
+        .put(SCHEDULED_PATIENTS_API + appointmentId, camelCaseKeysToSnake(appointment), tokenConfig(getState))
+        .then((res) => {
+            dispatch(createMessage({ addAppointment: "Appointment Edited" }));
+            dispatch({
+                type: EDIT_PATIENT_APPOINTMENT,
+                payload: snakeCaseKeysToCamel(res.data),
+            });
+            return res;
+        })
+        .catch((err) => dispatch(returnErrors(err.response.data, err.response.status)));
+};
+
+// getAppointmentDetails

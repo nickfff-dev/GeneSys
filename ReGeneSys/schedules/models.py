@@ -43,8 +43,8 @@ class ClinicSchedulePatient(models.Model):
     physician = models.ForeignKey(settings.AUTH_USER_MODEL,
                                   on_delete=models.CASCADE,
                                   related_name="scheduled_physician")
-    time_start = models.DateTimeField()
-    time_end = models.DateTimeField()
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
     appointment_type = models.CharField(max_length=5, default="none")
     status = models.CharField(max_length=15)
 

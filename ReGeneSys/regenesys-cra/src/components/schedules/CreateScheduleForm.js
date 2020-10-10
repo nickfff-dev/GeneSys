@@ -318,19 +318,15 @@ function CreateScheduleForm(props) {
                                         })}
                                     /> */}
                                     <Controller
-                                        as={
-                                            <Select
-                                                // components={makeAnimated()}
-                                                // onChange={setSelectedPhysician}
-                                                className="basic-single"
-                                                placeholder="Select End Time"
-                                                options={generateTimeOptions()}
-                                                // noOptionsMessage={() => "No available physicians"}
-                                                // isMulti
-                                                // name="physician"
-                                                name="endTime"
-                                            />
-                                        }
+                                        as={Select}
+                                        // components={makeAnimated()}
+                                        // onChange={setSelectedPhysician}
+                                        className="basic-single"
+                                        placeholder="Select End Time"
+                                        options={generateTimeOptions()}
+                                        // noOptionsMessage={() => "No available physicians"}
+                                        // isMulti
+                                        // name="physician"
                                         name="endTime"
                                         control={control}
                                         rules={{
@@ -338,9 +334,6 @@ function CreateScheduleForm(props) {
                                             validate: {
                                                 lesserThanEndTime: (value) => {
                                                     const { startTime } = getValues();
-                                                    console.log("end");
-                                                    console.log(value.value);
-                                                    console.log(startTime.value);
                                                     if (startTime != "") {
                                                         return (
                                                             value.value > startTime.value ||

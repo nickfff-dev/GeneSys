@@ -12,8 +12,8 @@ class EventAdmin(admin.ModelAdmin):
 
 
 class ClinicSchedulePatientAdmin(admin.ModelAdmin):
-    list_display = ('schedule', 'patient', 'physician', 'time_start',
-                    'time_end')
+    list_display = ('schedule', 'patient', 'physician', 'start_time',
+                    'end_time')
 
 
 admin.site.register(Event, EventAdmin)

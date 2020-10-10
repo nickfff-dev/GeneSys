@@ -11,23 +11,37 @@ import {
     DELETE_EVENTSCHEDULE,
     LOAD_SCHEDULES,
     GET_AVAILABLE_PATIENTS,
-    CREATE_PATIENT_APPOINTMENT
-
+    CREATE_PATIENT_APPOINTMENT,
+    GET_PATIENT_APPOINTMENT_DETAILS,
+    LOAD_OVERLAY,
+    UNLOAD_OVERLAY,
 } from "../actions/types.js";
 
 const initialState = {
     events: [],
     schedules: [],
+    selectedAppointment: [],
     scheduledPatients: [],
     availablePatients: [],
     availablePhysicians: [],
-    isLoadingEvents: false,
     isLoadingSchedules: false,
     isLoadingPatients: false,
+    isLoadingOverlay: false,
 };
 
 export default function (state = initialState, action) {
     switch (action.type) {
+        //GENERAL
+        case LOAD_OVERLAY:
+            return {
+                ...state,
+                isLoadingOverlay: true,
+            };
+        case UNLOAD_OVERLAY:
+            return {
+                ...state,
+                isLoadingOverlay: false,
+            };
         //EVENTS
         case GET_EVENTS:
             return {
@@ -61,6 +75,7 @@ export default function (state = initialState, action) {
                 ...state,
                 schedules: action.payload,
                 patients: [],
+                scheduledPatients: [],
                 isLoadingSchedules: false,
             };
         case CREATE_EVENTSCHEDULE:
@@ -103,7 +118,11 @@ export default function (state = initialState, action) {
                 availablePatients: action.payload,
                 isLoadingPatients: false,
             };
-
+        case GET_PATIENT_APPOINTMENT_DETAILS:
+            return {
+                ...state,
+                selectedAppointment: action.payload,
+            };
         default:
             return state;
     }

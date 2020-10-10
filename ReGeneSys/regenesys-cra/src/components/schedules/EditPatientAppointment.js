@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { connect, useDispatch } from "react-redux";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 
-import { getAvailablePatients, createPatientAppointment } from "../../actions/schedules";
+import { getAvailablePatients, editPatientAppointment, getAppointmentDetails } from "../../actions/schedules";
 import { shortenTime, getValueFromArrayOrObject } from "./CalendarSchedule";
+import { generateTime } from "./CreatePatientAppointment";
 import { hideModal } from "../../actions/modal";
 
 import { format } from "date-fns";
@@ -19,70 +20,66 @@ function pageInitial() {
     return 1;
 }
 
-//Generates array time options for react-select
-export const generateTime = () => {
-    let timeOptions = [];
-    let halfHours = ["00", "30"];
-    for (var i = 0; i < 24; i++) {
-        for (var j = 0; j < halfHours.length; j++) {
-            if (i < 12) {
-                if (i === 0) {
-                    var hourLabel = 12 + ":" + halfHours[j] + " AM";
-                }
-                var hourLabel = i + ":" + halfHours[j] + " AM";
-            } else if (i === 12) {
-                var hourLabel = i + ":" + halfHours[j] + " PM";
-            } else {
-                var hourLabel = i - 12 + ":" + halfHours[j] + " PM";
-            }
-            var hourValue = i + ":" + halfHours[j];
-            if (i < 10) {
-                hourValue = "0" + hourValue;
-            }
-            timeOptions.push({ value: hourValue, label: hourLabel });
-        }
-    }
-    return timeOptions;
-};
-
-function CreatePatientAppointment(props) {
+function EditPatientAppointment(props) {
     const [page, setPage] = useState(() => pageInitial());
     const [modal, setModal] = useState(props.toggleModal);
     const [nestedModal, setNestedModal] = useState(false);
     const [closeAll, setCloseAll] = useState(true);
-    const [selectedPatient, setSelectedPatient] = useState([]);
     const [timeOptions, setTimeOptions] = useState(() => generateTime());
-    // const [timeOptions, setTimeOptions] = userState(() => generateTimeOptions());
 
     const dispatch = useDispatch();
 
     const selectedSchedule = props.selectedSchedule[0];
     var defaultStartTime = [];
     var defaultEndTime = [];
-
-    var time = [];
+    const startTime = shortenTime(selectedSchedule.event.startTime);
+    const endTime = shortenTime(selectedSchedule.event.endTime);
+    const scheduledPatients = props.scheduledPatients;
+    const selectedAppointment = props.selectedAppointment;
+    var selectedAppointmentStartTime;
+    var selectedAppointmentEndTime;
 
     useEffect(() => {
-        getTimeLimit();
+        getDetails();
         getPatients();
-        generateTime();
+        getDefaultTimes();
     }, []);
 
     useEffect(() => {
         generatePatientOptions(props.availablePatients);
     }, [props.availablePatients]);
 
+    useEffect(() => {
+        // selectedAppointmentStartTime = shortenTime(selectedAppointment.startTime);
+        // selectedAppointmentEndTime = shortenTime(selectedAppointment.endTime);
+        console.log(selectedAppointment.startTime);
+    }, [selectedAppointment]);
+
     const closeModal = () => {
         dispatch(hideModal());
     };
 
+    const getDetails = () => {
+        dispatch(getAppointmentDetails(props.modal.modalProps));
+    };
+
     const getPatients = () => {
-        console.log(props.selectedSchedule[0].pk);
         dispatch(getAvailablePatients(props.selectedSchedule[0].pk));
     };
 
+    const getDefaultTimes = () => {
+        // const timeOptions = generateTimeOptions();
+        // const startTime = shortenTime(selectedSchedule.event.startTime);
+        // const endTime = shortenTime(selectedSchedule.event.endTime);
+
+        if (defaultStartTime.length < 1) {
+            defaultStartTime.push(_.find(timeOptions, ["value", startTime]));
+            defaultEndTime.push(_.find(timeOptions, ["value", endTime]));
+        }
+    };
+
     const generatePatientOptions = () => {
-        const availablePatients = [];
+        let availablePatients = [];
         props.availablePatients.forEach((patient) => {
             availablePatients.push({ value: patient.patientId, label: patient.firstName + " " + patient.lastName });
         });
@@ -90,8 +87,8 @@ function CreatePatientAppointment(props) {
     };
 
     const getTimeLimit = () => {
-        let startTime = shortenTime(selectedSchedule.event.startTime);
-        let endTime = shortenTime(selectedSchedule.event.endTime);
+        // let startTime = shortenTime(selectedSchedule.event.startTime);
+        // let endTime = shortenTime(selectedSchedule.event.endTime);
 
         if (defaultStartTime.length < 1) {
             defaultStartTime = _.find(timeOptions, ["value", startTime]);
@@ -99,25 +96,35 @@ function CreatePatientAppointment(props) {
         }
     };
 
-    const generateTimeOptions = () => {
+    const generateTimeOptions = (remark) => {
         getTimeLimit();
         let startIndex = _.findIndex(timeOptions, defaultStartTime);
         let endIndex = _.findIndex(timeOptions, defaultEndTime);
-        let options = _.slice(timeOptions, [startIndex], [endIndex + 1]);
-        let scheduledPatients = props.scheduledPatients;
+        let options = _.cloneDeep(_.slice(timeOptions, [startIndex], [endIndex + 1]));
+        // let selectedAppointmentStartTime = shortenTime(selectedAppointment.startTime);
+        // let selectedAppointmentEndTime = shortenTime(selectedAppointment.endTime);
 
         for (let i = 0; i < scheduledPatients.length; i++) {
-            let startTime = shortenTime(scheduledPatients[i].startTime);
-            let endTime = shortenTime(scheduledPatients[i].endTime);
+            // let startTime = shortenTime(scheduledPatients[i].startTime);
+            // let endTime = shortenTime(scheduledPatients[i].endTime);
+
             let startIndex = _.findIndex(options, { value: startTime });
             let endIndex = _.findIndex(options, { value: endTime });
-            let index = startIndex;
-
+            let selectedAppointmentStartIndex = _.findIndex(options, { value: selectedAppointmentStartTime });
+            let selectedAppointmentEndIndex = _.findIndex(options, { value: selectedAppointmentEndTime });
+            let index;
+            // console.log("lul");
+            // console.log(selectedAppointmentStartIndex);
+            if (remark === "start") {
+                index = startIndex;
+            } else {
+                index = startIndex + 1;
+            }
             for (index; index < endIndex; index++) {
                 options[index]["isDisabled"] = true;
-                console.log(index);
             }
         }
+
         return options;
     };
 
@@ -163,7 +170,7 @@ function CreatePatientAppointment(props) {
         // const date = format(props.modal.modalProps, "yyyy-MM-dd");
         const date = props.modal.modalProps;
 
-        const appointmentToCreate = {
+        const appointmentToEdit = {
             patient: patient["value"],
             schedule: props.selectedSchedule[0].pk,
             physician: props.selectedSchedule[0].physician[0].id,
@@ -173,8 +180,8 @@ function CreatePatientAppointment(props) {
             status: "active",
         };
 
-        console.log(appointmentToCreate);
-        dispatch(createPatientAppointment(appointmentToCreate));
+        console.log(appointmentToEdit);
+        dispatch(editPatientAppointment(scheduledPatients.pk, appointmentToEdit));
         toggleAll();
     };
 
@@ -196,7 +203,6 @@ function CreatePatientAppointment(props) {
                                         name="patient"
                                         noOptionsMessage={() => "No available physicians"}
                                         placeholder="Select Patient"
-                                        onChange={setSelectedPatient}
                                         className="basic-single"
                                         isClearable
                                         control={control}
@@ -214,7 +220,7 @@ function CreatePatientAppointment(props) {
                                         as={Select}
                                         className="basic-single"
                                         placeholder="Select Start Time"
-                                        options={generateTimeOptions()}
+                                        options={generateTimeOptions("start")}
                                         name="startTime"
                                         control={control}
                                         rules={{
@@ -382,7 +388,7 @@ function CreatePatientAppointment(props) {
                             if (pageValid === true) {
                                 toggleNested();
                             }
-                            console.log(pageValid);
+                            // console.log(pageValid);
                         }}
                     >
                         Save
@@ -401,7 +407,8 @@ const mapStateToProps = (state) => ({
     availablePatients: state.schedules.availablePatients,
     scheduledPatients: state.schedules.scheduledPatients,
     selectedSchedule: state.schedules.schedules,
+    selectedAppointment: state.schedules.selectedAppointment,
     modal: state.modal,
 });
 
-export default connect(mapStateToProps, { getAvailablePatients })(CreatePatientAppointment);
+export default connect(mapStateToProps, {})(EditPatientAppointment);

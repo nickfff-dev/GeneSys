@@ -10,7 +10,7 @@ import { ErrorMessage } from "@hookform/error-message";
 import Select from "react-select";
 import makeAnimated from "react-select/animated";
 
-import { shortenTime } from "./CalendarSchedule";
+import { getValueFromArrayOrObject, shortenTime } from "./CalendarSchedule";
 
 import _ from "lodash";
 
@@ -225,8 +225,8 @@ function EditScheduleForm(props) {
             date: date,
             location,
             eventType: "clinic",
-            startTime: new Date(format(date, "yyyy-MM-dd") + " " + getValueArrayOrObject(startTime)),
-            endTime: new Date(format(date, "yyyy-MM-dd") + " " + getValueArrayOrObject(endTime)),
+            startTime: new Date(format(date, "yyyy-MM-dd") + " " + getValueFromArrayOrObject(startTime)),
+            endTime: new Date(format(date, "yyyy-MM-dd") + " " + getValueFromArrayOrObject(endTime)),
             description,
             attendees: physicianCollection,
         };
@@ -240,16 +240,6 @@ function EditScheduleForm(props) {
         console.log(event);
         toggleAll();
     };
-
-    function getValueArrayOrObject(value) {
-        if (Array.isArray(value)) {
-            value = _.first(value).value;
-            return value;
-        } else if (typeof value === "object") {
-            value = value.value;
-            return value;
-        }
-    }
 
     return (
         <div>
@@ -388,8 +378,8 @@ function EditScheduleForm(props) {
                                                     if (endTime) {
                                                         //Default values are in array form. This is to fix value checking
                                                         if (Array.isArray(value) || Array.isArray(endTime)) {
-                                                            value = getValueArrayOrObject(value);
-                                                            endTime = getValueArrayOrObject(endTime);
+                                                            value = getValueFromArrayOrObject(value);
+                                                            endTime = getValueFromArrayOrObject(endTime);
 
                                                             // if (Array.isArray(value)) {
                                                             //     value = value[0].value;
@@ -490,8 +480,8 @@ function EditScheduleForm(props) {
                                                             //     value = value.value;
                                                             //     console.log(value);
                                                             // }
-                                                            value = getValueArrayOrObject(value);
-                                                            startTime = getValueArrayOrObject(startTime);
+                                                            value = getValueFromArrayOrObject(value);
+                                                            startTime = getValueFromArrayOrObject(startTime);
 
                                                             // if (Array.isArray(startTime)) {
                                                             //     console.log("startTime is array");
@@ -520,7 +510,11 @@ function EditScheduleForm(props) {
                                                         // console.log(startTime);
                                                         // console.log(value < startTime);
                                                         // console.log(startTime.length === 0);
-                                                        return (value.value > startTime.value || startTime.value.length === 0 || "Must be after start time");
+                                                        return (
+                                                            value.value > startTime.value ||
+                                                            startTime.value.length === 0 ||
+                                                            "Must be after start time"
+                                                        );
 
                                                         // if (Array.isArray(value)) {
                                                         //     value = value[0].value;
