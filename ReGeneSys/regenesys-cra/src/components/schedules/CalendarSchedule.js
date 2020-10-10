@@ -131,8 +131,8 @@ function CalendarSchedule(props) {
     };
 
     function showScheduleModal(type, modalProps) {
-        dispatch(showOverlay("I was called 2"));
-        console.log("I was called");
+        // dispatch(showOverlay("I was called 2"));
+        // console.log("I was called");
         // console.log(utcToLocal(modalProps));
         // console.log(format(utcToLocal(modalProps), "yyyy-MM-dd'T'00:00:00.000xxx"));
         // const test =
