@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { split } from "lodash";
 import { shortenTime } from "./CalendarSchedule";
 import { showModal } from "../../actions/modal";
+import { showOverlay, getAppointmentDetails } from "../../actions/schedules";
 
 function TableSchedule(props) {
     // const APIValue = useSelector((state) => state);
@@ -54,7 +55,7 @@ function TableSchedule(props) {
                 col4: element.status,
                 col5: (
                     <div>
-                        <button onClick={() => dispatch(showModal("editAppointment", element.pk))}>edit</button>
+                        <button onClick={() => showEditModal("editAppointment", element.pk)}>edit</button>
                         <button>delete</button>
                     </div>
                 ),
@@ -62,6 +63,12 @@ function TableSchedule(props) {
             allData.push(row);
         });
         return allData;
+    }
+
+    function showEditModal(type, id){
+        dispatch(showOverlay())
+        dispatch(getAppointmentDetails(id));
+        dispatch(showModal(type, id))
     }
 
     const { getTableProps, getTableBodyProps, headerGroups, footerGroups, rows, page, prepareRow } = useTable(

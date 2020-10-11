@@ -22,7 +22,6 @@ import { EVENT_API, GET_SCHEDULE_API, SCHEDULED_PATIENTS_API, SCHEDULE_API } fro
 import { snakeCaseKeysToCamel, camelCaseKeysToSnake } from "../actions/utils";
 
 export const showOverlay = (msg) => (dispatch, getState) => {
-    console.log(msg);
     dispatch({
         type: LOAD_OVERLAY,
     });
