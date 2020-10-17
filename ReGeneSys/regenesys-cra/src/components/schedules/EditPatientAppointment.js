@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { connect, useDispatch } from "react-redux";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 
-import { getAvailablePatients, editPatientAppointment, getAppointmentDetails } from "../../actions/schedules";
+import { getAvailablePatients, editPatientAppointment} from "../../actions/schedules";
 import { shortenTime, getValueFromArrayOrObject } from "./CalendarSchedule";
 import { generateTime } from "./CreatePatientAppointment";
 import { hideModal } from "../../actions/modal";
@@ -31,31 +31,35 @@ function EditPatientAppointment(props) {
     const dispatch = useDispatch();
 
     const selectedSchedule = props.selectedSchedule[0];
-    const selectedAppointment = props.selectedAppointment
+    const selectedAppointment = props.selectedAppointment;
+    const scheduledPatients = props.scheduledPatients;
+    var availablePatients = [];
+    var limitStartTime = []
+    var limitEndTime = []
+    var defaultPatient = [];
     var defaultStartTime = [];
     var defaultEndTime = [];
-    const startTime = shortenTime(selectedSchedule.event.startTime);
-    const endTime = shortenTime(selectedSchedule.event.endTime);
-    const scheduledPatients = props.scheduledPatients;
+    const scheduleStartTime = shortenTime(selectedSchedule.event.startTime);
+    const scheduleEndTime = shortenTime(selectedSchedule.event.endTime);
+    console.log(selectedAppointment.startTime)
+    console.log(selectedAppointment.endTime)
+    const selectedAppointmentStartTime = shortenTime(selectedAppointment.startTime);
+    const selectedAppointmentEndTime = shortenTime(selectedAppointment.endTime);
     var filteredTimeOptions = [];
     
-    useEffect(() => {
-        // selectedAppointmentStartTime = shortenTime(selectedAppointment.startTime);
-        // selectedAppointmentEndTime = shortenTime(selectedAppointment.endTime);
-    }, [selectedAppointment]);
 
     useEffect(() => {
-        getDetails();
         getPatients();
+        getDefaultTimes()
     }, []);
 
     useEffect(() => {
-        getDefaultTimes();
-    })
+        getDefaultPatient()
+    },[availablePatients])
 
     useEffect(() => {
         generatePatientOptions(props.availablePatients);
-    }, [props.availablePatients]);
+    }, []);
 
 
 
@@ -63,74 +67,80 @@ function EditPatientAppointment(props) {
         dispatch(hideModal());
     };
 
-    const getDetails = () => {
-        // dispatch(getAppointmentDetails(props.modal.modalProps));
+    const getDefaultPatient = () => {
+        defaultPatient.push(_.find(availablePatients, ["value", selectedAppointment.patient.patientId]));
+        console.log(defaultPatient)
     };
 
     const getPatients = () => {
-        dispatch(getAvailablePatients(props.selectedSchedule[0].pk));
+        dispatch(getAvailablePatients(selectedSchedule.pk, selectedAppointment.patient.patientId));
     };
 
+    //gets default start and end time of schedule
     const getDefaultTimes = () => {
-        // const timeOptions = generateTimeOptions();
-        // let startTime = shortenTime(selectedSchedule.event.startTime);
-        // let endTime = shortenTime(selectedSchedule.event.endTime);
-
-        console.log(selectedAppointment)
-
-        if (defaultStartTime.length < 1) {
-            defaultStartTime.push(_.find(timeOptions, ["value", startTime]));
-            defaultEndTime.push(_.find(timeOptions, ["value", endTime]));
-        }
-        console.log(defaultStartTime)
-        console.log(defaultEndTime)
+        defaultStartTime.push(_.find(timeOptions, ["value", selectedAppointmentStartTime]));
+        defaultEndTime.push(_.find(timeOptions, ["value", selectedAppointmentEndTime]));
     };
 
+    //Gets patients available for scheduling
     const generatePatientOptions = () => {
-        let availablePatients = [];
         props.availablePatients.forEach((patient) => {
             availablePatients.push({ value: patient.patientId, label: patient.firstName + " " + patient.lastName });
         });
         return availablePatients;
     };
 
+    //Gets start and end time of scheule
     const getTimeLimit = () => {
-        // let startTime = shortenTime(selectedSchedule.event.startTime);
-        // let endTime = shortenTime(selectedSchedule.event.endTime);
-
-        if (defaultStartTime.length < 1) {
-            defaultStartTime = _.find(timeOptions, ["value", startTime]);
-            defaultEndTime = _.find(timeOptions, ["value", endTime]);
-        }
+        // if (defaultStartTime.length < 1) {
+            limitStartTime = _.find(timeOptions, ["value", scheduleStartTime]);
+            limitEndTime = _.find(timeOptions, ["value", scheduleEndTime]);
+        // }
     };
 
     const generateTimeOptions = (remark) => {
         getTimeLimit();
-        let startIndex = _.findIndex(timeOptions, defaultStartTime);
-        let endIndex = _.findIndex(timeOptions, defaultEndTime);
-        filteredTimeOptions = _.cloneDeep(_.slice(timeOptions, [startIndex], [endIndex + 1]))
-        // const options = _.cloneDeep(_.slice(timeOptions, [startIndex], [endIndex + 1]));
-        let selectedAppointmentStartTime = shortenTime(selectedAppointment.startTime);
-        let selectedAppointmentEndTime = shortenTime(selectedAppointment.endTime);
+        let limitStartIndex = _.findIndex(timeOptions, limitStartTime);
+        let limitEndIndex = _.findIndex(timeOptions, limitEndTime);
+        filteredTimeOptions = _.cloneDeep(_.slice(timeOptions, [limitStartIndex], [limitEndIndex + 1]))
         let selectedAppointmentStartIndex = _.findIndex(filteredTimeOptions, { value: selectedAppointmentStartTime });
         let selectedAppointmentEndIndex = _.findIndex(filteredTimeOptions, { value: selectedAppointmentEndTime });
 
         for (let i = 0; i < scheduledPatients.length; i++) {
             let startTime = shortenTime(scheduledPatients[i].startTime);
             let endTime = shortenTime(scheduledPatients[i].endTime);
-            let startIndex = _.findIndex(filteredTimeOptions, { value: startTime });
-            let endIndex = _.findIndex(filteredTimeOptions, { value: endTime });
-            let index;
-            if (remark === "start") {
-                index = startIndex;
-            } else {
-                index = startIndex + 1;
-            }
-            if (selectedAppointmentStartIndex !== index || selectedAppointmentEndIndex !== endIndex){
-                for (index; index < endIndex; index++) {
-                    filteredTimeOptions[index]["isDisabled"] = true;
+            let scheduledStartIndex = _.findIndex(filteredTimeOptions, { value: startTime });
+            let scheduledEndIndex = _.findIndex(filteredTimeOptions, { value: endTime });
+            let index = scheduledStartIndex;
+            if (remark === "end") {
+                index = scheduledStartIndex + 1;
+                // if (selectedAppointmentStartIndex !== index - 1 || selectedAppointmentEndIndex !== endIndex){
+                if ((index <= selectedAppointmentStartIndex || index >= selectedAppointmentEndIndex)){
+                    // if (index - 1 < scheduledEndIndex){
+                        for (index; index < scheduledEndIndex; index++) {
+                            // if (!(index >= selectedAppointmentStartIndex && index <= selectedAppointmentEndIndex)){
+                                // if (remark === "end" && filteredTimeOptions[index-1]["isDisabled"] === true){
+                                    filteredTimeOptions[index]["isDisabled"] = true;     
+                                // }
+                            // }
+                        }
+                    // }
                 }
             }
+            else{
+                //OK 10-12
+                if (selectedAppointmentStartIndex !== index || selectedAppointmentEndIndex !== scheduledEndIndex){
+                    for (index; index < scheduledEndIndex; index++) {
+                        // if (!(index >= selectedAppointmentStartIndex && index <= selectedAppointmentEndIndex)){
+                            // if (remark === "end" && filteredTimeOptions[index-1]["isDisabled"] === true){
+                                filteredTimeOptions[index]["isDisabled"] = true;     
+                            // }
+                        // }
+                    }
+                }
+            }
+            //PROBLEM: CANNOT STEP BACK END TIME
+            
         }
         return filteredTimeOptions;
     };
@@ -161,7 +171,7 @@ function EditPatientAppointment(props) {
         mode: "onChange",
         reValidateMode: "onChange",
         defaultValues: {
-            patient: "",
+            patient: defaultPatient,
             schedule: "",
             physician: "",
             startTime: defaultStartTime,
@@ -194,7 +204,7 @@ function EditPatientAppointment(props) {
 
     return (
         <div>
-            <Modal isOpen={modal} toggle={toggle} size="md" backdrop="static" keyboard={false}>
+            <Modal isOpen={modal} toggle={toggle} size="lg" backdrop="static" keyboard={false}>
                 <ModalHeader toggle={toggle}>
                     Create Patient Appointment for <i>Physician</i>
                 </ModalHeader>
@@ -212,7 +222,6 @@ function EditPatientAppointment(props) {
                                         placeholder="Select Patient"
                                         className="basic-single"
                                         isClearable
-                                        isDisabled
                                         control={control}
                                         rules={{
                                             required: "This is required",
@@ -235,9 +244,11 @@ function EditPatientAppointment(props) {
                                             required: "This is required",
                                             validate: {
                                                 lesserThanEndTime: (value) => {
-                                                    const { endTime } = getValues();
-                                                    if (endTime != "") {
-                                                        return value.value < endTime.value || endTime.value.length === 0 || "Must be before end time";
+                                                    let { endTime } = getValues();
+                                                    if (Array.isArray(value) || Array.isArray(endTime)) {
+                                                        value = getValueFromArrayOrObject(value);
+                                                        endTime = getValueFromArrayOrObject(endTime);
+                                                        return value < endTime || endTime.length === 0 || "Must be before end time";
                                                     }
                                                 },
                                             },
@@ -273,33 +284,48 @@ function EditPatientAppointment(props) {
                                             validate: {
                                                 lesserThanEndTime: (value) => {
                                                     let { startTime } = getValues();
-                                                    if (startTime != "") {
-                                                        return (
-                                                            value.value > startTime.value ||
-                                                            startTime.value.length === 0 ||
-                                                            "Must be after start time"
-                                                        );
+                                                    if (Array.isArray(value) || Array.isArray(startTime)) {
+                                                        value = getValueFromArrayOrObject(value);
+                                                        startTime = getValueFromArrayOrObject(startTime);
+                                                        return value > startTime || startTime.length === 0 || "Must be after start time";
                                                     }
                                                 },
                                                 checkIfOverlapping: (value) =>{
                                                     let { startTime } = getValues();
-                                                    let startIndex = _.findIndex(filteredTimeOptions, { value: startTime.value });
-                                                    let endIndex = _.findIndex(filteredTimeOptions, { value: value.value });
+                                                    let timeOptions = generateTimeOptions("end")
+                                                    let selectedStartIndex = _.findIndex(timeOptions, { value: startTime.value });
+                                                    let selectedEndIndex = _.findIndex(timeOptions, { value: value.value });
+ 
+                                                    for (let i = 0; i < scheduledPatients.length; i++) {
+                                                        let startTime = shortenTime(scheduledPatients[i].startTime);
+                                                        let endTime = shortenTime(scheduledPatients[i].endTime);
+                                                        let scheduledStartIndex = _.findIndex(timeOptions, { value: startTime });
+                                                        let scheduledEndIndex = _.findIndex(timeOptions, { value: endTime });
+                                                        
+                                                        //Not include self in checking
+                                                        if(selectedStartIndex <= scheduledStartIndex && selectedEndIndex >= scheduledEndIndex){
+                                                            //Selected start or end time must not overlap existing schedules
+                                                            if(scheduledStartIndex > selectedStartIndex || scheduledEndIndex < selectedEndIndex){
+                                                                return (
+                                                                    "Schedule overlaps with existing schedules."
+                                                                )
+                                                                //     overlapping = true
+                                                            // break
+                                                            }                                                            
+                                                        }
+                                                    }
 
-                                                        for (let index = startIndex; index < filteredTimeOptions.length; index++){
-                                                            console.log(index < startIndex)
-                                                            console.log(index > endIndex)
-                                                            console.log(!"isDisabled" in filteredTimeOptions[index])
-                                                            console.log(index !== endIndex)
-                                                            // console.log(filteredTimeOptions[index])
-
-                                                            return ( 
-                                                                index < startIndex || 
-                                                                index > endIndex || 
-                                                                (!"isDisabled" in filteredTimeOptions[index] && index !== endIndex) ||
-                                                                "Schedule overlapping"
-                                                                );
-                                                    }                                                    
+                                                    // if(overlapping){
+                                                        
+                                                    // }
+                                                    //for (let index = selectedStartIndex; index < timeOptions.length; index++){
+                                                    //     if(index >= selectedStartIndex && index <= selectedEndIndex && "isDisabled" in timeOptions[index]){
+                                                    //         console.log("yes")
+                                                    //         return ( 
+                                                    //             "Schedule overlapping is not allowed"
+                                                    //             );
+                                                    //     }
+                                                    //}                                                    
                                                 }
                                             },
                                         }}
@@ -421,7 +447,6 @@ function EditPatientAppointment(props) {
                     >
                         Save
                     </button>
-                    {/* )} */}
                     <button type="button" className="btn btn-secondary" data-dismiss="modal" onClick={toggle}>
                         Close
                     </button>

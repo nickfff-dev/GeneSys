@@ -27,6 +27,12 @@ export const showOverlay = (msg) => (dispatch, getState) => {
     });
 };
 
+export const hideOverlay = (msg) => (dispatch, getState) => {
+    dispatch({
+        type: UNLOAD_OVERLAY,
+    });
+};
+
 //GET EVENTS
 export const getEvents = () => (dispatch, getState) => {
     axios
@@ -126,9 +132,9 @@ export const deleteEvent = (eventScheduleId) => (dispatch, getState) => {
 };
 
 //GET AVAILABLE PATIENTS FOR APPOINTMENT
-export const getAvailablePatients = (eventScheduleId) => (dispatch, getState) => {
+export const getAvailablePatients = async (eventScheduleId, selectedPatient) => (dispatch, getState) => {
     axios
-        .get(SCHEDULED_PATIENTS_API + "available/", { params: { schedule: eventScheduleId } }, tokenConfig(getState))
+        .get(SCHEDULED_PATIENTS_API + "available/", { params: { schedule: eventScheduleId, include: selectedPatient} }, tokenConfig(getState))
         .then((res) => {
             dispatch({
                 type: GET_AVAILABLE_PATIENTS,
@@ -149,7 +155,6 @@ export const getAppointmentDetails = (eventScheduleId) => (dispatch, getState) =
                 type: GET_PATIENT_APPOINTMENT_DETAILS,
                 payload: snakeCaseKeysToCamel(res.data),
             });
-            dispatch({ type: UNLOAD_OVERLAY });
         })
         .catch((err) => dispatch(returnErrors(err.response.data, err.response.status)));
 };

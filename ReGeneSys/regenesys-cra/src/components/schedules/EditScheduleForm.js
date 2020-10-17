@@ -374,7 +374,7 @@ function EditScheduleForm(props) {
                                             required: "This is required",
                                             validate: {
                                                 lesserThanEndTime: (value) => {
-                                                    var { endTime } = getValues();
+                                                    let { endTime } = getValues();
                                                     if (endTime) {
                                                         //Default values are in array form. This is to fix value checking
                                                         if (Array.isArray(value) || Array.isArray(endTime)) {
@@ -466,7 +466,7 @@ function EditScheduleForm(props) {
                                             required: "This is required",
                                             validate: {
                                                 lesserThanEndTime: (value) => {
-                                                    var { startTime } = getValues();
+                                                    let { startTime } = getValues();
                                                     if (startTime && value != "") {
                                                         if (Array.isArray(value) || Array.isArray(startTime)) {
                                                             // if (Array.isArray(value)) {

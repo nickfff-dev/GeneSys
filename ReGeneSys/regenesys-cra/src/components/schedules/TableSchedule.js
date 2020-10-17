@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import { connect, useDispatch } from "react-redux";
 import { useTable, useSortBy, useGlobalFilter, usePagination } from "react-table";
 
@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import { split } from "lodash";
 import { shortenTime } from "./CalendarSchedule";
 import { showModal } from "../../actions/modal";
-import { showOverlay, getAppointmentDetails } from "../../actions/schedules";
+import { showOverlay, hideOverlay, getAppointmentDetails, getAvailablePatients, } from "../../actions/schedules";
 
 function TableSchedule(props) {
     // const APIValue = useSelector((state) => state);
@@ -14,8 +14,19 @@ function TableSchedule(props) {
 
     // const patients = useSelector((state) => state.schedules.patients);
     // const data = useMemo(() => getPatientData(props.patients), [patients]);
+    const [modalType, setModalType] = useState();
+    const [modalProps, setModalProps] = useState();
 
     const dispatch = useDispatch();
+
+    useEffect(() => {
+        dispatch(hideOverlay())
+    }, [props.availablePatients.length !== 0 && props.selectedAppointment !== 0])
+
+    useEffect(() => {
+        console.log(modalType)
+        dispatch(showModal(modalType, modalProps))
+    }, [props.isLoadingOverlay == false])
 
     //useMemo is required by react-table.
     const data = useMemo(() => getPatientData(props.scheduledPatients), [props.scheduledPatients]);
@@ -55,7 +66,7 @@ function TableSchedule(props) {
                 col4: element.status,
                 col5: (
                     <div>
-                        <button onClick={() => showEditModal("editAppointment", element.pk)}>edit</button>
+                        <button onClick={() => showEditModal("editAppointment", element)}>edit</button>
                         <button>delete</button>
                     </div>
                 ),
@@ -65,10 +76,12 @@ function TableSchedule(props) {
         return allData;
     }
 
-    function showEditModal(type, id){
+    function showEditModal(type, appointment){
         dispatch(showOverlay())
-        dispatch(getAppointmentDetails(id));
-        dispatch(showModal(type, id))
+        dispatch(getAppointmentDetails(appointment.pk));
+        // dispatch(getAvailablePatients(props.selectedSchedule[0].pk, appointment.patient.patientId));
+        setModalType(type)
+        setModalProps(appointment.pk)
     }
 
     const { getTableProps, getTableBodyProps, headerGroups, footerGroups, rows, page, prepareRow } = useTable(
@@ -147,7 +160,10 @@ const mapStateToProps = (state) => ({
     scheduledPatients: state.schedules.scheduledPatients,
     isLoadingPatients: state.schedules.isLoadingPatients,
     selectedSchedule: state.schedules.schedules,
+    availablePatients: state.schedules.availablePatients,
+    selectedAppointment: state.schedules.selectedAppointment,
     modal: state.modal,
+    isLoadingOverlay: state.schedules.isLoadingOverlay,
 });
 
 export default connect(mapStateToProps, {})(TableSchedule);

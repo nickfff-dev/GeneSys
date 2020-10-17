@@ -138,16 +138,17 @@ class ClinicSchedulePatientViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def available(self, request, pk=None):
 
-        date = request.GET.get('schedule')
+        schedule = request.GET.get('schedule')
+        include_patient = request.GET.get('include')
 
         scheduled_patients = ClinicSchedulePatient.objects.filter(
-            schedule__pk=date).values('patient')
-        print(scheduled_patients)
+            schedule__pk=schedule).values('patient')
 
         patients = Patient.objects.filter(clinical__status="active")
 
         for patient in scheduled_patients:
-            patients = patients.exclude(patient_id=patient['patient'])
+            if patient.get('patient') != include_patient:
+                patients = patients.exclude(patient_id=patient['patient'])
 
         return Response(
             PatientContactClinicalSerializer(patients, many=True).data)
