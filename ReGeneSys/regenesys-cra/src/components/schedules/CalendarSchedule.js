@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Fragment } from "react";
+import React, { useState, useEffect, useRef, Fragment } from "react";
 import { connect, useDispatch, useSelector } from "react-redux";
 import {
     Dropdown,
@@ -70,32 +70,23 @@ function initializeCurrentDate() {
 
 function CalendarSchedule(props) {
     const [currentDate, onChange] = useState(() => initializeCurrentDate());
-    // const [currentDate, onChange] = useState(new Date());
     const dispatch = useDispatch();
-
+    const prevProps = useRef(props.selectedAppointment)
     useEffect(() => {
         dispatch(getScheduleDetails(format(utcToLocal(currentDate), "yyyy-MM-dd'T'00:00:00.000xxx")));
-        // dispatch(getScheduleDetails(currentDate));
     }, []);
 
+    useEffect(() =>{
+        // console.log(prevProps);
+    })
+
     const [modal, setModal] = useState(false);
-    // const [nestedModal, setNestedModal] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
-
     const state = useSelector((state) => state);
-
     const toggleDropdown = () => setDropdownOpen((prevState) => !prevState);
-
     const toggle = () => setModal(!modal);
+    
 
-    // const toggleNested = () => {
-    //     setNestedModal(!nestedModal);
-    //     setCloseAll(false);
-    // };
-    // const toggleAll = () => {
-    //     setNestedModal(!nestedModal);
-    //     setCloseAll(true);
-    // };
 
     const datesToAddClassTo = [];
 
@@ -115,7 +106,6 @@ function CalendarSchedule(props) {
     }
 
     function onClickDay(value) {
-        // dispatch(getScheduleDetails(format(value, "yyyy-MM-dd")));
         dispatch(getScheduleDetails(value));
     }
 
@@ -264,7 +254,8 @@ function CalendarSchedule(props) {
                 </button>
             </div>
             {/* {( && ()) ||()} */}
-            {(props.isLoadingOverlay === true && <div className="text-center h-100">Loading stuff...</div>) ||
+            {
+            (props.isLoadingOverlay === true && <div className="text-center h-100">Loading stuff...</div>) ||
                 (() => {
                     switch (state.modal.modalMode) {
                         case "addSchedule":
@@ -353,6 +344,8 @@ const mapStateToProps = (state) => ({
     isLoadingPatients: state.schedules.isLoadingPatients,
     isLoadingOverlay: state.schedules.isLoadingOverlay,
     modal: state.modal,
+    availablePatients: state.schedules.availablePatients,
+    selectedAppointment: state.schedules.selectedAppointment,
 });
 
 export default connect(mapStateToProps, { getScheduleDetails, getScheduledPatients })(CalendarSchedule);

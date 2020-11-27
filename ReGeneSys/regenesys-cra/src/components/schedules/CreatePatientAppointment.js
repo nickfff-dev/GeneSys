@@ -19,7 +19,7 @@ function pageInitial() {
     return 1;
 }
 
-//Generates array time options for react-select
+//Generates array time options (30 min interval) for react-select
 export const generateTime = () => {
     let timeOptions = [];
     let halfHours = ["00", "30"];
@@ -57,6 +57,7 @@ function CreatePatientAppointment(props) {
     const dispatch = useDispatch();
 
     const selectedSchedule = props.selectedSchedule[0];
+    const scheduledPatients = props.scheduledPatients;
     var defaultStartTime = [];
     var defaultEndTime = [];
 
@@ -115,7 +116,6 @@ function CreatePatientAppointment(props) {
 
             for (index; index < endIndex; index++) {
                 options[index]["isDisabled"] = true;
-                console.log(index);
             }
         }
         return options;
@@ -257,8 +257,11 @@ function CreatePatientAppointment(props) {
                                         rules={{
                                             required: "This is required",
                                             validate: {
-                                                lesserThanEndTime: (value) => {
+                                                greaterThanStartTime: (value) => {
                                                     const { startTime } = getValues();
+                                                    console.log("create")
+                                                    console.log(startTime.value)
+                                                    console.log(value.value)
                                                     if (startTime != "") {
                                                         return (
                                                             value.value > startTime.value ||
@@ -268,6 +271,31 @@ function CreatePatientAppointment(props) {
                                                     }
                                                 },
                                             },
+                                            checkIfOverlapping: (value) =>{
+                                                let { startTime } = getValues();
+                                                let timeOptions = generateTimeOptions("end")
+                                                let selectedStartIndex = _.findIndex(timeOptions, { value: startTime.value });
+                                                let selectedEndIndex = _.findIndex(timeOptions, { value: value.value });
+
+                                                for (let i = 0; i < scheduledPatients.length; i++) {
+                                                    let startTime = shortenTime(scheduledPatients[i].startTime);
+                                                    let endTime = shortenTime(scheduledPatients[i].endTime);
+                                                    let scheduledStartIndex = _.findIndex(timeOptions, { value: startTime });
+                                                    let scheduledEndIndex = _.findIndex(timeOptions, { value: endTime });
+                                                    
+                                                    //Not include self in checking
+                                                    if(selectedStartIndex <= scheduledStartIndex && selectedEndIndex >= scheduledEndIndex){
+                                                        //Selected start or end time must not overlap existing schedules
+                                                        if(scheduledStartIndex > selectedStartIndex || scheduledEndIndex < selectedEndIndex){
+                                                            return (
+                                                                "Schedule overlaps with existing schedules."
+                                                            )
+                                                            //     overlapping = true
+                                                        // break
+                                                        }                                                            
+                                                    }
+                                                }                                                  
+                                            }
                                         }}
                                     />
                                     {/* <input

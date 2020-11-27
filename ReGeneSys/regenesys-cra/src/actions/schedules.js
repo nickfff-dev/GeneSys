@@ -15,6 +15,7 @@ import {
     CREATE_PATIENT_APPOINTMENT,
     GET_PATIENT_APPOINTMENT_DETAILS,
     EDIT_PATIENT_APPOINTMENT,
+    DELETE_PATIENT_APPOINTMENT,
     LOAD_OVERLAY,
     UNLOAD_OVERLAY,
 } from "./types";
@@ -132,7 +133,7 @@ export const deleteEvent = (eventScheduleId) => (dispatch, getState) => {
 };
 
 //GET AVAILABLE PATIENTS FOR APPOINTMENT
-export const getAvailablePatients = async (eventScheduleId, selectedPatient) => (dispatch, getState) => {
+export const getAvailablePatients = (eventScheduleId, selectedPatient) => (dispatch, getState) => {
     axios
         .get(SCHEDULED_PATIENTS_API + "available/", { params: { schedule: eventScheduleId, include: selectedPatient} }, tokenConfig(getState))
         .then((res) => {
@@ -177,7 +178,7 @@ export const createPatientAppointment = (appointment) => (dispatch, getState) =>
 //EDIT PATIENT APPOINTMENT
 export const editPatientAppointment = (appointmentId, appointment) => (dispatch, getState) => {
     axios
-        .put(SCHEDULED_PATIENTS_API + appointmentId, camelCaseKeysToSnake(appointment), tokenConfig(getState))
+        .put(SCHEDULED_PATIENTS_API + `${appointmentId}/`, camelCaseKeysToSnake(appointment), tokenConfig(getState))
         .then((res) => {
             dispatch(createMessage({ addAppointment: "Appointment Edited" }));
             dispatch({
@@ -185,6 +186,21 @@ export const editPatientAppointment = (appointmentId, appointment) => (dispatch,
                 payload: snakeCaseKeysToCamel(res.data),
             });
             return res;
+        })
+        .catch((err) => dispatch(returnErrors(err.response.data, err.response.status)));
+};
+
+//DELETE PATIENT APPOINTMENT
+export const deletePatientAppointment = (appointmentId) => (dispatch, getState) => {
+    axios
+        .delete(SCHEDULED_PATIENTS_API + `${appointmentId}/`, tokenConfig(getState))
+        .then((res) => {
+            dispatch(createMessage({ deleteSchedule: "Appointment Deleted" }));
+            dispatch({
+                type: DELETE_PATIENT_APPOINTMENT,
+                payload: appointmentId,
+            });
+            return appointmentId;
         })
         .catch((err) => dispatch(returnErrors(err.response.data, err.response.status)));
 };

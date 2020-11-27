@@ -1,12 +1,14 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { connect, useDispatch } from "react-redux";
 import { useTable, useSortBy, useGlobalFilter, usePagination } from "react-table";
+import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
+
 
 import { format } from "date-fns";
 import { split } from "lodash";
 import { shortenTime } from "./CalendarSchedule";
 import { showModal } from "../../actions/modal";
-import { showOverlay, hideOverlay, getAppointmentDetails, getAvailablePatients, } from "../../actions/schedules";
+import { showOverlay, hideOverlay, getAppointmentDetails, getAvailablePatients, deletePatientAppointment} from "../../actions/schedules";
 
 function TableSchedule(props) {
     // const APIValue = useSelector((state) => state);
@@ -14,6 +16,7 @@ function TableSchedule(props) {
 
     // const patients = useSelector((state) => state.schedules.patients);
     // const data = useMemo(() => getPatientData(props.patients), [patients]);
+    const [modal, setModal] = useState(false);
     const [modalType, setModalType] = useState();
     const [modalProps, setModalProps] = useState();
 
@@ -28,13 +31,27 @@ function TableSchedule(props) {
         dispatch(showModal(modalType, modalProps))
     }, [props.isLoadingOverlay == false])
 
+    const toggle = () => {
+        setModal(!modal);
+    };
+
     //useMemo is required by react-table.
     const data = useMemo(() => getPatientData(props.scheduledPatients), [props.scheduledPatients]);
     const columns = useMemo(
         () => [
             {
                 Header: "Time",
-                accessor: "col1", // accessor is the "key" in the data
+                accessor: "col1", // accessor is the "key" in the data,
+                sortMethod: (a, b) => {
+                    var a1 = new Date(a).getTime();
+                    var b1 = new Date(b).getTime();
+                  if(a1<b1)
+                  return 1;
+                  else if(a1>b1)
+                  return -1;
+                  else
+                  return 0;
+                  }
             },
             {
                 Header: "Patient",
@@ -58,16 +75,17 @@ function TableSchedule(props) {
 
     function getPatientData(patients) {
         var allData = [];
+        var timeFormat = "12H";
         patients.forEach((element) => {
             var row = {
-                col1: shortenTime(element.startTime) + " - " + shortenTime(element.endTime),
+                col1: shortenTime(element.startTime, timeFormat) + " - " + shortenTime(element.endTime, timeFormat),
                 col2: element.patient.patientId,
                 col3: element.patient.clinical.patientType,
                 col4: element.status,
                 col5: (
                     <div>
-                        <button onClick={() => showEditModal("editAppointment", element)}>edit</button>
-                        <button>delete</button>
+                        <button onClick={() => showAppointment("editAppointment", element)}>edit</button>
+                        <button onClick={() => showAppointment("deleteAppointment", element)}>delete</button>
                     </div>
                 ),
             };
@@ -76,12 +94,24 @@ function TableSchedule(props) {
         return allData;
     }
 
-    function showEditModal(type, appointment){
-        dispatch(showOverlay())
-        dispatch(getAppointmentDetails(appointment.pk));
-        // dispatch(getAvailablePatients(props.selectedSchedule[0].pk, appointment.patient.patientId));
-        setModalType(type)
-        setModalProps(appointment.pk)
+    const showAppointment = (type, appointment) =>{
+        if(type === "editAppointment"){
+            dispatch(showOverlay())
+            dispatch(getAppointmentDetails(appointment.pk));
+            setModalType(type)
+            setModalProps(appointment.pk)
+        }
+        else{
+            setModalType(type)
+            setModalProps(appointment.pk)
+            toggle()
+        }
+    }
+
+    const onSubmit = () =>{
+        console.log(modalProps)
+        dispatch(deletePatientAppointment(modalProps))
+        toggle()
     }
 
     const { getTableProps, getTableBodyProps, headerGroups, footerGroups, rows, page, prepareRow } = useTable(
@@ -153,7 +183,24 @@ function TableSchedule(props) {
         }
     }
 
-    return <div className="col-12 rounded h-100">{tableComponent}</div>;
+    return(
+    <div className="col-12 rounded h-100">
+        {tableComponent}
+        <Modal isOpen={modal} toggle={toggle}>
+            <ModalHeader>Delete Appointment</ModalHeader>
+            <ModalBody>Are you sure you want to delete appointment?</ModalBody>
+            <ModalFooter>
+                <Button color="primary" onClick={onSubmit}>
+                    Yes
+                </Button>
+                <Button color="secondary" onClick={() => toggle}>
+                    Cancel
+                </Button>
+            </ModalFooter>
+        </Modal>
+    </div>
+    
+    )
 }
 
 const mapStateToProps = (state) => ({

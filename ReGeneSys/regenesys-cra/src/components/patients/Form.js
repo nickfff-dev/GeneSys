@@ -376,6 +376,7 @@ function AddForm(props) {
                                 <div className="form-group col-md-3">
                                     <label>Suffix</label>
                                     <select id="suffixSelect" className="form-control" name="suffix" ref={register({})}>
+                                        <option value="">None</option>
                                         <option value="Jr.">Jr.</option>
                                         <option value="Sr.">Sr.</option>
                                         <option value="II">II</option>

@@ -13,6 +13,8 @@ import {
     GET_AVAILABLE_PATIENTS,
     CREATE_PATIENT_APPOINTMENT,
     GET_PATIENT_APPOINTMENT_DETAILS,
+    EDIT_PATIENT_APPOINTMENT,
+    DELETE_PATIENT_APPOINTMENT,
     LOAD_OVERLAY,
     UNLOAD_OVERLAY,
 } from "../actions/types.js";
@@ -89,7 +91,6 @@ export default function (state = initialState, action) {
                 schedules: state.schedules.map((schedule) => (schedule.pk === action.payload.pk ? action.payload : schedule.pk)),
             };
         case DELETE_EVENTSCHEDULE:
-            console.log(action.payload);
             return {
                 ...state,
                 schedules: state.schedules.filter((schedule) => schedule.pk !== action.payload.pk),
@@ -104,6 +105,17 @@ export default function (state = initialState, action) {
             return {
                 ...state,
                 scheduledPatients: [...state.scheduledPatients, action.payload],
+            };
+        case EDIT_PATIENT_APPOINTMENT:
+            return {
+                ...state,
+                scheduledPatients: state.scheduledPatients.map((scheduledPatient) => (scheduledPatient.pk === action.payload ? action.payload : scheduledPatient)),
+            };
+        case DELETE_PATIENT_APPOINTMENT:
+            console.log(action.payload)
+            return {
+                ...state,
+                scheduledPatients: state.scheduledPatients.filter((scheduledPatients) => scheduledPatients.pk !== action.payload),
             };
         //PATIENTS
         case GET_SCHEDULED_PATIENTS:
@@ -122,6 +134,7 @@ export default function (state = initialState, action) {
             return {
                 ...state,
                 selectedAppointment: action.payload,
+                isLoadingOverlay: false
             };
         default:
             return state;

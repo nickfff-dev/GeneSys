@@ -146,9 +146,11 @@ class ClinicSchedulePatientViewSet(viewsets.ModelViewSet):
 
         patients = Patient.objects.filter(clinical__status="active")
 
+        print(patients)
         for patient in scheduled_patients:
             if patient.get('patient') != include_patient:
                 patients = patients.exclude(patient_id=patient['patient'])
+        print(patients)
 
         return Response(
             PatientContactClinicalSerializer(patients, many=True).data)
