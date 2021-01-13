@@ -81,6 +81,10 @@ function CalendarSchedule(props) {
     })
 
     const [modal, setModal] = useState(false);
+    const [selectedDate, setselectedDate] = useState()
+    const [selectedSchedule, setselectedSchedule] = useState()
+    const [newDateSelected, setNewDateSelected] = useState(true)
+    const [scheduleIsSelected, setScheduleIsSelected] = useState(true)
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const state = useSelector((state) => state);
     const toggleDropdown = () => setDropdownOpen((prevState) => !prevState);
@@ -106,20 +110,30 @@ function CalendarSchedule(props) {
     }
 
     function onClickDay(value) {
-        dispatch(getScheduleDetails(value));
+        if(Date.parse(selectedDate) !== Date.parse(value)){
+            setNewDateSelected(true);
+        }
+        else{
+            setNewDateSelected(false);
+        }
+        
+        setselectedDate(value);
+        dispatch(getScheduleDetails(value, newDateSelected));
     }
 
     function getPatients(scheduleId, physicianId) {
-        dispatch(getScheduledPatients(scheduleId, physicianId));
+        setScheduleIsSelected(true); 
+        console.log("schedule is selected ", scheduleIsSelected);
+        dispatch(getScheduledPatients(scheduleId, physicianId, scheduleIsSelected));
+        
     }
-
-    //Handles showing of add/edit appointment modal
 
     const confirmDelete = () => {
         dispatch(deleteEvent(props.selectedSchedule[0].event.pk));
         toggle();
     };
 
+    //Handles showing of add/edit appointment modal
     function showScheduleModal(type, modalProps) {
         if (type === "deleteSchedule") {
             toggle();

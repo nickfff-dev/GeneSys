@@ -18,6 +18,8 @@ import {
     DELETE_PATIENT_APPOINTMENT,
     LOAD_OVERLAY,
     UNLOAD_OVERLAY,
+    NEW_DATE_SELECTED,
+    SCHEDULE_SELECTED
 } from "./types";
 import { EVENT_API, GET_SCHEDULE_API, SCHEDULED_PATIENTS_API, SCHEDULE_API } from "../constants";
 import { snakeCaseKeysToCamel, camelCaseKeysToSnake } from "../actions/utils";
@@ -48,7 +50,13 @@ export const getEvents = () => (dispatch, getState) => {
 };
 
 //GET CLINIC SCHEDULE BY SELECTED DATE
-export const getScheduleDetails = (dateToSearch) => (dispatch, getState) => {
+export const getScheduleDetails = (dateToSearch, dateSelectionStatus) => (dispatch, getState) => {
+    if(dateSelectionStatus){
+        dispatch({
+            type: NEW_DATE_SELECTED,
+            payload: dateSelectionStatus
+        })
+    }
     axios
         .get(GET_SCHEDULE_API, { params: { date: dateToSearch } }, tokenConfig(getState))
         .then((res) => {
@@ -61,7 +69,13 @@ export const getScheduleDetails = (dateToSearch) => (dispatch, getState) => {
 };
 
 //GET PATIENTS BY SCHEDULE
-export const getScheduledPatients = (scheduleId, physicianId) => (dispatch, getState) => {
+export const getScheduledPatients = (scheduleId, physicianId, scheduleSelected) => (dispatch, getState) => {
+    if(scheduleSelected){
+        dispatch({
+            type: SCHEDULE_SELECTED,
+            payload: scheduleSelected
+        })
+    }
     axios
         .get(SCHEDULED_PATIENTS_API + "all/", { params: { schedule: scheduleId, physician: physicianId } }, tokenConfig(getState))
         .then((res) => {
@@ -205,4 +219,3 @@ export const deletePatientAppointment = (appointmentId) => (dispatch, getState) 
         .catch((err) => dispatch(returnErrors(err.response.data, err.response.status)));
 };
 
-// getAppointmentDetails

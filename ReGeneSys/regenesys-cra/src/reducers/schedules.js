@@ -17,6 +17,8 @@ import {
     DELETE_PATIENT_APPOINTMENT,
     LOAD_OVERLAY,
     UNLOAD_OVERLAY,
+    NEW_DATE_SELECTED,
+    SCHEDULE_SELECTED,
 } from "../actions/types.js";
 
 const initialState = {
@@ -29,6 +31,8 @@ const initialState = {
     isLoadingSchedules: false,
     isLoadingPatients: false,
     isLoadingOverlay: false,
+    newDateSelected: false,
+    scheduleSelected: false
 };
 
 export default function (state = initialState, action) {
@@ -107,16 +111,27 @@ export default function (state = initialState, action) {
                 scheduledPatients: [...state.scheduledPatients, action.payload],
             };
         case EDIT_PATIENT_APPOINTMENT:
+            console.log(action.payload.pk)
             return {
                 ...state,
-                scheduledPatients: state.scheduledPatients.map((scheduledPatient) => (scheduledPatient.pk === action.payload ? action.payload : scheduledPatient)),
+                scheduledPatients: state.scheduledPatients.map((scheduledPatient) => (scheduledPatient.pk === action.payload.pk ? action.payload : scheduledPatient)),
             };
         case DELETE_PATIENT_APPOINTMENT:
-            console.log(action.payload)
             return {
                 ...state,
                 scheduledPatients: state.scheduledPatients.filter((scheduledPatients) => scheduledPatients.pk !== action.payload),
             };
+        case NEW_DATE_SELECTED:
+            return{
+                ...state,
+                newDateSelected: action.payload,
+                scheduleSelected: false
+            };
+        case SCHEDULE_SELECTED:
+            return{
+                ...state,
+                scheduleSelected:action.payload
+            }
         //PATIENTS
         case GET_SCHEDULED_PATIENTS:
             return {

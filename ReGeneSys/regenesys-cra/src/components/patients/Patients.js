@@ -1,6 +1,8 @@
-import React, { Fragment, useState, useEffect } from "react";
+import React, { Fragment, useState, useEffect, useMemo } from "react";
 import { connect, useSelector, useDispatch } from "react-redux";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
+import { useTable, useSortBy, useGlobalFilter, usePagination } from "react-table";
+
 // import { PropTypes } from "prop-types";
 import { useForm } from "react-hook-form";
 import useSWR, { mutate } from "swr";
@@ -29,9 +31,107 @@ function Patients(props) {
         getPatients();
     }, []);
 
+    
     const [modal, setModal] = useState(false);
     const [nestedModal, setNestedModal] = useState(false);
     const [closeAll, setCloseAll] = useState(true);
+
+    const dispatch = useDispatch();
+    const state = useSelector((state) => state);
+    const { modalType, modalProps } = state.modal;
+
+    const url = PATIENT_API + "generateid";
+    const fetcher = (...args) => fetch(...args).then((res) => res.json());
+    const generatedID = useSWR(url, fetcher).data;
+
+    const [newPatientID, setPatientID] = useState(() => generateID());
+
+    const data = useMemo(() => getPatientData(state.patients.patients), [state.patients.patients]);
+    const columns = useMemo(
+        () => [
+            {
+                Header: "Patient ID",
+                accessor: "col1", // accessor is the "key" in the data,
+            },
+            {
+                Header: "First Name",
+                accessor: "col2",
+            },
+            {
+                Header: "Middle Name",
+                accessor: "col3",
+            },
+            {
+                Header: "Last Name",
+                accessor: "col4",
+            },
+            {
+                Header: "Suffix",
+                accessor: "col5",
+            },
+            {
+                Header: "Birth Date",
+                accessor: "col6",
+            },
+            {
+                Header: "Sex",
+                accessor: "col7",
+            },
+            {
+                Header: "",
+                accessor: "col8",
+            },
+        ],
+        []
+    );
+
+    function getPatientData(patients) {
+        console.log(patients)
+        var allData = [];
+        patients.forEach((element) => {
+            var row = {
+                col1: element.patientId,
+                col2: element.firstName,
+                col3: element.middleName,
+                col4: element.lastName,
+                col5: element.suffix,
+                col6: element.birthDate,
+                col7: element.sex,
+                col8: (
+                    <div>
+                        <button onClick={() => showPatientModal("view", element.patientId)}>view</button>
+                        <button onClick={() => showPatientModal("edit", element.patientId)}>edit</button>
+                        <button onClick={() => showPatientModal("delete", element.patientId)}>delete</button>
+                    </div>
+                ),
+            };
+            allData.push(row);
+            console.log(allData)
+        });
+        return allData;
+    }
+
+    const { getTableProps, getTableBodyProps, headerGroups, footerGroups, rows, page, prepareRow, canPreviousPage,
+        canNextPage,
+        pageOptions,
+        pageCount,
+        gotoPage,
+        nextPage,
+        previousPage,
+        state: { pageIndex }} = useTable(
+        {
+            columns,
+            data,
+            initialState: {
+                pageSize: 10,
+                pageIndex: 0,
+                globalFilter: "",
+            },
+        },
+        useGlobalFilter,
+        useSortBy,
+        usePagination
+    );
 
     const toggle = () => {
         setModal(!modal);
@@ -45,19 +145,6 @@ function Patients(props) {
         setNestedModal(!nestedModal);
         setCloseAll(true);
     };
-
-    const url = PATIENT_API + "generateid";
-    const fetcher = (...args) => fetch(...args).then((res) => res.json());
-
-    const [newPatientID, setPatientID] = useState(() => generateID());
-
-    const { data } = useSWR(url, fetcher);
-
-    const state = useSelector((state) => state);
-
-    const { modalType, modalProps } = state.modal;
-
-    const dispatch = useDispatch();
 
     function showPatientModal(type, modalProps) {
         if (type === "delete") {
@@ -76,13 +163,6 @@ function Patients(props) {
             status: "",
         },
     });
-
-    // function remove(patientID) {
-    //     console.log(patientID);
-
-    //     status = toggleAll();
-    //     // dispatch(dischargePatient(patientID));
-    // }
 
     const onSubmit = (data) => {
         const { status } = data;
@@ -108,17 +188,6 @@ function Patients(props) {
             clinical,
         } = modalData;
 
-        // const { caseNumber, patientType, referringDoctor, referringService, referralReason } = clinical;
-
-        // clinical = {
-        //     caseNumber,
-        //     patientType,
-        //     referringDoctor,
-        //     referringService,
-        //     referralReason,
-        //     status,
-        // };
-
         clinical.status = status;
 
         const userToDischarge = {
@@ -138,29 +207,128 @@ function Patients(props) {
             clinical,
         };
 
-        console.log(userToDischarge);
         dispatch(dischargePatient(userToDischarge));
         toggleAll();
     };
+
+    let tableComponent;
+
+    if (state.schedules.isLoadingPatients === true) {
+        tableComponent = <h1>Loading</h1>;
+    } else {
+        if (data.length === 0) {
+            tableComponent = (
+                <div className="row h-75">
+                    <div className="col-12 my-auto">
+                        <h3 className="text-center">No Patients</h3>
+                    </div>
+                </div>
+            );
+        } else {
+            tableComponent = (
+                <table className="table table-striped table-responsive-md" {...getTableProps()}>
+                    <thead>
+                        {headerGroups.map((headerGroup) => (
+                            <tr {...headerGroup.getHeaderGroupProps()}>
+                                {headerGroup.headers.map((column) => (
+                                    <th {...column.getHeaderProps(column.getSortByToggleProps())}>
+                                        {column.render("Header")}
+                                        <span>{column.isSorted ? (column.isSortedDesc ? " 🔽" : " 🔼") : ""}</span>
+                                    </th>
+                                ))}
+                            </tr>
+                        ))}
+                    </thead>
+                    <tbody {...getTableBodyProps()}>
+                        {page.map((row, i) => {
+                            prepareRow(row);
+                            return (
+                                <tr {...row.getRowProps()}>
+                                    {row.cells.map((cell) => {
+                                        return <td {...cell.getCellProps()}>{cell.render("Cell")}</td>;
+                                    })}
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                    <tfoot>
+                        {footerGroups.map((group) => (
+                            <tr {...group.getFooterGroupProps()}>
+                                {group.headers.map((column) => (
+                                    <td {...column.getFooterProps()}>{column.Footer && column.render("Footer")}</td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tfoot>
+                </table>
+            );
+        }
+    }
 
     return (
         <Fragment>
             <h2>Patient Management</h2>
             <div>
                 <button
-                    className="btn btn-primary float-right mb-5"
+                    className="btn btn-primary float-right mb-2"
                     data-toggle="modal"
                     data-target="#addPatientModal"
                     onClick={async () => {
-                        const newID = data;
+                        const newID = generatedID;
                         await showPatientModal("create", newID);
-                        mutate(url, { ...data, newID });
+                        mutate(url, { ...generatedID, newID });
                     }}
                 >
                     Add Patient
                 </button>
             </div>
-            <table className="table table-striped">
+            {tableComponent}
+        <div className="pagination">
+        <button onClick={() => gotoPage(0)} disabled={!canPreviousPage}>
+          {'<<'}
+        </button>{' '}
+        <button onClick={() => previousPage()} disabled={!canPreviousPage}>
+          {'<'}
+        </button>{' '}
+        <span>
+          Page{' '}
+          <strong>
+            {pageIndex + 1} of {pageOptions.length}
+          </strong>{' '}
+        </span>
+        <button onClick={() => nextPage()} disabled={!canNextPage}>
+          {'>'}
+        </button>{' '}
+        <button onClick={() => gotoPage(pageCount - 1)} disabled={!canNextPage}>
+          {'>>'}
+        </button>{' '}
+        
+        {/* <span>
+          | Go to page:{' '}
+          <input
+            type="number"
+            defaultValue={pageIndex + 1}
+            onChange={e => {
+              const page = e.target.value ? Number(e.target.value) - 1 : 0
+              gotoPage(page)
+            }}
+            style={{ width: '100px' }}
+          />
+        </span>{' '} */}
+        {/* <select
+          value={pageSize}
+          onChange={e => {
+            setPageSize(Number(e.target.value))
+          }}
+        >
+          {[10, 20, 30, 40, 50].map(pageSize => (
+            <option key={pageSize} value={pageSize}>
+              Show {pageSize}
+            </option>
+          ))}
+        </select> */}
+      </div>   
+            {/* <table className="table table-striped">
                 <thead>
                     <tr>
                         <th>Patient ID</th>
@@ -211,7 +379,7 @@ function Patients(props) {
                         </tr>
                     ))}
                 </tbody>
-            </table>
+            </table> */}
             {(() => {
                 switch (state.modal.modalMode) {
                     case "create":
@@ -277,134 +445,8 @@ function Patients(props) {
             </Modal>
         </Fragment>
     );
-    // } else {
-    //     return <h1>Loading...</h1>;
-    // }
+
 }
-
-// export class Patients extends Component {
-//     static propTypes = {
-//         patients: PropTypes.array.isRequired,
-//         getPatients: PropTypes.func.isRequired,
-//         deletePatient: PropTypes.func.isRequired,
-//         editPatient: PropTypes.func.isRequired,
-//         showPatientModal: PropTypes.func.isRequired,
-//         hidePatientModal: PropTypes.func.isRequired,
-//         modal: PropTypes.object.isRequired,
-//     };
-
-//     componentDidMount() {
-//         this.props.getPatients();
-//     }
-
-//     render() {
-//         return (
-//             <Fragment>
-//                 <h2>Patients</h2>
-//                 <div>
-//                     <button
-//                         className="btn btn-primary float-right mb-5"
-//                         data-toggle="modal"
-//                         data-target="#addPatientModal"
-//                         onClick={this.props.showPatientModal.bind(
-//                             this,
-//                             "create",
-//                             null
-//                         )}
-//                     >
-//                         Add Patient
-//                     </button>
-//                 </div>
-//                 <table className="table table-striped">
-//                     <thead>
-//                         <tr>
-//                             <th>Patient ID</th>
-//                             <th>First Name</th>
-//                             <th>Middle Name</th>
-//                             <th>Last Name</th>
-//                             <th>Suffix</th>
-//                             <th>birthDate </th>
-//                             <th>sex</th>
-//                             <th></th>
-//                         </tr>
-//                     </thead>
-//                     <tbody>
-//                         {this.props.patients.map((patient, index) => (
-//                             <tr key={index}>
-//                                 <td>{patient.patientID}</td>
-//                                 <td>{patient.firstName}</td>
-//                                 <td>{patient.middleName}</td>
-//                                 <td>{patient.lastName}</td>
-//                                 <td>{patient.suffix}</td>
-//                                 <td>{patient.birthDate}</td>
-//                                 <td>{patient.sex}</td>
-//                                 <td>
-//                                     <button
-//                                         onClick={this.props.showPatientModal.bind(
-//                                             this,
-//                                             "view",
-//                                             patient.patientID
-//                                         )}
-//                                         className="btn btn-info btn-sm mr-2"
-//                                         data-toggle="modal"
-//                                         data-target="#viewPatientModal"
-//                                     >
-//                                         View
-//                                     </button>
-//                                     <button
-//                                         onClick={this.props.showPatientModal.bind(
-//                                             this,
-//                                             "edit",
-//                                             patient.patientID
-//                                         )}
-//                                         className="btn btn-primary btn-sm mr-2"
-//                                         data-toggle="modal"
-//                                         data-target="#editPatientModal"
-//                                     >
-//                                         Edit
-//                                     </button>
-//                                     <button
-//                                         onClick={this.props.deletePatient.bind(
-//                                             this,
-//                                             patient.patientID
-//                                         )}
-//                                         className="btn btn-danger btn-sm"
-//                                     >
-//                                         Delete
-//                                     </button>
-//                                 </td>
-//                             </tr>
-//                         ))}
-//                     </tbody>
-//                 </table>
-//                 {(() => {
-//                     switch (this.props.modal.modalMode) {
-//                         case "create":
-//                             return (
-//                                 <Fragment>
-//                                     <Form />
-//                                 </Fragment>
-//                             );
-//                         case "edit":
-//                             return (
-//                                 <Fragment>
-//                                     <EditForm />
-//                                 </Fragment>
-//                             );
-//                         case "view":
-//                             return (
-//                                 <Fragment>
-//                                     <ViewModal />
-//                                 </Fragment>
-//                             );
-//                         default:
-//                             return null;
-//                     }
-//                 })()}
-//             </Fragment>
-//         );
-//     }
-// }
 
 const mapStateToProps = (state) => ({
     patients: state.patients.patients,

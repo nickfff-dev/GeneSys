@@ -6,7 +6,7 @@ export default function Dashboard() {
     return (
         <Fragment>
             {/* <Patients /> */}
-            <h1>DAshboard</h1>
+            <h1>Dashboard</h1>
         </Fragment>
     );
 }
