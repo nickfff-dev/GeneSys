@@ -32,7 +32,7 @@ const initialState = {
     isLoadingPatients: false,
     isLoadingOverlay: false,
     newDateSelected: false,
-    scheduleSelected: false
+    selectedSchedulePhysician: null,
 };
 
 export default function (state = initialState, action) {
@@ -125,12 +125,12 @@ export default function (state = initialState, action) {
             return{
                 ...state,
                 newDateSelected: action.payload,
-                scheduleSelected: false
+                selectedSchedulePhysician: null
             };
         case SCHEDULE_SELECTED:
             return{
                 ...state,
-                scheduleSelected:action.payload
+                selectedSchedulePhysician:action.payload
             }
         //PATIENTS
         case GET_SCHEDULED_PATIENTS:

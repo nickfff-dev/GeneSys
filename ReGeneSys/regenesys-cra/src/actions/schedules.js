@@ -69,13 +69,11 @@ export const getScheduleDetails = (dateToSearch, dateSelectionStatus) => (dispat
 };
 
 //GET PATIENTS BY SCHEDULE
-export const getScheduledPatients = (scheduleId, physicianId, scheduleSelected) => (dispatch, getState) => {
-    if(scheduleSelected){
+export const getScheduledPatients = (scheduleId, physicianId) => (dispatch, getState) => {
         dispatch({
             type: SCHEDULE_SELECTED,
-            payload: scheduleSelected
+            payload: physicianId
         })
-    }
     axios
         .get(SCHEDULED_PATIENTS_API + "all/", { params: { schedule: scheduleId, physician: physicianId } }, tokenConfig(getState))
         .then((res) => {

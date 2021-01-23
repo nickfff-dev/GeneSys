@@ -4,7 +4,7 @@ import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 
 import { getAvailablePatients, editPatientAppointment} from "../../actions/schedules";
 import { shortenTime, getValueFromArrayOrObject } from "./CalendarSchedule";
-import { generateTime } from "./CreatePatientAppointment";
+import { generateTime, timeRangeOverlaps } from "./CreatePatientAppointment";
 import { hideModal } from "../../actions/modal";
 
 import { format } from "date-fns";
@@ -39,11 +39,12 @@ function EditPatientAppointment(props) {
     var defaultStartTime = [];
     var defaultEndTime = [];
     var defaultPatient = [];
+    var filteredTimeOptions = [];
+
     const scheduleStartTime = shortenTime(selectedSchedule.event.startTime);
     const scheduleEndTime = shortenTime(selectedSchedule.event.endTime);
     const selectedAppointmentStartTime = shortenTime(selectedAppointment.startTime);
     const selectedAppointmentEndTime = shortenTime(selectedAppointment.endTime);
-    var filteredTimeOptions = [];
 
     useEffect(() => {
         getPatients();
@@ -62,12 +63,7 @@ function EditPatientAppointment(props) {
         dispatch(hideModal());
     };
 
-    const getDefaultPatient = () => {
-        // defaultPatient.push(_.find(availablePatients, ["value", selectedAppointment.patient.patientId]))
-        defaultPatient.push({value:selectedAppointment.patient.patientId ,label: selectedAppointment.patient.firstName + " " + selectedAppointment.patient.lastName})
-        setLoadOverlay();
-    };
-
+    //gets patients that can be scheduled
     const getPatients = () => {
         dispatch(getAvailablePatients(selectedSchedule.pk, selectedAppointment.patient.patientId));
     };
@@ -78,7 +74,13 @@ function EditPatientAppointment(props) {
         defaultEndTime.push(_.find(timeOptions, ["value", selectedAppointmentEndTime]));
     };
 
-    //Gets patients available for scheduling
+    //sets default patient value for patient dropdown
+    const getDefaultPatient = () => {
+        defaultPatient.push({value:selectedAppointment.patient.patientId ,label: selectedAppointment.patient.firstName + " " + selectedAppointment.patient.lastName})
+        setLoadOverlay();
+    };
+
+    //set list of available patients as options for dropdown
     const generatePatientOptions = () => {
         props.availablePatients.forEach((patient) => {
             availablePatients.push({ value: patient.patientId, label: patient.firstName + " " + patient.lastName });
@@ -86,13 +88,13 @@ function EditPatientAppointment(props) {
         return availablePatients;
     };
 
-    //Gets start and end time of scheule
+    //Gets start and end time of schedule and assign to dropdown
     const getTimeLimit = () => {
         limitStartTime = _.find(timeOptions, ["value", scheduleStartTime]);
         limitEndTime = _.find(timeOptions, ["value", scheduleEndTime]);
     };
 
-    const generateTimeOptions = (remark) => {
+   const generateTimeOptions = (remark) => {
         getTimeLimit();
         let limitStartIndex = _.findIndex(timeOptions, limitStartTime);
         let limitEndIndex = _.findIndex(timeOptions, limitEndTime);
@@ -127,29 +129,6 @@ function EditPatientAppointment(props) {
         return filteredTimeOptions;
     };
 
-    const timeRangeOverlaps = (selectedStart, selectedEnd, scheduledStart, scheduledEnd, defaultStart, defaultEnd) => {
-        //Not include self in checking
-        if (selectedStart >= scheduledStart && selectedStart < scheduledEnd){
-            // console.log(selectedStart + " >= " + scheduledStart); 
-            // console.log(selectedStart + " < " + scheduledEnd); 
-            console.log("selected start time is in existing sched");
-            return true;
-        }  //if selected start time is in existing sched
-        if (selectedEnd > scheduledStart && selectedEnd <= scheduledEnd && scheduledEnd){
-            // console.log(selectedEnd + " > " + scheduledStart); 
-            // console.log(selectedEnd +" <= " +scheduledEnd); 
-            console.log("selected end time is in existing sched");
-            return true;
-        }  //if selected end time is in existing sched
-        if (scheduledStart > selectedStart && scheduledEnd < selectedEnd){
-            // console.log(scheduledStart + " > " + selectedStart); 
-            // console.log(scheduledEnd + " < " + selectedEnd); 
-            console.log("schedules are inside selected time range");
-            return true;
-        }  //if schedules are inside selected time range.
-
-        return false;
-    }
 
     const toggle = () => {
         setModal(!modal);
@@ -165,6 +144,7 @@ function EditPatientAppointment(props) {
         setCloseAll(true);
     };
 
+    //validates textboxees for complying data
     const validatePage = () => {
         if (page === 1) {
             const check = trigger(["patient", "startTime", "endTime"]);
@@ -346,7 +326,6 @@ function EditPatientAppointment(props) {
 
 
                                                     //Not include self in checking
-                                                    // if (!(selectedStartIndex >= defaultStartIndex && selectedStartIndex < defaultEndIndex) && (selectedEndIndex > defaultStartIndex && selectedEndIndex <= defaultEndIndex)){    
                                                         for (let i = 0; i < scheduledPatients.length; i++) {
                                                             let scheduledStartTime = shortenTime(scheduledPatients[i].startTime);
                                                             let scheduledEndTime = shortenTime(scheduledPatients[i].endTime);
@@ -359,7 +338,6 @@ function EditPatientAppointment(props) {
                                                             }
                                                             
                                                         }
-                                                    // }
                                                    if(isOverlapping){
                                                     return (
                                                         "Schedule overlaps with existing schedules."

@@ -47,23 +47,9 @@ export function Home() {
     );
     console.log(path);
     return (
-        // <Switch>
-        //     <PrivateRoute path="/" component={Dashboard} />
-        //     <PrivateRoute path="/patients" component={Patients} />
-        //     <PrivateRoute path="/dashboard" component={Dashboard} />
-        //     <Route path="/login">
-        //         <Login />
-        //     </Route>
-        //     <Route component={NoMatch} />
-        // </Switch>
-        // <HomeContainer>
-        // <h1>a</h1>
-        //     <Patients />
-        // </HomeContainer>
-
         <Fragment>
             {/* Page Wrapper */}
-            <div id="wrapper">
+            <div className="h-100" id="wrapper">
                 <Sidebar />
                 {/* Content Wrapper */}
                 <div id="content-wrapper" className="d-flex flex-column">

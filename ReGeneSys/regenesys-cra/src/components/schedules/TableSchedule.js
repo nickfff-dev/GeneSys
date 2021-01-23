@@ -27,12 +27,7 @@ function TableSchedule(props) {
     const [tableMessage, setTableMessage] = useState("Please Select a Date")
     const [selectedSchedule, setSelectedSchedule] = useState()
     const prevSelectedSchedule = usePreviousSelection(props.selectedSchedule)
-
-    // useEffect(() => {
-    //     ref.current = props.schedules;
-    //     console.log(ref)
-    //   });
-     const dispatch = useDispatch();
+    const dispatch = useDispatch();
 
     useEffect(() => {
         dispatch(hideOverlay())
@@ -43,10 +38,10 @@ function TableSchedule(props) {
     }, [props.isLoadingOverlay == false])
 
     useEffect(() => {
-        if(props.newDateSelected && !props.scheduleSelected){
+        if(props.newDateSelected && props.selectedSchedulePhysician === null){
             setTableMessage("Please Select a Schedule")
         }
-        else if(props.scheduleSelected && props.scheduledPatients.length === 0){
+        else if(props.selectedSchedulePhysician && props.scheduledPatients.length === 0){
             setTableMessage("No Scheduled Patients")
         }
     })
@@ -76,7 +71,7 @@ function TableSchedule(props) {
                 accessor: "col4",
             },
             {
-                Header: "",
+                Header: "Actions",
                 accessor: "col5",
             },
         ],
@@ -89,7 +84,7 @@ function TableSchedule(props) {
         patients.forEach((element) => {
             var row = {
                 col1: shortenTime(element.startTime, timeFormat) + " - " + shortenTime(element.endTime, timeFormat),
-                col2: element.patient.patientId,
+                col2: element.patient.firstName ,
                 col3: element.patient.clinical.patientType,
                 col4: element.status,
                 col5: (
@@ -156,7 +151,6 @@ function TableSchedule(props) {
                 <div className="row h-75">
                     <div className="col-12 my-auto">
                         <h3 className="text-center">{tableMessage}</h3>
-                        {/* <h1>Now: {selectedSchedule}, before: {prevSelectedSchedule}</h1> */}
                     </div>
                 </div>
             );
@@ -205,7 +199,7 @@ function TableSchedule(props) {
     return(
     <div className="col-12 rounded h-100">
         {tableComponent}
-        <div className="pagination">
+        <div className="pagination d-block text-center">
         <button onClick={() => gotoPage(0)} disabled={!canPreviousPage}>
           {'<<'}
         </button>{' '}
@@ -275,7 +269,7 @@ const mapStateToProps = (state) => ({
     selectedAppointment: state.schedules.selectedAppointment,
     modal: state.modal,
     newDateSelected: state.schedules.newDateSelected,
-    scheduleSelected: state.schedules.scheduleSelected,
+    selectedSchedulePhysician: state.schedules.selectedSchedulePhysician,
     isLoadingOverlay: state.schedules.isLoadingOverlay,
 });
 

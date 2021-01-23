@@ -81,18 +81,20 @@ function CalendarSchedule(props) {
     })
 
     const [modal, setModal] = useState(false);
-    const [selectedDate, setselectedDate] = useState()
-    const [selectedSchedule, setselectedSchedule] = useState()
+    const [selectedDate, setSelectedDate] = useState()
     const [newDateSelected, setNewDateSelected] = useState(true)
-    const [scheduleIsSelected, setScheduleIsSelected] = useState(true)
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [disableScheduleActionButton, setDisableScheduleActionButton] = useState(true);
+    const [disableCreateButton, setDisableCreateButton] = useState(true)
     const state = useSelector((state) => state);
     const toggleDropdown = () => setDropdownOpen((prevState) => !prevState);
     const toggle = () => setModal(!modal);
-    
-
 
     const datesToAddClassTo = [];
+
+    useEffect(() =>{
+       console.log(disableScheduleActionButton);
+    })
 
     for (var i in props.events) {
         datesToAddClassTo.push(props.events[i]["startTime"]);
@@ -110,22 +112,22 @@ function CalendarSchedule(props) {
     }
 
     function onClickDay(value) {
+        // New date selected
         if(Date.parse(selectedDate) !== Date.parse(value)){
             setNewDateSelected(true);
+            setDisableScheduleActionButton(true)
         }
         else{
             setNewDateSelected(false);
         }
-        
-        setselectedDate(value);
+        setSelectedDate(value);
+        setDisableCreateButton(false)
         dispatch(getScheduleDetails(value, newDateSelected));
     }
 
     function getPatients(scheduleId, physicianId) {
-        setScheduleIsSelected(true); 
-        console.log("schedule is selected ", scheduleIsSelected);
-        dispatch(getScheduledPatients(scheduleId, physicianId, scheduleIsSelected));
-        
+        setDisableScheduleActionButton(false);
+        dispatch(getScheduledPatients(scheduleId, physicianId));
     }
 
     const confirmDelete = () => {
@@ -176,8 +178,8 @@ function CalendarSchedule(props) {
                             </svg>
                         </DropdownToggle>
                         <DropdownMenu right>
-                            <DropdownItem onClick={() => showScheduleModal("editSchedule", currentDate)}> Edit Schedule</DropdownItem>
-                            <DropdownItem onClick={() => showScheduleModal("deleteSchedule", currentDate)}>Delete Schedule</DropdownItem>
+                            <DropdownItem onClick={() => showScheduleModal("editSchedule", currentDate)} disabled={disableScheduleActionButton}> Edit Schedule</DropdownItem>
+                            <DropdownItem onClick={() => showScheduleModal("deleteSchedule", currentDate)} disabled={disableScheduleActionButton}>Delete Schedule</DropdownItem>
                         </DropdownMenu>
                     </Dropdown>
                     {/* <button className="menu-button float-right"></button> */}
@@ -244,6 +246,7 @@ function CalendarSchedule(props) {
                         data-toggle="modal"
                         data-target="#addScheduleModal"
                         onClick={() => showScheduleModal("addSchedule", currentDate)}
+                        disabled={disableCreateButton}
                     >
                         Create Clinic Schedule
                     </button>
@@ -253,6 +256,7 @@ function CalendarSchedule(props) {
                         data-toggle="modal"
                         data-target="#addScheduleModal"
                         onClick={() => showScheduleModal("editSchedule", currentDate)}
+                        disabled={disableCreateButton}
                     >
                         Edit Clinic Schedule
                     </button>
@@ -263,6 +267,7 @@ function CalendarSchedule(props) {
                     data-toggle="modal"
                     data-target="#addAppointmentModal"
                     onClick={() => showScheduleModal("addAppointment", currentDate)}
+                    disabled={disableScheduleActionButton}
                 >
                     Schedule a Patient
                 </button>

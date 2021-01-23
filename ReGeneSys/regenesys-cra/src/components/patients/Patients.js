@@ -86,7 +86,6 @@ function Patients(props) {
     );
 
     function getPatientData(patients) {
-        console.log(patients)
         var allData = [];
         patients.forEach((element) => {
             var row = {
@@ -106,7 +105,6 @@ function Patients(props) {
                 ),
             };
             allData.push(row);
-            console.log(allData)
         });
         return allData;
     }
@@ -267,6 +265,7 @@ function Patients(props) {
 
     return (
         <Fragment>
+            <div className="slinky">
             <h2>Patient Management</h2>
             <div>
                 <button
@@ -283,103 +282,26 @@ function Patients(props) {
                 </button>
             </div>
             {tableComponent}
-        <div className="pagination">
-        <button onClick={() => gotoPage(0)} disabled={!canPreviousPage}>
-          {'<<'}
-        </button>{' '}
-        <button onClick={() => previousPage()} disabled={!canPreviousPage}>
-          {'<'}
-        </button>{' '}
-        <span>
-          Page{' '}
-          <strong>
-            {pageIndex + 1} of {pageOptions.length}
-          </strong>{' '}
-        </span>
-        <button onClick={() => nextPage()} disabled={!canNextPage}>
-          {'>'}
-        </button>{' '}
-        <button onClick={() => gotoPage(pageCount - 1)} disabled={!canNextPage}>
-          {'>>'}
-        </button>{' '}
-        
-        {/* <span>
-          | Go to page:{' '}
-          <input
-            type="number"
-            defaultValue={pageIndex + 1}
-            onChange={e => {
-              const page = e.target.value ? Number(e.target.value) - 1 : 0
-              gotoPage(page)
-            }}
-            style={{ width: '100px' }}
-          />
-        </span>{' '} */}
-        {/* <select
-          value={pageSize}
-          onChange={e => {
-            setPageSize(Number(e.target.value))
-          }}
-        >
-          {[10, 20, 30, 40, 50].map(pageSize => (
-            <option key={pageSize} value={pageSize}>
-              Show {pageSize}
-            </option>
-          ))}
-        </select> */}
-      </div>   
-            {/* <table className="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Patient ID</th>
-                        <th>First Name</th>
-                        <th>Middle Name</th>
-                        <th>Last Name</th>
-                        <th>Suffix</th>
-                        <th>Birth Date </th>
-                        <th>Sex</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {state.patients.patients.map((patient, index) => (
-                        <tr key={index}>
-                            <td>{patient.patientId}</td>
-                            <td>{patient.firstName}</td>
-                            <td>{patient.middleName}</td>
-                            <td>{patient.lastName}</td>
-                            <td>{patient.suffix}</td>
-                            <td>{patient.birthDate}</td>
-                            <td>{patient.sex}</td>
-                            <td>
-                                <button
-                                    onClick={() => showPatientModal("view", patient.patientId)}
-                                    className="btn btn-info btn-sm mr-2"
-                                    data-toggle="modal"
-                                    data-target="#viewPatientModal"
-                                >
-                                    View
-                                </button>
-                                <button
-                                    onClick={() => showPatientModal("edit", patient.patientId)}
-                                    className="btn btn-primary btn-sm mr-2"
-                                    data-toggle="modal"
-                                    data-target="#editPatientModal"
-                                >
-                                    Edit
-                                </button>
-                                <button
-                                    // onClick={toggle}
-                                    onClick={() => showPatientModal("delete", patient.patientId)}
-                                    className="btn btn-danger btn-sm"
-                                >
-                                    Discharge
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table> */}
+            <div className="pagination d-block text-center">
+            <button onClick={() => gotoPage(0)} disabled={!canPreviousPage}>
+            {'<<'}
+            </button>{' '}
+            <button onClick={() => previousPage()} disabled={!canPreviousPage}>
+            {'<'}
+            </button>{' '}
+            <span>
+            Page{' '}
+            <strong>
+                {pageIndex + 1} of {pageOptions.length}
+            </strong>{' '}
+            </span>
+            <button onClick={() => nextPage()} disabled={!canNextPage}>
+            {'>'}
+            </button>{' '}
+            <button onClick={() => gotoPage(pageCount - 1)} disabled={!canNextPage}>
+            {'>>'}
+            </button>{' '}
+            </div>   
             {(() => {
                 switch (state.modal.modalMode) {
                     case "create":
@@ -443,6 +365,7 @@ function Patients(props) {
                     </Button>
                 </ModalFooter>
             </Modal>
+            </div>
         </Fragment>
     );
 

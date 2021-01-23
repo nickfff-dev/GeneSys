@@ -11,7 +11,6 @@ export const getPatients = () => (dispatch, getState) => {
     axios
         .get(PATIENT_API, tokenConfig(getState))
         .then((res) => {
-            console.log(res.data);
             dispatch({
                 type: GET_PATIENTS,
                 payload: snakeCaseKeysToCamel(res.data),
@@ -38,7 +37,6 @@ export const dischargePatient = (patient) => (dispatch, getState) => {
     axios
         .put(PATIENT_API + `${patient.patientId}/`, camelCaseKeysToSnake(patient), tokenConfig(getState))
         .then((res) => {
-            console.log(snakeCaseKeysToCamel(res.data));
             dispatch(createMessage({ dischargePatient: "Patient Discharged" }));
             dispatch({
                 type: DISCHARGE_PATIENT,
