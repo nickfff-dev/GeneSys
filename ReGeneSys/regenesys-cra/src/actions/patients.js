@@ -2,7 +2,7 @@ import axios from "axios";
 import { createMessage, returnErrors } from "./messages";
 import { tokenConfig } from "./auth";
 
-import { GET_PATIENTS, DELETE_PATIENT, ADD_PATIENT, EDIT_PATIENT, DISCHARGE_PATIENT } from "./types";
+import { GET_PATIENT, GET_PATIENTS, DELETE_PATIENT, ADD_PATIENT, EDIT_PATIENT, DISCHARGE_PATIENT,FILTER_PATIENTS } from "./types";
 import { PATIENT_API } from "../constants";
 import { snakeCaseKeysToCamel, camelCaseKeysToSnake } from "./utils";
 
@@ -73,3 +73,24 @@ export const editPatient = (patient) => (dispatch, getState) => {
         })
         .catch((err) => dispatch(returnErrors(err.response.data, err.response.status)));
 };
+
+//SEARCH PATIENT
+export const getPatient = (patientId) => (dispatch, getState) => {
+    axios
+        .get(PATIENT_API + `${patientId}/`, tokenConfig(getState))
+        .then((res) => {
+            dispatch({
+                type: GET_PATIENT,
+                payload: snakeCaseKeysToCamel(res.data),
+            });
+        })
+        .catch((err) => dispatch(returnErrors(err.response.data, err.response.status)));
+}
+
+//FILTER PATIENT TABLE
+export const filterPatients = (globalFilter) => (dispatch, getState) => {
+    dispatch({
+        type: FILTER_PATIENTS,
+        payload: globalFilter
+    });
+}

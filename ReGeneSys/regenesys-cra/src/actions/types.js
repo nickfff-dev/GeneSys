@@ -1,8 +1,10 @@
+export const GET_PATIENT = "GET_PATIENT";
 export const GET_PATIENTS = "GET_PATIENTS";
 export const DELETE_PATIENT = "DELETE_PATIENT";
 export const ADD_PATIENT = "ADD_PATIENT";
 export const EDIT_PATIENT = "EDIT_PATIENT";
 export const DISCHARGE_PATIENT = "DISCHARGE_PATIENT";
+export const FILTER_PATIENTS = "FILTER_PATIENTS";
 
 export const GET_EVENTS = "GET_EVENTS";
 export const ADD_EVENT = "ADD_EVENTS";

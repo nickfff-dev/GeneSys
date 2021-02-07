@@ -45,10 +45,12 @@ export function Sidebar() {
                 </li>
                 {/* Nav Item - Tables */}
                 <li className="nav-item">
-                    <a className="nav-link" href="/schedule">
+                    <Link className="nav-link" to={`/schedule`}>
+                    {/* <a className="nav-link" href="/schedule"> */}
                         <FontAwesomeIcon icon={faCalendarAlt} className="mr-1" />
                         <span>Patient Scheduling</span>
-                    </a>
+                    {/* </a> */}
+                    </Link>
                 </li>
                 <li className="nav-item">
                     <a className="nav-link" href="/invetory">

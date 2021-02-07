@@ -1,184 +1,111 @@
-import React, { Component, Fragment } from "react";
+import React, {useState, useEffect} from "react";
+import { connect, useSelector, useDispatch } from "react-redux";
+import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 
-import { connect } from "react-redux";
-import PropTypes from "prop-types";
-import _ from "lodash";
 
+import { getPatient } from "../../actions/patients";
 import { showModal, hideModal } from "../../actions/modal";
 
-export class ViewModal extends Component {
-    static propTypes = {
-        patients: PropTypes.array.isRequired,
-        showModal: PropTypes.func.isRequired,
-        hideModal: PropTypes.func.isRequired,
-        modal: PropTypes.object.isRequired,
+
+function ViewModal(props){
+    const [modal, setModal] = useState(props.toggleModal);
+    const [nestedModal, setNestedModal] = useState(false);
+    const [closeAll, setCloseAll] = useState(true);
+
+    const dispatch = useDispatch();
+
+    const toggle = () => {
+        setModal(!modal);
+        closeModal();
     };
 
-    constructor(props) {
-        super(props);
-        const { modalType, modalProps } = this.props.modal;
-        const modalData = _.find(this.props.patients, {
-            PatientID: modalProps,
-        });
-
-        const {
-            PatientID,
-            FirstName,
-            LastName,
-            MiddleName,
-            Suffix,
-            DOB,
-            Gender,
-            StreetAdd,
-            BrgyAdd,
-            CityAdd,
-            Region,
-            ContactPerson,
-            ContactNumber,
-        } = modalData;
-
-        this.state = {
-            PatientID: PatientID,
-            FirstName: FirstName,
-            LastName: LastName,
-            MiddleName: MiddleName,
-            Suffix: Suffix,
-            DOB: DOB,
-            Gender: Gender,
-            StreetAdd: StreetAdd,
-            BrgyAdd: BrgyAdd,
-            CityAdd: CityAdd,
-            Region: Region,
-            ContactPerson: ContactPerson,
-            ContactNumber: ContactNumber,
-            ModalPage: 1,
-        };
-    }
-
-    state = {
-        PatientID: "",
-        FirstName: "",
-        LastName: "",
-        MiddleName: "",
-        Suffix: "",
-        DOB: "",
-        Gender: "",
-        StreetAdd: "",
-        BrgyAdd: "",
-        CityAdd: "",
-        Region: "",
-        ContactPerson: "",
-        ContactNumber: "",
-        ModalPage: 1,
+    const toggleNested = () => {
+        setNestedModal(!nestedModal);
+        setCloseAll(false);
+    };
+    const toggleAll = () => {
+        setNestedModal(!nestedModal);
+        setCloseAll(true);
     };
 
-    nextPage = () => {
-        if (this.state.ModalPage < 3) {
-            this.setState({ ModalPage: this.state.ModalPage + 1 });
-        }
-        console.log(this.state.ModalPage);
+    const {
+        patientId,
+        firstName,
+        lastName,
+        middleName,
+        suffix,
+        sex,
+        birthDate,
+        birthPlace,
+        streetAdd,
+        brgyAdd,
+        cityAdd,
+        region,
+        contact,
+        clinical,
+    } = props.patient;
+
+    console.log(props.patient)
+
+    console.log(clinical.status)
+
+
+
+    const closeModal = () => {
+        dispatch(hideModal());
     };
 
-    previousPage = () => {
-        if (this.state.ModalPage > 1) {
-            this.setState({ ModalPage: this.state.ModalPage - 1 });
-        }
-        console.log(this.state.ModalPage);
-    };
+    return(
 
-    render() {
-        return (
-            <Fragment>
-                <div className="modal" id="viewModal">
-                    <div className="modal-dialog modal-xl" role="document">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">
-                                    {this.state.PatientID} {this.state.ModalPage}
-                                </h5>
-                                <button type="button" className="close" data-dismiss="modal" aria-label="Close" onClick={this.props.hideModal.bind()}>
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
+    <div>
+        <Modal isOpen={modal} toggle={toggle} size="xl">
+            <ModalHeader toggle={toggle}>Patient: {patientId}</ModalHeader>
+            <ModalBody>
+            <p>Name: {firstName} {middleName} {lastName} {suffix}</p>
+            <p>Sex: {sex}</p>
+            <p>Birth Date: {birthDate}</p>
+            <p>Birth Place: {birthPlace}</p>
+            <p>Address: {streetAdd} {brgyAdd} {cityAdd} {region}</p>
+            <p>{}</p>
 
-                            {this.state.ModalPage === 1 && (
-                                <div className="modal-body">
-                                    <div className="row">
-                                        <div className="col-md-3">
-                                            <label>First Name</label>
-                                            <span>{this.state.FirstName}</span>
-                                        </div>
-                                        <div className="col-md-3">
-                                            <label>Last Name</label>
-                                            <span>{this.state.LastName}</span>
-                                        </div>
-                                        <div className="col-md-3">
-                                            <label>Middle Name</label>
-                                            <span>{this.state.MiddleName}</span>
-                                        </div>
-                                        <div className="col-md-3">
-                                            <label>Suffix</label>
-                                            <span>{this.state.Suffix}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                            {this.state.ModalPage === 2 && (
-                                <div className="modal-body">
-                                    <div className="row">
-                                        <div className="col-md-4">
-                                            <label>DOB</label>
-                                            <span>{this.state.DOB}</span>
-                                        </div>
-                                        <div className="col-md-4">
-                                            <label>Age</label>
-                                            <span>{this.state.DOB}</span>
-                                        </div>
-                                        <div className="col-md-4">
-                                            <label>Gender</label>
-                                            <span>{this.state.Gender}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                            {this.state.ModalPage === 3 && (
-                                <div className="modal-body">
-                                    <div className="row">
-                                        <div className="col-md-6">
-                                            <label>Contact Person</label>
-                                            <span>{this.state.ContactPerson}</span>
-                                        </div>
-                                        <div className="col-md-6">
-                                            <label>Contact Number</label>
-                                            <span>{this.state.ContactNumber}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+             
+            {/* <p>Statu: {status}</p>
+            <p>Case Number: {caseNumber}</p>
+            <p>Patient Type: {patientType}</p>
+            <p>Referring Doctor: {referringDoctor}</p>
+            <p>Referring Service: {referringService}</p>
+            <p>Reason for Referral: {referralReason}</p> */}
+            
+                <Modal isOpen={nestedModal} toggle={toggleNested} onClosed={closeAll ? toggle : undefined}>
+                    <ModalHeader>Save Changes</ModalHeader>
+                    <ModalBody>Are you sure you want to save the changes you made?</ModalBody>
+                    <ModalFooter>
+                        <Button color="primary" onClick="">
+                            Yes
+                        </Button>
+                        <Button color="secondary" onClick={toggleNested}>
+                            Cancel
+                        </Button>
+                    </ModalFooter>
+                </Modal>
+            </ModalBody>
+            <ModalFooter>
+                <button type="button" className="btn btn-secondary" data-dismiss="modal" onClick={toggle}>
+                    Close
+                </button>
+            </ModalFooter>
+        </Modal>
+    </div>);
 
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-primary" onClick={this.previousPage}>
-                                    Previous Page
-                                </button>
-                                <button type="button" className="btn btn-primary" onClick={this.nextPage}>
-                                    Next Page
-                                </button>
 
-                                <button type="button" className="btn btn-secondary" data-dismiss="modal" onClick={this.props.hideModal.bind()}>
-                                    Close
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </Fragment>
-        );
-    }
+
 }
 
 const mapStateToProps = (state) => ({
+    patient: state.patients.patient,
     patients: state.patients.patients,
     modal: state.modal,
 });
 
-export default connect(mapStateToProps, { showModal, hideModal })(ViewModal);
+export default connect(mapStateToProps, {
+})(ViewModal);

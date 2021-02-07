@@ -1,11 +1,23 @@
 import React, { Fragment } from "react";
+import { connect, useDispatch } from "react-redux";
 // import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 // import { faTachometerAlt, faAngleUp, faUsers, faCalendarAlt, faMedkit } from "@fortawesome/free-solid-svg-icons";
 import "../../static/sb-admin2/css/sb-admin-2.css";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap/js/dist/dropdown";
+import { logout } from "../../actions/auth";
 
-export function Navbar() {
+
+
+export function Navbar(props) {
+
+    const dispatch = useDispatch();
+    const { isAuthenticated, user, profile } = props.auth;
+    function logoutUser() {
+        dispatch(logout());
+    }
+
+
     return (
         <Fragment>
             <nav className="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
@@ -14,7 +26,7 @@ export function Navbar() {
                     <i className="fa fa-bars" />
                 </button>
                 {/* Topbar Search */}
-                <form className="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+                {/* <form className="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
                     <div className="input-group">
                         <input
                             type="text"
@@ -29,7 +41,7 @@ export function Navbar() {
                             </button>
                         </div>
                     </div>
-                </form>
+                </form> */}
                 {/* Topbar Navbar */}
                 <ul className="navbar-nav ml-auto">
                     {/* Nav Item - Search Dropdown (Visible Only XS) */}
@@ -203,7 +215,7 @@ export function Navbar() {
                             aria-haspopup="true"
                             aria-expanded="false"
                         >
-                            <span className="mr-2 d-none d-lg-inline text-gray-600 small">Valerie Luna</span>
+                            <span className="mr-2 d-none d-lg-inline text-gray-600 small">{user ? `${user.first_name} ${user.last_name}` : ""}</span>
                             <img className="img-profile rounded-circle" src="https://source.unsplash.com/QAB-WJcbgJk/60x60" />
                         </a>
                         {/* Dropdown - User Information */}
@@ -221,7 +233,7 @@ export function Navbar() {
                                 Activity Log
                             </a>
                             <div className="dropdown-divider" />
-                            <a className="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                            <a className="dropdown-item" href="#" onClick={() => logoutUser()}>
                                 <i className="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400" />
                                 Logout
                             </a>
@@ -233,4 +245,9 @@ export function Navbar() {
         </Fragment>
     );
 }
-export default Navbar;
+
+const mapStateToProps = (state) => ({
+    auth: state.auth,
+});
+
+export default connect(mapStateToProps, { logout })(Navbar);

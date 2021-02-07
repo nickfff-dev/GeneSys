@@ -51,3 +51,7 @@
 .event-class {
     background: turquoise;
 }
+
+.schedule-table-container {
+    height: 42em;
+}

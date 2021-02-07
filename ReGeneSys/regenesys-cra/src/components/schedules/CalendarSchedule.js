@@ -272,7 +272,6 @@ function CalendarSchedule(props) {
                     Schedule a Patient
                 </button>
             </div>
-            {/* {( && ()) ||()} */}
             {
             (props.isLoadingOverlay === true && <div className="text-center h-100">Loading stuff...</div>) ||
                 (() => {
