@@ -9,7 +9,7 @@ import _ from "lodash/fp";
 
 import { hideModal } from "../../actions/modal";
 
-import { addPatient } from "../../actions/patients";
+import { addPatient } from "../../reducers/patientsSlice";
 
 function pageInitial() {
     return 1;
@@ -459,9 +459,9 @@ function AddForm(props) {
                                 <div className="form-group col-md-4">
                                     <label>Sex</label>
                                     <select id="sexSelect" className="form-control" name="sex" ref={register({ required: true })}>
-                                        <option value="M">Male</option>
-                                        <option value="F">Female</option>
-                                        <option value="A">Ambiguous</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Ambiguous">Ambiguous</option>
                                     </select>
                                     {errors.sex && <p className="text-danger">Sex is required</p>}
                                 </div>
@@ -560,21 +560,21 @@ function AddForm(props) {
                                     <label>Region</label>
                                     <select id="Region" className="form-control" name="region" ref={register({ required: true })}>
                                         <option value="NCR">NCR</option>
-                                        <option value="I">Region I</option>
+                                        <option value="Region I">Region I</option>
                                         <option value="CAR">CAR</option>
-                                        <option value="II">Region II</option>
-                                        <option value="III">Region III</option>
-                                        <option value="IV-A">Region IV-A or CALABARZON</option>
-                                        <option value="MIMAROPA">MIMAROPA Region</option>
-                                        <option value="V">Region V</option>
-                                        <option value="VI">Region VI</option>
-                                        <option value="VII">Region VII</option>
-                                        <option value="VIII">Region VIII</option>
-                                        <option value="IX">Region IX</option>
-                                        <option value="X">Region X</option>
-                                        <option value="XI">Region XI</option>
-                                        <option value="XII">Region XII</option>
-                                        <option value="XIII">Region XIII</option>
+                                        <option value="Region II">Region II</option>
+                                        <option value="Region III">Region III</option>
+                                        <option value="Region IV-A">Region IV-A or CALABARZON</option>
+                                        <option value="MIMAROPA Region">MIMAROPA Region</option>
+                                        <option value="Region V">Region V</option>
+                                        <option value="Region VI">Region VI</option>
+                                        <option value="Region VII">Region VII</option>
+                                        <option value="Region VIII">Region VIII</option>
+                                        <option value="Region IX">Region IX</option>
+                                        <option value="Region X">Region X</option>
+                                        <option value="Region XI">Region XI</option>
+                                        <option value="Region XII">Region XII</option>
+                                        <option value="Region XIII">Region XIII</option>
                                         <option value="BARMM">BARMM</option>
                                     </select>
                                     {errors.region && <p className="text-danger">Region is required</p>}
@@ -959,12 +959,12 @@ function AddForm(props) {
                                             required: "This is Required",
                                         })}
                                     >
-                                        <option value="M">Metabolic</option>
-                                        <option value="N">NBS</option>
-                                        <option value="D">Dysmorphologic</option>
-                                        <option value="P">Pre-Natal</option>
-                                        <option value="C">Cancer</option>
-                                        <option value="CN">Counselling</option>
+                                        <option value="Metabolic">Metabolic</option>
+                                        <option value="NBS">NBS</option>
+                                        <option value="Dysmorphologic">Dysmorphologic</option>
+                                        <option value="Pre-Natal">Pre-Natal</option>
+                                        <option value="Cancer">Cancer</option>
+                                        <option value="Counselling">Counselling</option>
                                     </select>
                                     <ErrorMessage
                                         errors={errors}
@@ -1040,7 +1040,7 @@ function AddForm(props) {
                                         ref={register({
                                             required: "This is required",
                                             maxLength: {
-                                                value: 225,
+                                                value: 500,
                                                 message: "This input is too long",
                                             },
                                         })}

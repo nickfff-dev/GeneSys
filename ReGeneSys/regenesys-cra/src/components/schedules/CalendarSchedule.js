@@ -21,13 +21,15 @@ import _ from "lodash";
 
 import { zonedTimeToUtc, utcToZonedTime } from "date-fns-tz";
 
-import { getScheduleDetails, getScheduledPatients, deleteEvent, showOverlay } from "../../actions/schedules";
-import { showModal, hideModal } from "../../actions/modal";
+import { deleteEvent, showOverlay, getScheduleDetails, getScheduledPatients } from "../../reducers/schedulesSlice";
+
+import { showModal, hideModal } from "../../reducers/modalSlice";
 import CreateScheduleForm from "./CreateScheduleForm";
 import EditScheduleForm from "./EditScheduleForm";
 import CreatePatientAppointment from "./CreatePatientAppointment";
 import EditPatientAppointment from "./EditPatientAppointment";
 import { LOAD_OVERLAY } from "../../actions/types";
+import { tr } from "date-fns/locale";
 
 export const shortenTime = (time, timeFormat) => {
     let shortened = "";
@@ -51,6 +53,11 @@ export const utcToLocal = (dateTime) => {
     return localized;
 };
 
+export const zonedToUtc = (dateTime) => {
+    let utcized = zonedTimeToUtc(dateTime, Intl.DateTimeFormat().resolvedOptions().timeZone);
+    return utcized;
+};
+
 export const getValueFromArrayOrObject = (value) => {
     if (Array.isArray(value)) {
         value = _.first(value).value;
@@ -61,40 +68,53 @@ export const getValueFromArrayOrObject = (value) => {
     }
 };
 
-function initializeCurrentDate() {
+export const initializeCurrentDate = () => {
     //To achieve this format: Sat Sep 26 2020 00:00:00 GMT+0800 (Singapore Standard Time)
     const date = new Date();
     date.setHours(0, 0, 0, 0);
     return date;
-}
+};
 
 function CalendarSchedule(props) {
     const [currentDate, onChange] = useState(() => initializeCurrentDate());
     const dispatch = useDispatch();
-    const prevProps = useRef(props.selectedAppointment)
+    const prevProps = useRef(props.selectedAppointment);
+
+    //Get schedule of current day on page load
     useEffect(() => {
         dispatch(getScheduleDetails(format(utcToLocal(currentDate), "yyyy-MM-dd'T'00:00:00.000xxx")));
     }, []);
 
-    useEffect(() =>{
+    useEffect(() => {
         // console.log(prevProps);
-    })
+        if (props.selectedSchedule.length > 0) {
+            // setDisableScheduleActionButton(false);
+            setNewDateSelected(true);
+            setDisableDeleteButton(false);
+
+            console.log("habe selected");
+        } else {
+            setDisableDeleteButton(true);
+            // setDisableScheduleActionButton(true);
+            console.log("no habe selected");
+        }
+        setDisableCreateButton(false);
+    }, [props.selectedSchedule]);
 
     const [modal, setModal] = useState(false);
-    const [selectedDate, setSelectedDate] = useState()
-    const [newDateSelected, setNewDateSelected] = useState(true)
+    const [selectedDate, setSelectedDate] = useState();
+    const [newDateSelected, setNewDateSelected] = useState(true);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [disableScheduleActionButton, setDisableScheduleActionButton] = useState(true);
-    const [disableCreateButton, setDisableCreateButton] = useState(true)
+    const [disableCreateButton, setDisableCreateButton] = useState(true);
+    const [disableDeleteButton, setDisableDeleteButton] = useState(true);
     const state = useSelector((state) => state);
     const toggleDropdown = () => setDropdownOpen((prevState) => !prevState);
     const toggle = () => setModal(!modal);
 
     const datesToAddClassTo = [];
 
-    useEffect(() =>{
-       console.log(disableScheduleActionButton);
-    })
+    useEffect(() => {});
 
     for (var i in props.events) {
         datesToAddClassTo.push(props.events[i]["startTime"]);
@@ -113,15 +133,14 @@ function CalendarSchedule(props) {
 
     function onClickDay(value) {
         // New date selected
-        if(Date.parse(selectedDate) !== Date.parse(value)){
+        if (Date.parse(selectedDate) !== Date.parse(value)) {
             setNewDateSelected(true);
-            setDisableScheduleActionButton(true)
-        }
-        else{
+            setDisableScheduleActionButton(true);
+        } else {
             setNewDateSelected(false);
         }
         setSelectedDate(value);
-        setDisableCreateButton(false)
+        setDisableCreateButton(false);
         dispatch(getScheduleDetails(value, newDateSelected));
     }
 
@@ -178,8 +197,18 @@ function CalendarSchedule(props) {
                             </svg>
                         </DropdownToggle>
                         <DropdownMenu right>
-                            <DropdownItem onClick={() => showScheduleModal("editSchedule", currentDate)} disabled={disableScheduleActionButton}> Edit Schedule</DropdownItem>
-                            <DropdownItem onClick={() => showScheduleModal("deleteSchedule", currentDate)} disabled={disableScheduleActionButton}>Delete Schedule</DropdownItem>
+                            {(props.selectedSchedule.length === 0 && (
+                                <DropdownItem onClick={() => showScheduleModal("addSchedule", currentDate)} disabled={disableCreateButton}>
+                                    Create Schedule
+                                </DropdownItem>
+                            )) || (
+                                <DropdownItem onClick={() => showScheduleModal("editSchedule", currentDate)} disabled={disableCreateButton}>
+                                    Edit Schedule
+                                </DropdownItem>
+                            )}
+                            <DropdownItem onClick={() => showScheduleModal("deleteSchedule", currentDate)} disabled={disableDeleteButton}>
+                                Delete Schedule
+                            </DropdownItem>
                         </DropdownMenu>
                     </Dropdown>
                     {/* <button className="menu-button float-right"></button> */}
@@ -272,8 +301,7 @@ function CalendarSchedule(props) {
                     Schedule a Patient
                 </button>
             </div>
-            {
-            (props.isLoadingOverlay === true && <div className="text-center h-100">Loading stuff...</div>) ||
+            {(props.isLoadingOverlay === true && <div className="text-center h-100">Loading stuff...</div>) ||
                 (() => {
                     switch (state.modal.modalMode) {
                         case "addSchedule":
@@ -355,7 +383,7 @@ function CalendarSchedule(props) {
 
 const mapStateToProps = (state) => ({
     events: state.schedules.events,
-    selectedSchedule: state.schedules.schedules,
+    selectedSchedule: state.schedules.selectedSchedule,
     patients: state.schedules.patients,
     isLoadingEvents: state.schedules.isLoadingEvents,
     isLoadingSchedules: state.schedules.isLoadingSchedules,
@@ -364,6 +392,7 @@ const mapStateToProps = (state) => ({
     modal: state.modal,
     availablePatients: state.schedules.availablePatients,
     selectedAppointment: state.schedules.selectedAppointment,
+    selectedSchedulePhysician: state.schedules.selectedSchedulePhysician,
 });
 
 export default connect(mapStateToProps, { getScheduleDetails, getScheduledPatients })(CalendarSchedule);

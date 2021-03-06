@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { connect, useDispatch } from "react-redux";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 
-import { getAvailablePatients, createPatientAppointment } from "../../actions/schedules";
+import { getAvailablePatients, createPatientAppointment } from "../../reducers/schedulesSlice";
 import { shortenTime, getValueFromArrayOrObject } from "./CalendarSchedule";
-import { hideModal } from "../../actions/modal";
+import { hideModal } from "../../reducers/modalSlice";
 
 import { format } from "date-fns";
 
@@ -22,23 +22,23 @@ function pageInitial() {
 //checks selected start and end time options for conflicts with existing schedules
 export const timeRangeOverlaps = (selectedStart, selectedEnd, scheduledStart, scheduledEnd, defaultStart, defaultEnd) => {
     //Not include self in checking
-    if (selectedStart >= scheduledStart && selectedStart < scheduledEnd){
+    if (selectedStart >= scheduledStart && selectedStart < scheduledEnd) {
         console.log("selected start time is in existing sched");
         return true;
-    } 
+    }
     //if selected start time is in existing sched
-    if (selectedEnd > scheduledStart && selectedEnd <= scheduledEnd && scheduledEnd){
+    if (selectedEnd > scheduledStart && selectedEnd <= scheduledEnd && scheduledEnd) {
         console.log("selected end time is in existing sched");
         return true;
-    } 
+    }
     //if selected end time is in existing sched
-    if (scheduledStart > selectedStart && scheduledEnd < selectedEnd){
+    if (scheduledStart > selectedStart && scheduledEnd < selectedEnd) {
         console.log("schedules are inside selected time range");
         return true;
-    }  //if schedules are inside selected time range.
+    } //if schedules are inside selected time range.
 
     return false;
-}
+};
 
 //Generates array time options (30 min interval) for react-select
 export const generateTime = () => {
@@ -246,15 +246,15 @@ function CreatePatientAppointment(props) {
                                                         return value.value < endTime.value || endTime.value.length === 0 || "Must be before end time";
                                                     }
                                                 },
-                                                checkIfOverlapping: (value) =>{
+                                                checkIfOverlapping: (value) => {
                                                     let { endTime } = getValues();
-                                                    let timeOptions = generateTimeOptions()
+                                                    let timeOptions = generateTimeOptions();
                                                     let selectedStartIndex = _.findIndex(timeOptions, { value: getValueFromArrayOrObject(value) });
-                                                    let selectedEndIndex = _.findIndex(timeOptions, { value: getValueFromArrayOrObject(endTime)});
+                                                    let selectedEndIndex = _.findIndex(timeOptions, { value: getValueFromArrayOrObject(endTime) });
                                                     // let defaultStartIndex = _.findIndex(timeOptions, { value: selectedAppointmentStartTime});
                                                     // let defaultEndIndex = _.findIndex(timeOptions, { value: selectedAppointmentEndTime});
                                                     let isOverlapping = false;
-  
+
                                                     //Not include self in checking
                                                     // if (!(selectedStartIndex >= defaultStartIndex && selectedStartIndex < defaultEndIndex) && (selectedEndIndex > defaultStartIndex && selectedEndIndex <= defaultEndIndex)){
                                                     for (let i = 0; i < scheduledPatients.length; i++) {
@@ -263,18 +263,23 @@ function CreatePatientAppointment(props) {
                                                         let scheduledStartIndex = _.findIndex(timeOptions, { value: scheduledStartTime });
                                                         let scheduledEndIndex = _.findIndex(timeOptions, { value: scheduledEndTime });
                                                         // if(scheduledStartIndex !== defaultStartIndex && scheduledEndIndex !== defaultEndIndex){
-                                                        if(timeRangeOverlaps(selectedStartIndex, selectedEndIndex, scheduledStartIndex, scheduledEndIndex)){
-                                                            isOverlapping = true
+                                                        if (
+                                                            timeRangeOverlaps(
+                                                                selectedStartIndex,
+                                                                selectedEndIndex,
+                                                                scheduledStartIndex,
+                                                                scheduledEndIndex
+                                                            )
+                                                        ) {
+                                                            isOverlapping = true;
                                                         }
                                                         // }
                                                     }
                                                     // }
-                                                   if(isOverlapping){
-                                                    return (
-                                                        "Schedule overlaps with existing schedules."
-                                                    )
-                                                   }
-                                                }
+                                                    if (isOverlapping) {
+                                                        return "Schedule overlaps with existing schedules.";
+                                                    }
+                                                },
                                             },
                                         }}
                                     />
@@ -308,9 +313,9 @@ function CreatePatientAppointment(props) {
                                             validate: {
                                                 greaterThanStartTime: (value) => {
                                                     const { startTime } = getValues();
-                                                    console.log("create")
-                                                    console.log(startTime.value)
-                                                    console.log(value.value)
+                                                    console.log("create");
+                                                    console.log(startTime.value);
+                                                    console.log(value.value);
                                                     if (startTime != "") {
                                                         return (
                                                             value.value > startTime.value ||
@@ -319,35 +324,40 @@ function CreatePatientAppointment(props) {
                                                         );
                                                     }
                                                 },
-                                                checkIfOverlapping: (value) =>{
+                                                checkIfOverlapping: (value) => {
                                                     let { startTime } = getValues();
-                                                    let timeOptions = generateTimeOptions("end")
-                                                    let selectedStartIndex = _.findIndex(timeOptions, { value: getValueFromArrayOrObject(startTime)});
+                                                    let timeOptions = generateTimeOptions("end");
+                                                    let selectedStartIndex = _.findIndex(timeOptions, {
+                                                        value: getValueFromArrayOrObject(startTime),
+                                                    });
                                                     let selectedEndIndex = _.findIndex(timeOptions, { value: getValueFromArrayOrObject(value) });
                                                     // let defaultStartIndex = _.findIndex(timeOptions, { value: selectedAppointmentStartTime});
                                                     // let defaultEndIndex = _.findIndex(timeOptions, { value: selectedAppointmentEndTime});
                                                     let isOverlapping = false;
 
-
                                                     //Not include self in checking
-                                                        for (let i = 0; i < scheduledPatients.length; i++) {
-                                                            let scheduledStartTime = shortenTime(scheduledPatients[i].startTime);
-                                                            let scheduledEndTime = shortenTime(scheduledPatients[i].endTime);
-                                                            let scheduledStartIndex = _.findIndex(timeOptions, { value: scheduledStartTime });
-                                                            let scheduledEndIndex = _.findIndex(timeOptions, { value: scheduledEndTime });
-                                                            // if(scheduledStartIndex !== defaultStartIndex && scheduledEndIndex !== defaultEndIndex){
-                                                            if(timeRangeOverlaps(selectedStartIndex, selectedEndIndex, scheduledStartIndex, scheduledEndIndex)){
-                                                                isOverlapping = true
-                                                            }
-                                                            // }
-                                                            
+                                                    for (let i = 0; i < scheduledPatients.length; i++) {
+                                                        let scheduledStartTime = shortenTime(scheduledPatients[i].startTime);
+                                                        let scheduledEndTime = shortenTime(scheduledPatients[i].endTime);
+                                                        let scheduledStartIndex = _.findIndex(timeOptions, { value: scheduledStartTime });
+                                                        let scheduledEndIndex = _.findIndex(timeOptions, { value: scheduledEndTime });
+                                                        // if(scheduledStartIndex !== defaultStartIndex && scheduledEndIndex !== defaultEndIndex){
+                                                        if (
+                                                            timeRangeOverlaps(
+                                                                selectedStartIndex,
+                                                                selectedEndIndex,
+                                                                scheduledStartIndex,
+                                                                scheduledEndIndex
+                                                            )
+                                                        ) {
+                                                            isOverlapping = true;
                                                         }
-                                                   if(isOverlapping){
-                                                    return (
-                                                        "Schedule overlaps with existing schedules."
-                                                    )
-                                                   }
-                                                }
+                                                        // }
+                                                    }
+                                                    if (isOverlapping) {
+                                                        return "Schedule overlaps with existing schedules.";
+                                                    }
+                                                },
                                             },
                                             // checkIfOverlapping: (value) =>{
                                             //     let { startTime } = getValues();
@@ -362,7 +372,7 @@ function CreatePatientAppointment(props) {
                                             //         let endTime = shortenTime(scheduledPatients[i].endTime);
                                             //         let scheduledStartIndex = _.findIndex(timeOptions, { value: startTime });
                                             //         let scheduledEndIndex = _.findIndex(timeOptions, { value: endTime });
-                                                    
+
                                             //         //Not include self in checking
                                             //         if(selectedStartIndex <= scheduledStartIndex && selectedEndIndex >= scheduledEndIndex){
                                             //             //Selected start or end time must not overlap existing schedules
@@ -372,9 +382,9 @@ function CreatePatientAppointment(props) {
                                             //                 )
                                             //                 //     overlapping = true
                                             //             // break
-                                            //             }                                                            
+                                            //             }
                                             //         }
-                                            //     }                                                  
+                                            //     }
                                             // }
                                         }}
                                     />
@@ -508,7 +518,7 @@ function CreatePatientAppointment(props) {
 const mapStateToProps = (state) => ({
     availablePatients: state.schedules.availablePatients,
     scheduledPatients: state.schedules.scheduledPatients,
-    selectedSchedule: state.schedules.schedules,
+    selectedSchedule: state.schedules.selectedSchedule,
     selectedSchedulePhysician: state.schedules.selectedSchedulePhysician,
     modal: state.modal,
 });

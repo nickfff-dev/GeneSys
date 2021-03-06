@@ -2,10 +2,11 @@ import React, { useEffect, useState } from "react";
 import { connect, useDispatch } from "react-redux";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 
-import { getAvailablePatients, editPatientAppointment} from "../../actions/schedules";
+// import { editPatientAppointment } from "../../actions/schedules";
+import { getAvailablePatients, editPatientAppointment } from "../../reducers/schedulesSlice";
 import { shortenTime, getValueFromArrayOrObject } from "./CalendarSchedule";
 import { generateTime, timeRangeOverlaps } from "./CreatePatientAppointment";
-import { hideModal } from "../../actions/modal";
+import { hideModal } from "../../reducers/modalSlice";
 
 import { format } from "date-fns";
 
@@ -34,8 +35,8 @@ function EditPatientAppointment(props) {
     const selectedAppointment = props.selectedAppointment;
     const scheduledPatients = props.scheduledPatients;
     var availablePatients = [];
-    var limitStartTime = []
-    var limitEndTime = []
+    var limitStartTime = [];
+    var limitEndTime = [];
     var defaultStartTime = [];
     var defaultEndTime = [];
     var defaultPatient = [];
@@ -48,12 +49,12 @@ function EditPatientAppointment(props) {
 
     useEffect(() => {
         getPatients();
-        getDefaultTimes()
+        getDefaultTimes();
     }, []);
 
     useEffect(() => {
-        getDefaultPatient()
-    },[availablePatients])
+        getDefaultPatient();
+    }, [availablePatients]);
 
     useEffect(() => {
         generatePatientOptions(props.availablePatients);
@@ -76,7 +77,10 @@ function EditPatientAppointment(props) {
 
     //sets default patient value for patient dropdown
     const getDefaultPatient = () => {
-        defaultPatient.push({value:selectedAppointment.patient.patientId ,label: selectedAppointment.patient.firstName + " " + selectedAppointment.patient.lastName})
+        defaultPatient.push({
+            value: selectedAppointment.patient.patientId,
+            label: selectedAppointment.patient.firstName + " " + selectedAppointment.patient.lastName,
+        });
         setLoadOverlay();
     };
 
@@ -94,11 +98,11 @@ function EditPatientAppointment(props) {
         limitEndTime = _.find(timeOptions, ["value", scheduleEndTime]);
     };
 
-   const generateTimeOptions = (remark) => {
+    const generateTimeOptions = (remark) => {
         getTimeLimit();
         let limitStartIndex = _.findIndex(timeOptions, limitStartTime);
         let limitEndIndex = _.findIndex(timeOptions, limitEndTime);
-        filteredTimeOptions = _.cloneDeep(_.slice(timeOptions, [limitStartIndex], [limitEndIndex + 1]))
+        filteredTimeOptions = _.cloneDeep(_.slice(timeOptions, [limitStartIndex], [limitEndIndex + 1]));
         let selectedAppointmentStartIndex = _.findIndex(filteredTimeOptions, { value: selectedAppointmentStartTime });
         let selectedAppointmentEndIndex = _.findIndex(filteredTimeOptions, { value: selectedAppointmentEndTime });
 
@@ -110,15 +114,14 @@ function EditPatientAppointment(props) {
             let index = scheduledStartIndex;
             if (remark === "end") {
                 index = scheduledStartIndex + 1;
-                if ((index <= selectedAppointmentStartIndex || index >= selectedAppointmentEndIndex)){
+                if (index <= selectedAppointmentStartIndex || index >= selectedAppointmentEndIndex) {
                     for (index; index < scheduledEndIndex; index++) {
                         filteredTimeOptions[index]["isDisabled"] = true;
                     }
                 }
-            }
-            else{
+            } else {
                 //OK 10-12
-                if (selectedAppointmentStartIndex !== index || selectedAppointmentEndIndex !== scheduledEndIndex){
+                if (selectedAppointmentStartIndex !== index || selectedAppointmentEndIndex !== scheduledEndIndex) {
                     for (index; index < scheduledEndIndex; index++) {
                         filteredTimeOptions[index]["isDisabled"] = true;
                     }
@@ -128,7 +131,6 @@ function EditPatientAppointment(props) {
         }
         return filteredTimeOptions;
     };
-
 
     const toggle = () => {
         setModal(!modal);
@@ -159,14 +161,16 @@ function EditPatientAppointment(props) {
         const date = new Date(props.selectedAppointment.schedule.event.date);
 
         const appointmentToEdit = {
-            patient: patient[0]['value'],
+            patient: getValueFromArrayOrObject(patient),
             schedule: props.selectedSchedule[0].pk,
             physician: props.selectedSchedule[0].physician[0].id,
             startTime: new Date(format(date, "yyyy-MM-dd") + " " + getValueFromArrayOrObject(startTime)),
             endTime: new Date(format(date, "yyyy-MM-dd") + " " + getValueFromArrayOrObject(endTime)),
             appointmentType,
             status: "active",
-        }
+        };
+
+        // console.log(appointmentToEdit);
 
         dispatch(editPatientAppointment(selectedAppointment.pk, appointmentToEdit));
         toggleAll();
@@ -189,182 +193,207 @@ function EditPatientAppointment(props) {
 
     return (
         <div>
-            {(availablePatients.length > 0 && (<h1>LOADING</h1>)) || (
-            <Modal isOpen={modal} toggle={toggle} size="lg" backdrop="static" keyboard={false}>
-                <ModalHeader toggle={toggle}>
-                    Create Patient Appointment for <i>Physician</i>
-                </ModalHeader>
-                <ModalBody>
-                    <form id="create-form" onSubmit={handleSubmit(onSubmit)}>
-                        <div id="page-one" className={page === 1 ? "" : "d-none"}>
-                            <div className="form-row">
-                                <div className="form-group col-12">
-                                    <label>Select Patient</label>
-                                    <Controller
-                                        as={Select}
-                                        options={generatePatientOptions()}
-                                        name="patient"
-                                        noOptionsMessage={() => "No available physicians"}
-                                        placeholder="Select Patient"
-                                        className="basic-single"
-                                        isClearable
-                                        control={control}
-                                        rules={{
-                                            required: "This is required",
-                                        }}
-                                    />
-                                    {errors.patient?.type === "required" && <p className="text-danger mb-0">This is required</p>}
+            {(availablePatients.length > 0 && <h1>LOADING</h1>) || (
+                <Modal isOpen={modal} toggle={toggle} size="lg" backdrop="static" keyboard={false}>
+                    <ModalHeader toggle={toggle}>
+                        Create Patient Appointment for <i>Physician</i>
+                    </ModalHeader>
+                    <ModalBody>
+                        <form id="create-form" onSubmit={handleSubmit(onSubmit)}>
+                            <div id="page-one" className={page === 1 ? "" : "d-none"}>
+                                <div className="form-row">
+                                    <div className="form-group col-12">
+                                        <label>Select Patient</label>
+                                        <Controller
+                                            as={Select}
+                                            options={generatePatientOptions()}
+                                            name="patient"
+                                            noOptionsMessage={() => "No available physicians"}
+                                            placeholder="Select Patient"
+                                            className="basic-single"
+                                            isClearable
+                                            control={control}
+                                            rules={{
+                                                required: "This is required",
+                                            }}
+                                        />
+                                        {errors.patient?.type === "required" && <p className="text-danger mb-0">This is required</p>}
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="form-row">
-                                <div className="form-group col-6">
-                                    <label>Start Time</label>
-                                    <Controller
-                                        as={Select}
-                                        className="basic-single"
-                                        placeholder="Select Start Time"
-                                        options={generateTimeOptions("start")}
-                                        name="startTime"
-                                        control={control}
-                                        rules={{
-                                            required: "This is required",
-                                            validate: {
-                                                lesserThanEndTime: (value) => {
-                                                    let { endTime } = getValues();
-                                                    if (Array.isArray(value) || Array.isArray(endTime)) {
-                                                        value = getValueFromArrayOrObject(value);
-                                                        endTime = getValueFromArrayOrObject(endTime);
-                                                        return value < endTime || endTime.length === 0 || "Must be before end time";
-                                                    }
-                                                    else{
-                                                        return value.value < endTime.value || endTime.value.length === 0 || "Must be before end time";
-                                                    }
+                                <div className="form-row">
+                                    <div className="form-group col-6">
+                                        <label>Start Time</label>
+                                        <Controller
+                                            as={Select}
+                                            className="basic-single"
+                                            placeholder="Select Start Time"
+                                            options={generateTimeOptions("start")}
+                                            name="startTime"
+                                            control={control}
+                                            rules={{
+                                                required: "This is required",
+                                                validate: {
+                                                    lesserThanEndTime: (value) => {
+                                                        let { endTime } = getValues();
+                                                        if (Array.isArray(value) || Array.isArray(endTime)) {
+                                                            value = getValueFromArrayOrObject(value);
+                                                            endTime = getValueFromArrayOrObject(endTime);
+                                                            return value < endTime || endTime.length === 0 || "Must be before end time";
+                                                        } else {
+                                                            return (
+                                                                value.value < endTime.value || endTime.value.length === 0 || "Must be before end time"
+                                                            );
+                                                        }
+                                                    },
+                                                    checkIfOverlapping: (value) => {
+                                                        let { endTime } = getValues();
+                                                        let timeOptions = generateTimeOptions("start");
+                                                        let selectedStartIndex = _.findIndex(timeOptions, {
+                                                            value: getValueFromArrayOrObject(value),
+                                                        });
+                                                        let selectedEndIndex = _.findIndex(timeOptions, {
+                                                            value: getValueFromArrayOrObject(endTime),
+                                                        });
+                                                        let defaultStartIndex = _.findIndex(timeOptions, { value: selectedAppointmentStartTime });
+                                                        let defaultEndIndex = _.findIndex(timeOptions, { value: selectedAppointmentEndTime });
+                                                        let isOverlapping = false;
+
+                                                        //Not include self in checking
+                                                        if (
+                                                            !(selectedStartIndex >= defaultStartIndex && selectedStartIndex < defaultEndIndex) &&
+                                                            selectedEndIndex > defaultStartIndex &&
+                                                            selectedEndIndex <= defaultEndIndex
+                                                        ) {
+                                                            for (let i = 0; i < scheduledPatients.length; i++) {
+                                                                let scheduledStartTime = shortenTime(scheduledPatients[i].startTime);
+                                                                let scheduledEndTime = shortenTime(scheduledPatients[i].endTime);
+                                                                let scheduledStartIndex = _.findIndex(timeOptions, { value: scheduledStartTime });
+                                                                let scheduledEndIndex = _.findIndex(timeOptions, { value: scheduledEndTime });
+                                                                if (
+                                                                    scheduledStartIndex !== defaultStartIndex &&
+                                                                    scheduledEndIndex !== defaultEndIndex
+                                                                ) {
+                                                                    if (
+                                                                        timeRangeOverlaps(
+                                                                            selectedStartIndex,
+                                                                            selectedEndIndex,
+                                                                            scheduledStartIndex,
+                                                                            scheduledEndIndex,
+                                                                            defaultStartIndex,
+                                                                            defaultEndIndex
+                                                                        )
+                                                                    ) {
+                                                                        isOverlapping = true;
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                        if (isOverlapping) {
+                                                            return "Schedule overlaps with existing schedules.";
+                                                        }
+                                                    },
                                                 },
-                                                checkIfOverlapping: (value) =>{
-                                                    let { endTime } = getValues();
-                                                    let timeOptions = generateTimeOptions("start")
-                                                    let selectedStartIndex = _.findIndex(timeOptions, { value: getValueFromArrayOrObject(value) });
-                                                    let selectedEndIndex = _.findIndex(timeOptions, { value: getValueFromArrayOrObject(endTime)});
-                                                    let defaultStartIndex = _.findIndex(timeOptions, { value: selectedAppointmentStartTime});
-                                                    let defaultEndIndex = _.findIndex(timeOptions, { value: selectedAppointmentEndTime});
-                                                    let isOverlapping = false;
-  
-                                                    //Not include self in checking
-                                                    if (!(selectedStartIndex >= defaultStartIndex && selectedStartIndex < defaultEndIndex) && (selectedEndIndex > defaultStartIndex && selectedEndIndex <= defaultEndIndex)){
+                                            }}
+                                        />
+                                        <ErrorMessage
+                                            errors={errors}
+                                            name="startTime"
+                                            render={({ messages }) => {
+                                                console.log("messages", messages);
+                                                return messages
+                                                    ? _.entries(messages).map(([type, message]) => (
+                                                          <p className="text-danger" key={type}>
+                                                              {message}
+                                                          </p>
+                                                      ))
+                                                    : null;
+                                            }}
+                                        />
+                                    </div>
+
+                                    <div className="form-group col-6">
+                                        <label>End Time</label>
+                                        <Controller
+                                            as={Select}
+                                            className="basic-single"
+                                            placeholder="Select End Time"
+                                            options={generateTimeOptions("end")}
+                                            name="endTime"
+                                            control={control}
+                                            rules={{
+                                                required: "This is required",
+                                                validate: {
+                                                    greaterThanStartTime: (value) => {
+                                                        let { startTime } = getValues();
+                                                        if (Array.isArray(value) || Array.isArray(startTime)) {
+                                                            value = getValueFromArrayOrObject(value);
+                                                            startTime = getValueFromArrayOrObject(startTime);
+                                                            return value > startTime || startTime.length === 0 || "Must be after start time";
+                                                        } else {
+                                                            return (
+                                                                value.value > startTime.value ||
+                                                                startTime.value.length === 0 ||
+                                                                "Must be after start time"
+                                                            );
+                                                        }
+                                                    },
+                                                    checkIfOverlapping: (value) => {
+                                                        let { startTime } = getValues();
+                                                        let timeOptions = generateTimeOptions("end");
+                                                        let selectedStartIndex = _.findIndex(timeOptions, {
+                                                            value: getValueFromArrayOrObject(startTime),
+                                                        });
+                                                        let selectedEndIndex = _.findIndex(timeOptions, { value: getValueFromArrayOrObject(value) });
+                                                        let defaultStartIndex = _.findIndex(timeOptions, { value: selectedAppointmentStartTime });
+                                                        let defaultEndIndex = _.findIndex(timeOptions, { value: selectedAppointmentEndTime });
+                                                        let isOverlapping = false;
+
+                                                        //Not include self in checking
                                                         for (let i = 0; i < scheduledPatients.length; i++) {
                                                             let scheduledStartTime = shortenTime(scheduledPatients[i].startTime);
                                                             let scheduledEndTime = shortenTime(scheduledPatients[i].endTime);
                                                             let scheduledStartIndex = _.findIndex(timeOptions, { value: scheduledStartTime });
                                                             let scheduledEndIndex = _.findIndex(timeOptions, { value: scheduledEndTime });
-                                                            if(scheduledStartIndex !== defaultStartIndex && scheduledEndIndex !== defaultEndIndex){
-                                                                if(timeRangeOverlaps(selectedStartIndex, selectedEndIndex, scheduledStartIndex, scheduledEndIndex, defaultStartIndex, defaultEndIndex)){
-                                                                    isOverlapping = true
+                                                            if (scheduledStartIndex !== defaultStartIndex && scheduledEndIndex !== defaultEndIndex) {
+                                                                if (
+                                                                    timeRangeOverlaps(
+                                                                        selectedStartIndex,
+                                                                        selectedEndIndex,
+                                                                        scheduledStartIndex,
+                                                                        scheduledEndIndex,
+                                                                        defaultStartIndex,
+                                                                        defaultEndIndex
+                                                                    )
+                                                                ) {
+                                                                    isOverlapping = true;
                                                                 }
                                                             }
                                                         }
-                                                    }
-                                                   if(isOverlapping){
-                                                    return (
-                                                        "Schedule overlaps with existing schedules."
-                                                    )
-                                                   }
-                                                }
-                                            },
-                                        }}
-                                    />
-                                    <ErrorMessage
-                                        errors={errors}
-                                        name="startTime"
-                                        render={({ messages }) => {
-                                            console.log("messages", messages);
-                                            return messages
-                                                ? _.entries(messages).map(([type, message]) => (
-                                                      <p className="text-danger" key={type}>
-                                                          {message}
-                                                      </p>
-                                                  ))
-                                                : null;
-                                        }}
-                                    />
-                                </div>
-
-                                <div className="form-group col-6">
-                                    <label>End Time</label>
-                                    <Controller
-                                        as={Select}
-                                        className="basic-single"
-                                        placeholder="Select End Time"
-                                        options={generateTimeOptions("end")}
-                                        name="endTime"
-                                        control={control}
-                                        rules={{
-                                            required: "This is required",
-                                            validate: {
-                                                greaterThanStartTime: (value) => {
-                                                    let { startTime } = getValues();
-                                                    if (Array.isArray(value) || Array.isArray(startTime)) {
-                                                        value = getValueFromArrayOrObject(value);
-                                                        startTime = getValueFromArrayOrObject(startTime);
-                                                        return value > startTime || startTime.length === 0 || "Must be after start time";
-                                                    }
-                                                    else{
-                                                        return (
-                                                            value.value > startTime.value ||
-                                                            startTime.value.length === 0 ||
-                                                            "Must be after start time"
-                                                        );
-                                                    }
+                                                        if (isOverlapping) {
+                                                            return "Schedule overlaps with existing schedules.";
+                                                        }
+                                                    },
                                                 },
-                                                checkIfOverlapping: (value) =>{
-                                                    let { startTime } = getValues();
-                                                    let timeOptions = generateTimeOptions("end")
-                                                    let selectedStartIndex = _.findIndex(timeOptions, { value: getValueFromArrayOrObject(startTime)});
-                                                    let selectedEndIndex = _.findIndex(timeOptions, { value: getValueFromArrayOrObject(value) });
-                                                    let defaultStartIndex = _.findIndex(timeOptions, { value: selectedAppointmentStartTime});
-                                                    let defaultEndIndex = _.findIndex(timeOptions, { value: selectedAppointmentEndTime});
-                                                    let isOverlapping = false;
-
-
-                                                    //Not include self in checking
-                                                        for (let i = 0; i < scheduledPatients.length; i++) {
-                                                            let scheduledStartTime = shortenTime(scheduledPatients[i].startTime);
-                                                            let scheduledEndTime = shortenTime(scheduledPatients[i].endTime);
-                                                            let scheduledStartIndex = _.findIndex(timeOptions, { value: scheduledStartTime });
-                                                            let scheduledEndIndex = _.findIndex(timeOptions, { value: scheduledEndTime });
-                                                            if(scheduledStartIndex !== defaultStartIndex && scheduledEndIndex !== defaultEndIndex){
-                                                                if(timeRangeOverlaps(selectedStartIndex, selectedEndIndex, scheduledStartIndex, scheduledEndIndex, defaultStartIndex, defaultEndIndex)){
-                                                                    isOverlapping = true
-                                                                }
-                                                            }
-                                                            
-                                                        }
-                                                   if(isOverlapping){
-                                                    return (
-                                                        "Schedule overlaps with existing schedules."
-                                                    )
-                                                   }
-                                                }
-                                            },
-                                        }}
-                                    />
-                                    <ErrorMessage
-                                        errors={errors}
-                                        name="endTime"
-                                        render={({ messages }) => {
-                                            console.log("messages", messages);
-                                            return messages
-                                                ? _.entries(messages).map(([type, message]) => (
-                                                      <p className="text-danger " key={type}>
-                                                          {message}
-                                                      </p>
-                                                  ))
-                                                : null;
-                                        }}
-                                    />
+                                            }}
+                                        />
+                                        <ErrorMessage
+                                            errors={errors}
+                                            name="endTime"
+                                            render={({ messages }) => {
+                                                console.log("messages", messages);
+                                                return messages
+                                                    ? _.entries(messages).map(([type, message]) => (
+                                                          <p className="text-danger " key={type}>
+                                                              {message}
+                                                          </p>
+                                                      ))
+                                                    : null;
+                                            }}
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        {/* <div id="page-two" className={page === 2 ? "" : "d-none"}></div>
+                            {/* <div id="page-two" className={page === 2 ? "" : "d-none"}></div>
 
                         <div id="page-three" className={page === 3 ? "" : "d-none"}>
                             <div className="form-row">
@@ -405,28 +434,28 @@ function EditPatientAppointment(props) {
                                 </div>
                             </div>
                         </div> */}
-                    </form>
+                        </form>
 
-                    <Modal isOpen={nestedModal} toggle={toggleNested} onClosed={closeAll ? toggle : undefined}>
-                        <ModalHeader>Save Changes</ModalHeader>
-                        <ModalBody>Are you sure you want to save the changes you made?</ModalBody>
-                        <ModalFooter>
-                            <Button color="primary" onClick={handleSubmit(onSubmit)}>
-                                Yes
-                            </Button>
-                            <Button color="secondary" onClick={toggleNested}>
-                                Cancel
-                            </Button>
-                        </ModalFooter>
-                    </Modal>
-                </ModalBody>
-                <ModalFooter>
-                    {/* {page > 1 && (
+                        <Modal isOpen={nestedModal} toggle={toggleNested} onClosed={closeAll ? toggle : undefined}>
+                            <ModalHeader>Save Changes</ModalHeader>
+                            <ModalBody>Are you sure you want to save the changes you made?</ModalBody>
+                            <ModalFooter>
+                                <Button color="primary" onClick={handleSubmit(onSubmit)}>
+                                    Yes
+                                </Button>
+                                <Button color="secondary" onClick={toggleNested}>
+                                    Cancel
+                                </Button>
+                            </ModalFooter>
+                        </Modal>
+                    </ModalBody>
+                    <ModalFooter>
+                        {/* {page > 1 && (
                         <button type="button" onClick={previousPage} className="btn btn-primary">
                             Previous Page
                         </button>
                     )} */}
-                    {/* {page < 2 && (
+                        {/* {page < 2 && (
                         <button
                             type="button"
                             className="btn btn-primary"
@@ -440,24 +469,24 @@ function EditPatientAppointment(props) {
                             Next Page
                         </button>
                     )} */}
-                    {/* {page === 2 && ( */}
-                    <button
-                        type="button"
-                        className="btn btn-primary"
-                        onClick={async () => {
-                            const pageValid = await validatePage();
-                            if (pageValid === true) {
-                                toggleNested();
-                            }
-                        }}
-                    >
-                        Save
-                    </button>
-                    <button type="button" className="btn btn-secondary" data-dismiss="modal" onClick={toggle}>
-                        Close
-                    </button>
-                </ModalFooter>
-            </Modal>
+                        {/* {page === 2 && ( */}
+                        <button
+                            type="button"
+                            className="btn btn-primary"
+                            onClick={async () => {
+                                const pageValid = await validatePage();
+                                if (pageValid === true) {
+                                    toggleNested();
+                                }
+                            }}
+                        >
+                            Save
+                        </button>
+                        <button type="button" className="btn btn-secondary" data-dismiss="modal" onClick={() => toggle()}>
+                            Close
+                        </button>
+                    </ModalFooter>
+                </Modal>
             )}
         </div>
     );
@@ -466,7 +495,7 @@ function EditPatientAppointment(props) {
 const mapStateToProps = (state) => ({
     availablePatients: state.schedules.availablePatients,
     scheduledPatients: state.schedules.scheduledPatients,
-    selectedSchedule: state.schedules.schedules,
+    selectedSchedule: state.schedules.selectedSchedule,
     selectedAppointment: state.schedules.selectedAppointment,
     modal: state.modal,
 });

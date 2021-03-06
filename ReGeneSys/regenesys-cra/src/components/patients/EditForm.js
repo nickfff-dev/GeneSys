@@ -5,9 +5,9 @@ import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 import _ from "lodash";
 import { useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
+import { editPatient } from "../../reducers/patientsSlice";
 
-import { editPatient } from "../../actions/patients";
-import { hideModal } from "../../actions/modal";
+import { hideModal } from "../../reducers/modalSlice";
 
 function pageInitial() {
     return 1;
@@ -105,6 +105,7 @@ function EditForm(props) {
     const { caseNumber, patientType, referringDoctor, referringService, referralReason, status } = clinical;
 
     const { register, errors, reset, handleSubmit, trigger, getValues } = useForm({
+        criteriaMode: "all",
         mode: "onChange",
         reValidateMode: "onChange",
         defaultValues: {
@@ -204,12 +205,14 @@ function EditForm(props) {
             clinical,
         };
         dispatch(editPatient(userToUpdate));
+        console.log("update");
+        console.log(userToUpdate);
         toggleAll();
     };
 
     return (
         <div>
-            <Modal isOpen={modal} toggle={toggle} size="xl">
+            <Modal isOpen={modal} toggle={toggle} size="xl" backdrop="static" keyboard={false}>
                 <ModalHeader toggle={toggle}>Edit Patient</ModalHeader>
                 <ModalBody>
                     <form id="edit-form" onSubmit={handleSubmit(onSubmit)}>
@@ -239,16 +242,20 @@ function EditForm(props) {
                                             },
                                         })}
                                     />
-                                    <ErrorMessage errors={errors} name="firstName">
-                                        {({ messages }) =>
-                                            messages &&
-                                            Object.entries(messages).map(([type, message]) => (
-                                                <p className="text-danger" key={type}>
-                                                    {message}
-                                                </p>
-                                            ))
-                                        }
-                                    </ErrorMessage>
+                                    <ErrorMessage
+                                        errors={errors}
+                                        name="firstName"
+                                        render={({ messages }) => {
+                                            console.log("messages", messages);
+                                            return messages
+                                                ? _.entries(messages).map(([type, message]) => (
+                                                      <p className="text-danger" key={type}>
+                                                          {message}
+                                                      </p>
+                                                  ))
+                                                : null;
+                                        }}
+                                    />
                                 </div>
                                 <div className="form-group col-md-3">
                                     <label>Last Name</label>
@@ -268,16 +275,20 @@ function EditForm(props) {
                                             },
                                         })}
                                     />
-                                    <ErrorMessage errors={errors} name="lastName">
-                                        {({ messages }) =>
-                                            messages &&
-                                            Object.entries(messages).map(([type, message]) => (
-                                                <p className="text-danger" key={type}>
-                                                    {message}
-                                                </p>
-                                            ))
-                                        }
-                                    </ErrorMessage>
+                                    <ErrorMessage
+                                        errors={errors}
+                                        name="lastName"
+                                        render={({ messages }) => {
+                                            console.log("messages", messages);
+                                            return messages
+                                                ? _.entries(messages).map(([type, message]) => (
+                                                      <p className="text-danger" key={type}>
+                                                          {message}
+                                                      </p>
+                                                  ))
+                                                : null;
+                                        }}
+                                    />
                                 </div>
                                 <div className="form-group col-md-3">
                                     <label>Middle Name</label>
@@ -292,31 +303,35 @@ function EditForm(props) {
                                             },
                                         })}
                                     />
-                                    <ErrorMessage errors={errors} name="middleName">
-                                        {({ messages }) =>
-                                            messages &&
-                                            Object.entries(messages).map(([type, message]) => (
-                                                <p className="text-danger" key={type}>
-                                                    {message}
-                                                </p>
-                                            ))
-                                        }
-                                    </ErrorMessage>
+                                    <ErrorMessage
+                                        errors={errors}
+                                        name="middleName"
+                                        render={({ messages }) => {
+                                            console.log("messages", messages);
+                                            return messages
+                                                ? _.entries(messages).map(([type, message]) => (
+                                                      <p className="text-danger" key={type}>
+                                                          {message}
+                                                      </p>
+                                                  ))
+                                                : null;
+                                        }}
+                                    />
                                 </div>
                                 <div className="form-group col-md-3">
                                     <label>Suffix</label>
                                     <select id="suffixSelect" className="form-control" name="suffix" ref={register({})}>
-                                        <option value="M">Jr.</option>
-                                        <option value="F">Sr.</option>
-                                        <option value="A">II</option>
-                                        <option value="M">III</option>
-                                        <option value="F">IV</option>
-                                        <option value="A">V</option>
-                                        <option value="M">VI</option>
-                                        <option value="F">VII</option>
-                                        <option value="A">VIII</option>
-                                        <option value="F">IX</option>
-                                        <option value="A">X</option>
+                                        <option value="Jr.">Jr.</option>
+                                        <option value="Sr.">Sr.</option>
+                                        <option value="II">II</option>
+                                        <option value="III">III</option>
+                                        <option value="IV">IV</option>
+                                        <option value="V">V</option>
+                                        <option value="VI">VI</option>
+                                        <option value="VII">VII</option>
+                                        <option value="VIII">VIII</option>
+                                        <option value="IX">IX</option>
+                                        <option value="X">X</option>
                                     </select>
                                 </div>
                             </div>
@@ -341,16 +356,20 @@ function EditForm(props) {
                                             },
                                         })}
                                     />
-                                    <ErrorMessage errors={errors} name="birthDate">
-                                        {({ messages }) =>
-                                            messages &&
-                                            Object.entries(messages).map(([type, message]) => (
-                                                <p className="text-danger" key={type}>
-                                                    {message}
-                                                </p>
-                                            ))
-                                        }
-                                    </ErrorMessage>
+                                    <ErrorMessage
+                                        errors={errors}
+                                        name="birthDate"
+                                        render={({ messages }) => {
+                                            console.log("messages", messages);
+                                            return messages
+                                                ? _.entries(messages).map(([type, message]) => (
+                                                      <p className="text-danger" key={type}>
+                                                          {message}
+                                                      </p>
+                                                  ))
+                                                : null;
+                                        }}
+                                    />
                                 </div>
                                 <div className="form-group col-md-4">
                                     <label>Place of Birth</label>
@@ -366,23 +385,27 @@ function EditForm(props) {
                                             },
                                         })}
                                     />
-                                    <ErrorMessage errors={errors} name="birthPlace">
-                                        {({ messages }) =>
-                                            messages &&
-                                            Object.entries(messages).map(([type, message]) => (
-                                                <p className="text-danger" key={type}>
-                                                    {message}
-                                                </p>
-                                            ))
-                                        }
-                                    </ErrorMessage>
+                                    <ErrorMessage
+                                        errors={errors}
+                                        name="birthPlace"
+                                        render={({ messages }) => {
+                                            console.log("messages", messages);
+                                            return messages
+                                                ? _.entries(messages).map(([type, message]) => (
+                                                      <p className="text-danger" key={type}>
+                                                          {message}
+                                                      </p>
+                                                  ))
+                                                : null;
+                                        }}
+                                    />
                                 </div>
                                 <div className="form-group col-md-4">
                                     <label>Sex</label>
                                     <select id="sexSelect" className="form-control" name="sex" ref={register({ required: true })}>
-                                        <option value="M">Male</option>
-                                        <option value="F">Female</option>
-                                        <option value="A">Ambiguous</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Ambiguous">Ambiguous</option>
                                     </select>
                                     {errors.sex && <p className="text-danger">Sex is required</p>}
                                 </div>
@@ -402,16 +425,20 @@ function EditForm(props) {
                                             },
                                         })}
                                     />
-                                    <ErrorMessage errors={errors} name="streetAdd">
-                                        {({ messages }) =>
-                                            messages &&
-                                            Object.entries(messages).map(([type, message]) => (
-                                                <p className="text-danger" key={type}>
-                                                    {message}
-                                                </p>
-                                            ))
-                                        }
-                                    </ErrorMessage>
+                                    <ErrorMessage
+                                        errors={errors}
+                                        name="streetAdd"
+                                        render={({ messages }) => {
+                                            console.log("messages", messages);
+                                            return messages
+                                                ? _.entries(messages).map(([type, message]) => (
+                                                      <p className="text-danger" key={type}>
+                                                          {message}
+                                                      </p>
+                                                  ))
+                                                : null;
+                                        }}
+                                    />
                                 </div>
                                 <div className="form-group col-12">
                                     <label>Barangay Address</label>
@@ -427,16 +454,20 @@ function EditForm(props) {
                                             },
                                         })}
                                     />
-                                    <ErrorMessage errors={errors} name="brgyAdd">
-                                        {({ messages }) =>
-                                            messages &&
-                                            Object.entries(messages).map(([type, message]) => (
-                                                <p className="text-danger" key={type}>
-                                                    {message}
-                                                </p>
-                                            ))
-                                        }
-                                    </ErrorMessage>
+                                    <ErrorMessage
+                                        errors={errors}
+                                        name="brgyAdd"
+                                        render={({ messages }) => {
+                                            console.log("messages", messages);
+                                            return messages
+                                                ? _.entries(messages).map(([type, message]) => (
+                                                      <p className="text-danger" key={type}>
+                                                          {message}
+                                                      </p>
+                                                  ))
+                                                : null;
+                                        }}
+                                    />
                                 </div>
                             </div>
                             <div className="form-row">
@@ -454,36 +485,40 @@ function EditForm(props) {
                                             },
                                         })}
                                     />
-                                    <ErrorMessage errors={errors} name="cityAdd">
-                                        {({ messages }) =>
-                                            messages &&
-                                            Object.entries(messages).map(([type, message]) => (
-                                                <p className="text-danger" key={type}>
-                                                    {message}
-                                                </p>
-                                            ))
-                                        }
-                                    </ErrorMessage>
+                                    <ErrorMessage
+                                        errors={errors}
+                                        name="cityAdd"
+                                        render={({ messages }) => {
+                                            console.log("messages", messages);
+                                            return messages
+                                                ? _.entries(messages).map(([type, message]) => (
+                                                      <p className="text-danger" key={type}>
+                                                          {message}
+                                                      </p>
+                                                  ))
+                                                : null;
+                                        }}
+                                    />
                                 </div>
                                 <div className="form-group col-6">
                                     <label>Region</label>
                                     <select id="Region" className="form-control" name="region" ref={register({ required: true })}>
                                         <option value="NCR">NCR</option>
-                                        <option value="I">Region I</option>
+                                        <option value="Region I">Region I</option>
                                         <option value="CAR">CAR</option>
-                                        <option value="II">Region II</option>
-                                        <option value="III">Region III</option>
-                                        <option value="IV-A">Region IV-A or CALABARZON</option>
-                                        <option value="MIMAROPA">MIMAROPA Region</option>
-                                        <option value="V">Region V</option>
-                                        <option value="VI">Region VI</option>
-                                        <option value="VII">Region VII</option>
-                                        <option value="VIII">Region VIII</option>
-                                        <option value="IX">Region IX</option>
-                                        <option value="X">Region X</option>
-                                        <option value="XI">Region XI</option>
-                                        <option value="XII">Region XII</option>
-                                        <option value="XIII">Region XIII</option>
+                                        <option value="Region II">Region II</option>
+                                        <option value="Region III">Region III</option>
+                                        <option value="Region IV-A">Region IV-A or CALABARZON</option>
+                                        <option value="MIMAROPA Region">MIMAROPA Region</option>
+                                        <option value="Region V">Region V</option>
+                                        <option value="Region VI">Region VI</option>
+                                        <option value="Region VII">Region VII</option>
+                                        <option value="Region VIII">Region VIII</option>
+                                        <option value="Region IX">Region IX</option>
+                                        <option value="Region X">Region X</option>
+                                        <option value="Region XI">Region XI</option>
+                                        <option value="Region XII">Region XII</option>
+                                        <option value="Region XIII">Region XIII</option>
                                         <option value="BARMM">BARMM</option>
                                     </select>
                                     {errors.region && <p className="text-danger">Region is required</p>}
@@ -566,16 +601,20 @@ function EditForm(props) {
                                             },
                                         })}
                                     />
-                                    <ErrorMessage errors={errors} name="mContactNumber">
-                                        {({ messages }) =>
-                                            messages &&
-                                            Object.entries(messages).map(([type, message]) => (
-                                                <p className="text-danger" key={type}>
-                                                    {message}
-                                                </p>
-                                            ))
-                                        }
-                                    </ErrorMessage>
+                                    <ErrorMessage
+                                        errors={errors}
+                                        name="mContactNumber"
+                                        render={({ messages }) => {
+                                            console.log("messages", messages);
+                                            return messages
+                                                ? _.entries(messages).map(([type, message]) => (
+                                                      <p className="text-danger" key={type}>
+                                                          {message}
+                                                      </p>
+                                                  ))
+                                                : null;
+                                        }}
+                                    />
                                 </div>
                             </div>
                             <div className="form-row">
@@ -598,16 +637,20 @@ function EditForm(props) {
                                             },
                                         })}
                                     />
-                                    <ErrorMessage errors={errors} name="mAddress">
-                                        {({ messages }) =>
-                                            messages &&
-                                            Object.entries(messages).map(([type, message]) => (
-                                                <p className="text-danger" key={type}>
-                                                    {message}
-                                                </p>
-                                            ))
-                                        }
-                                    </ErrorMessage>
+                                    <ErrorMessage
+                                        errors={errors}
+                                        name="mAddress"
+                                        render={({ messages }) => {
+                                            console.log("messages", messages);
+                                            return messages
+                                                ? _.entries(messages).map(([type, message]) => (
+                                                      <p className="text-danger" key={type}>
+                                                          {message}
+                                                      </p>
+                                                  ))
+                                                : null;
+                                        }}
+                                    />
                                 </div>
                             </div>
 
@@ -635,16 +678,20 @@ function EditForm(props) {
                                             },
                                         })}
                                     />
-                                    <ErrorMessage errors={errors} name="fathersName">
-                                        {({ messages }) =>
-                                            messages &&
-                                            Object.entries(messages).map(([type, message]) => (
-                                                <p className="text-danger" key={type}>
-                                                    {message}
-                                                </p>
-                                            ))
-                                        }
-                                    </ErrorMessage>
+                                    <ErrorMessage
+                                        errors={errors}
+                                        name="fathersName"
+                                        render={({ messages }) => {
+                                            console.log("messages", messages);
+                                            return messages
+                                                ? _.entries(messages).map(([type, message]) => (
+                                                      <p className="text-danger" key={type}>
+                                                          {message}
+                                                      </p>
+                                                  ))
+                                                : null;
+                                        }}
+                                    />
                                 </div>
                                 <div className="form-group col-md-6">
                                     <label>Contact Number</label>
@@ -669,16 +716,20 @@ function EditForm(props) {
                                             },
                                         })}
                                     />
-                                    <ErrorMessage errors={errors} name="fContactNumber">
-                                        {({ messages }) =>
-                                            messages &&
-                                            Object.entries(messages).map(([type, message]) => (
-                                                <p className="text-danger" key={type}>
-                                                    {message}
-                                                </p>
-                                            ))
-                                        }
-                                    </ErrorMessage>
+                                    <ErrorMessage
+                                        errors={errors}
+                                        name="fContactNumber"
+                                        render={({ messages }) => {
+                                            console.log("messages", messages);
+                                            return messages
+                                                ? _.entries(messages).map(([type, message]) => (
+                                                      <p className="text-danger" key={type}>
+                                                          {message}
+                                                      </p>
+                                                  ))
+                                                : null;
+                                        }}
+                                    />
                                 </div>
                             </div>
                             <div className="form-row">
@@ -701,16 +752,20 @@ function EditForm(props) {
                                             },
                                         })}
                                     />
-                                    <ErrorMessage errors={errors} name="fAddress">
-                                        {({ messages }) =>
-                                            messages &&
-                                            Object.entries(messages).map(([type, message]) => (
-                                                <p className="text-danger" key={type}>
-                                                    {message}
-                                                </p>
-                                            ))
-                                        }
-                                    </ErrorMessage>
+                                    <ErrorMessage
+                                        errors={errors}
+                                        name="fAddress"
+                                        render={({ messages }) => {
+                                            console.log("messages", messages);
+                                            return messages
+                                                ? _.entries(messages).map(([type, message]) => (
+                                                      <p className="text-danger" key={type}>
+                                                          {message}
+                                                      </p>
+                                                  ))
+                                                : null;
+                                        }}
+                                    />
                                 </div>
                             </div>
 
@@ -738,16 +793,20 @@ function EditForm(props) {
                                             },
                                         })}
                                     />
-                                    <ErrorMessage errors={errors} name="altContactName">
-                                        {({ messages }) =>
-                                            messages &&
-                                            Object.entries(messages).map(([type, message]) => (
-                                                <p className="text-danger" key={type}>
-                                                    {message}
-                                                </p>
-                                            ))
-                                        }
-                                    </ErrorMessage>
+                                    <ErrorMessage
+                                        errors={errors}
+                                        name="altContactName"
+                                        render={({ messages }) => {
+                                            console.log("messages", messages);
+                                            return messages
+                                                ? _.entries(messages).map(([type, message]) => (
+                                                      <p className="text-danger" key={type}>
+                                                          {message}
+                                                      </p>
+                                                  ))
+                                                : null;
+                                        }}
+                                    />
                                 </div>
                                 <div className="form-group col-md-6">
                                     <label>Contact Number</label>
@@ -772,16 +831,20 @@ function EditForm(props) {
                                             },
                                         })}
                                     />
-                                    <ErrorMessage errors={errors} name="altContactNumber">
-                                        {({ messages }) =>
-                                            messages &&
-                                            Object.entries(messages).map(([type, message]) => (
-                                                <p className="text-danger" key={type}>
-                                                    {message}
-                                                </p>
-                                            ))
-                                        }
-                                    </ErrorMessage>
+                                    <ErrorMessage
+                                        errors={errors}
+                                        name="altContactNumber"
+                                        render={({ messages }) => {
+                                            console.log("messages", messages);
+                                            return messages
+                                                ? _.entries(messages).map(([type, message]) => (
+                                                      <p className="text-danger" key={type}>
+                                                          {message}
+                                                      </p>
+                                                  ))
+                                                : null;
+                                        }}
+                                    />
                                 </div>
                             </div>
                             <div className="form-row">
@@ -804,16 +867,20 @@ function EditForm(props) {
                                             },
                                         })}
                                     />
-                                    <ErrorMessage errors={errors} name="altAddress">
-                                        {({ messages }) =>
-                                            messages &&
-                                            Object.entries(messages).map(([type, message]) => (
-                                                <p className="text-danger" key={type}>
-                                                    {message}
-                                                </p>
-                                            ))
-                                        }
-                                    </ErrorMessage>
+                                    <ErrorMessage
+                                        errors={errors}
+                                        name="altAddress"
+                                        render={({ messages }) => {
+                                            console.log("messages", messages);
+                                            return messages
+                                                ? _.entries(messages).map(([type, message]) => (
+                                                      <p className="text-danger" key={type}>
+                                                          {message}
+                                                      </p>
+                                                  ))
+                                                : null;
+                                        }}
+                                    />
                                 </div>
                             </div>
                             {errors.mothersName && errors.mothersName.type === "atLeastOne" && (
@@ -836,23 +903,27 @@ function EditForm(props) {
                                             required: "This is Required",
                                         })}
                                     >
-                                        <option value="M">Metabolic</option>
-                                        <option value="N">NBS</option>
-                                        <option value="D">Dysmorphologic</option>
-                                        <option value="P">Pre-Natal</option>
-                                        <option value="C">Cancer</option>
-                                        <option value="CN">Counselling</option>
+                                        <option value="Metabolic">Metabolic</option>
+                                        <option value="NBS">NBS</option>
+                                        <option value="Dysmorphologic">Dysmorphologic</option>
+                                        <option value="Pre-Natal">Pre-Natal</option>
+                                        <option value="Cancer">Cancer</option>
+                                        <option value="Counselling">Counselling</option>
                                     </select>
-                                    <ErrorMessage errors={errors} name="patientType">
-                                        {({ messages }) =>
-                                            messages &&
-                                            Object.entries(messages).map(([type, message]) => (
-                                                <p className="text-danger" key={type}>
-                                                    {message}
-                                                </p>
-                                            ))
-                                        }
-                                    </ErrorMessage>
+                                    <ErrorMessage
+                                        errors={errors}
+                                        name="patientType"
+                                        render={({ messages }) => {
+                                            console.log("messages", messages);
+                                            return messages
+                                                ? _.entries(messages).map(([type, message]) => (
+                                                      <p className="text-danger" key={type}>
+                                                          {message}
+                                                      </p>
+                                                  ))
+                                                : null;
+                                        }}
+                                    />
                                 </div>
                             </div>
                             <div className="form-row">
@@ -864,16 +935,20 @@ function EditForm(props) {
                                         name="referringDoctor"
                                         ref={register({ required: "This is required" })}
                                     />
-                                    <ErrorMessage errors={errors} name="referringDoctor">
-                                        {({ messages }) =>
-                                            messages &&
-                                            Object.entries(messages).map(([type, message]) => (
-                                                <p className="text-danger" key={type}>
-                                                    {message}
-                                                </p>
-                                            ))
-                                        }
-                                    </ErrorMessage>
+                                    <ErrorMessage
+                                        errors={errors}
+                                        name="referringDoctor"
+                                        render={({ messages }) => {
+                                            console.log("messages", messages);
+                                            return messages
+                                                ? _.entries(messages).map(([type, message]) => (
+                                                      <p className="text-danger" key={type}>
+                                                          {message}
+                                                      </p>
+                                                  ))
+                                                : null;
+                                        }}
+                                    />
                                 </div>
                                 <div className="form-group col-md-6">
                                     <label>Referring Service</label>
@@ -883,16 +958,20 @@ function EditForm(props) {
                                         name="referringService"
                                         ref={register({ required: "This is required" })}
                                     />
-                                    <ErrorMessage errors={errors} name="referringService">
-                                        {({ messages }) =>
-                                            messages &&
-                                            Object.entries(messages).map(([type, message]) => (
-                                                <p className="text-danger" key={type}>
-                                                    {message}
-                                                </p>
-                                            ))
-                                        }
-                                    </ErrorMessage>
+                                    <ErrorMessage
+                                        errors={errors}
+                                        name="referringService"
+                                        render={({ messages }) => {
+                                            console.log("messages", messages);
+                                            return messages
+                                                ? _.entries(messages).map(([type, message]) => (
+                                                      <p className="text-danger" key={type}>
+                                                          {message}
+                                                      </p>
+                                                  ))
+                                                : null;
+                                        }}
+                                    />
                                 </div>
                             </div>
                             <div className="form-row">
@@ -905,21 +984,25 @@ function EditForm(props) {
                                         ref={register({
                                             required: "This is required",
                                             maxLength: {
-                                                value: 225,
+                                                value: 500,
                                                 message: "This input is too long",
                                             },
                                         })}
                                     />
-                                    <ErrorMessage errors={errors} name="referralReason">
-                                        {({ messages }) =>
-                                            messages &&
-                                            Object.entries(messages).map(([type, message]) => (
-                                                <p className="text-danger" key={type}>
-                                                    {message}
-                                                </p>
-                                            ))
-                                        }
-                                    </ErrorMessage>
+                                    <ErrorMessage
+                                        errors={errors}
+                                        name="referralReason"
+                                        render={({ messages }) => {
+                                            console.log("messages", messages);
+                                            return messages
+                                                ? _.entries(messages).map(([type, message]) => (
+                                                      <p className="text-danger" key={type}>
+                                                          {message}
+                                                      </p>
+                                                  ))
+                                                : null;
+                                        }}
+                                    />
                                 </div>
                             </div>
                         </div>

@@ -19,7 +19,7 @@ import {
     LOAD_OVERLAY,
     UNLOAD_OVERLAY,
     NEW_DATE_SELECTED,
-    SCHEDULE_SELECTED
+    SCHEDULE_SELECTED,
 } from "./types";
 import { EVENT_API, GET_SCHEDULE_API, SCHEDULED_PATIENTS_API, SCHEDULE_API } from "../constants";
 import { snakeCaseKeysToCamel, camelCaseKeysToSnake } from "../actions/utils";
@@ -51,11 +51,13 @@ export const getEvents = () => (dispatch, getState) => {
 
 //GET CLINIC SCHEDULE BY SELECTED DATE
 export const getScheduleDetails = (dateToSearch, dateSelectionStatus) => (dispatch, getState) => {
-    if(dateSelectionStatus){
+    console.log(dateToSearch);
+    console.log(dateSelectionStatus);
+    if (dateSelectionStatus) {
         dispatch({
             type: NEW_DATE_SELECTED,
-            payload: dateSelectionStatus
-        })
+            payload: dateSelectionStatus,
+        });
     }
     axios
         .get(GET_SCHEDULE_API, { params: { date: dateToSearch } }, tokenConfig(getState))
@@ -70,10 +72,10 @@ export const getScheduleDetails = (dateToSearch, dateSelectionStatus) => (dispat
 
 //GET PATIENTS BY SCHEDULE
 export const getScheduledPatients = (scheduleId, physicianId) => (dispatch, getState) => {
-        dispatch({
-            type: SCHEDULE_SELECTED,
-            payload: physicianId
-        })
+    dispatch({
+        type: SCHEDULE_SELECTED,
+        payload: physicianId,
+    });
     axios
         .get(SCHEDULED_PATIENTS_API + "all/", { params: { schedule: scheduleId, physician: physicianId } }, tokenConfig(getState))
         .then((res) => {
@@ -147,7 +149,7 @@ export const deleteEvent = (eventScheduleId) => (dispatch, getState) => {
 //GET AVAILABLE PATIENTS FOR APPOINTMENT
 export const getAvailablePatients = (eventScheduleId, selectedPatient) => (dispatch, getState) => {
     axios
-        .get(SCHEDULED_PATIENTS_API + "available/", { params: { schedule: eventScheduleId, include: selectedPatient} }, tokenConfig(getState))
+        .get(SCHEDULED_PATIENTS_API + "available/", { params: { schedule: eventScheduleId, include: selectedPatient } }, tokenConfig(getState))
         .then((res) => {
             dispatch({
                 type: GET_AVAILABLE_PATIENTS,
@@ -216,4 +218,3 @@ export const deletePatientAppointment = (appointmentId) => (dispatch, getState) 
         })
         .catch((err) => dispatch(returnErrors(err.response.data, err.response.status)));
 };
-

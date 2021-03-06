@@ -1,20 +1,21 @@
 import React, { Fragment, useEffect } from "react";
-import { connect } from "react-redux";
+import { connect, useDispatch } from "react-redux";
 
 import CalendarSchedule from "./CalendarSchedule";
 import TableSchedule from "./TableSchedule";
 
-import { getEvents } from "../../actions/schedules";
+import { getEvents } from "../../reducers/schedulesSlice";
 
 import "react-calendar/dist/Calendar.css";
 import "../../App.css";
 
 function Schedules(props) {
-    const { getEvents } = props;
+    // const { getEvents } = props;
+    const dispatch = useDispatch();
 
     useEffect(() => {
-        getEvents();
-    }, []);
+        dispatch(getEvents());
+    });
 
     return (
         <Fragment>
@@ -33,6 +34,4 @@ function Schedules(props) {
 
 const mapStateToProps = (state) => ({});
 
-export default connect(mapStateToProps, {
-    getEvents,
-})(Schedules);
+export default connect(mapStateToProps, {})(Schedules);

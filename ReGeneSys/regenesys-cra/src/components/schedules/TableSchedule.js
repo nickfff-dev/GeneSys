@@ -3,47 +3,47 @@ import { connect, useDispatch } from "react-redux";
 import { useTable, useSortBy, useGlobalFilter, usePagination } from "react-table";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 
-
 import { format } from "date-fns";
 import { split } from "lodash";
-import { shortenTime } from "./CalendarSchedule";
-import { showModal } from "../../actions/modal";
-import { showOverlay, hideOverlay, getAppointmentDetails, getAvailablePatients, deletePatientAppointment} from "../../actions/schedules";
+import { shortenTime, formatDate, zonedToUtc } from "./CalendarSchedule";
+import { showModal } from "../../reducers/modalSlice";
+import { deletePatientAppointment, showOverlay, hideOverlay, getAppointmentDetails, getAvailablePatients } from "../../reducers/schedulesSlice";
 
 function usePreviousSelection(schedule) {
     const ref = useRef();
 
     useEffect(() => {
         ref.current = schedule;
-    })
+    });
 
-    return ref.current
+    return ref.current;
 }
 
 function TableSchedule(props) {
     const [modal, setModal] = useState(false);
     const [modalType, setModalType] = useState();
     const [modalProps, setModalProps] = useState();
-    const [tableMessage, setTableMessage] = useState("Please Select a Date")
-    const prevSelectedSchedule = usePreviousSelection(props.selectedSchedule)
+    const [tableMessage, setTableMessage] = useState("Please Select a Date");
+    const prevSelectedSchedule = usePreviousSelection(props.selectedSchedule);
+    const [currentDateTime, onChange] = useState(new Date().toISOString());
+
     const dispatch = useDispatch();
 
     useEffect(() => {
-        dispatch(hideOverlay())
-    }, [props.availablePatients.length !== 0 && props.selectedAppointment !== 0])
+        dispatch(hideOverlay());
+    }, [props.availablePatients.length !== 0 && props.selectedAppointment !== 0]);
 
     useEffect(() => {
-        dispatch(showModal(modalType, modalProps))
-    }, [props.isLoadingOverlay == false])
+        dispatch(showModal(modalType, modalProps));
+    }, [props.isLoadingOverlay == false]);
 
     useEffect(() => {
-        if(props.newDateSelected && props.selectedSchedulePhysician === null){
-            setTableMessage("Please Select a Schedule")
+        if (props.newDateSelected && props.selectedSchedulePhysician === null) {
+            setTableMessage("Please Select a Schedule");
+        } else if (props.selectedSchedulePhysician && props.scheduledPatients.length === 0) {
+            setTableMessage("No Scheduled Patients");
         }
-        else if(props.selectedSchedulePhysician && props.scheduledPatients.length === 0){
-            setTableMessage("No Scheduled Patients")
-        }
-    })
+    });
 
     const toggle = () => {
         setModal(!modal);
@@ -81,51 +81,77 @@ function TableSchedule(props) {
         var allData = [];
         var timeFormat = "12H";
         patients.forEach((element) => {
-            var row = {
-                col1: shortenTime(element.startTime, timeFormat) + " - " + shortenTime(element.endTime, timeFormat),
-                col2: element.patient.firstName ,
-                col3: element.patient.clinical.patientType,
-                col4: element.status,
-                col5: (
+            console.log(element.startTime);
+            console.log(new Date().toISOString());
+            if (currentDateTime > element.startTime && currentDateTime > element.endTime) {
+                console.log("past sched");
+            } else {
+                console.log("future sched");
+            }
+            let actionCol;
+            if (currentDateTime > element.startTime && currentDateTime > element.endTime) {
+                actionCol = (
+                    <div>
+                        <button onClick={() => showAppointment("remark", element)}>remark</button>
+                    </div>
+                );
+            } else {
+                actionCol = (
                     <div>
                         <button onClick={() => showAppointment("editAppointment", element)}>edit</button>
                         <button onClick={() => showAppointment("deleteAppointment", element)}>delete</button>
                     </div>
-                ),
+                );
+            }
+
+            var row = {
+                col1: shortenTime(element.startTime, timeFormat) + " - " + shortenTime(element.endTime, timeFormat),
+                col2: element.patient.firstName,
+                col3: element.patient.clinical.patientType,
+                col4: element.status,
+                col5: actionCol,
             };
             allData.push(row);
         });
         return allData;
     }
 
-    const showAppointment = (type, appointment) =>{
-        if(type === "editAppointment"){
-            dispatch(showOverlay())
+    const showAppointment = (type, appointment) => {
+        if (type === "editAppointment") {
+            dispatch(showOverlay());
             dispatch(getAppointmentDetails(appointment.pk));
-            setModalType(type)
-            setModalProps(appointment.pk)
+            setModalType(type);
+            setModalProps(appointment.pk);
+        } else {
+            setModalType(type);
+            setModalProps(appointment.pk);
+            toggle();
         }
-        else{
-            setModalType(type)
-            setModalProps(appointment.pk)
-            toggle()
-        }
-    }
+    };
 
-    const onSubmit = () =>{
-        console.log(modalProps)
-        dispatch(deletePatientAppointment(modalProps))
-        toggle()
-    }
+    const onSubmit = () => {
+        console.log(modalProps);
+        dispatch(deletePatientAppointment(modalProps));
+        toggle();
+    };
 
-    const { getTableProps, getTableBodyProps, headerGroups, footerGroups, rows, page, prepareRow, canPreviousPage,
+    const {
+        getTableProps,
+        getTableBodyProps,
+        headerGroups,
+        footerGroups,
+        rows,
+        page,
+        prepareRow,
+        canPreviousPage,
         canNextPage,
         pageOptions,
         pageCount,
         gotoPage,
         nextPage,
         previousPage,
-        state: { pageIndex }} = useTable(
+        state: { pageIndex },
+    } = useTable(
         {
             columns,
             data,
@@ -144,7 +170,7 @@ function TableSchedule(props) {
     if (props.isLoadingPatients === true) {
         tableComponent = <h1>Loading</h1>;
     } else {
-         if(data.length === 0){
+        if (data.length === 0) {
             tableComponent = (
                 <div className="row h-75">
                     <div className="col-12 my-auto">
@@ -152,8 +178,7 @@ function TableSchedule(props) {
                     </div>
                 </div>
             );
-        }
-        else {
+        } else {
             tableComponent = (
                 <table className="table table-striped table-responsive-md" {...getTableProps()}>
                     <thead>
@@ -194,52 +219,52 @@ function TableSchedule(props) {
         }
     }
 
-    return(
-    <div className="col-12 rounded h-100">
-        <div className="schedule-table-container">
-            {tableComponent}
+    return (
+        <div className="col-12 rounded h-100">
+            <div className="schedule-table-container">{tableComponent}</div>
+            <div
+                className="pagination text-center"
+                className={`pagination text-center ${props.selectedSchedulePhysician && props.scheduledPatients.length > 0 ? "d-block" : "d-none"}`}
+            >
+                <button onClick={() => gotoPage(0)} disabled={!canPreviousPage}>
+                    {"<<"}
+                </button>{" "}
+                <button onClick={() => previousPage()} disabled={!canPreviousPage}>
+                    {"<"}
+                </button>{" "}
+                <span>
+                    Page{" "}
+                    <strong>
+                        {pageIndex + 1} of {pageOptions.length}
+                    </strong>{" "}
+                </span>
+                <button onClick={() => nextPage()} disabled={!canNextPage}>
+                    {">"}
+                </button>{" "}
+                <button onClick={() => gotoPage(pageCount - 1)} disabled={!canNextPage}>
+                    {">>"}
+                </button>{" "}
+            </div>
+            <Modal isOpen={modal} toggle={toggle}>
+                <ModalHeader>Delete Appointment</ModalHeader>
+                <ModalBody>Are you sure you want to delete appointment?</ModalBody>
+                <ModalFooter>
+                    <Button color="primary" onClick={onSubmit}>
+                        Yes
+                    </Button>
+                    <Button color="secondary" onClick={() => toggle()}>
+                        Cancel
+                    </Button>
+                </ModalFooter>
+            </Modal>
         </div>
-        <div className="pagination text-center" className={`pagination text-center ${props.selectedSchedulePhysician && props.scheduledPatients.length > 0 ? "d-block" : "d-none"}`}>
-            <button onClick={() => gotoPage(0)} disabled={!canPreviousPage}>
-            {'<<'}
-            </button>{' '}
-            <button onClick={() => previousPage()} disabled={!canPreviousPage}>
-            {'<'}
-            </button>{' '}
-            <span>
-            Page{' '}
-            <strong>
-                {pageIndex + 1} of {pageOptions.length}
-            </strong>{' '}
-            </span>
-            <button onClick={() => nextPage()} disabled={!canNextPage}>
-            {'>'}
-            </button>{' '}
-            <button onClick={() => gotoPage(pageCount - 1)} disabled={!canNextPage}>
-            {'>>'}
-            </button>{' '}
-      </div>    
-        <Modal isOpen={modal} toggle={toggle}>
-            <ModalHeader>Delete Appointment</ModalHeader>
-            <ModalBody>Are you sure you want to delete appointment?</ModalBody>
-            <ModalFooter>
-                <Button color="primary" onClick={onSubmit}>
-                    Yes
-                </Button>
-                <Button color="secondary" onClick={() => toggle}>
-                    Cancel
-                </Button>
-            </ModalFooter>
-        </Modal>
-    </div>
-    
-    )
+    );
 }
 
 const mapStateToProps = (state) => ({
     scheduledPatients: state.schedules.scheduledPatients,
     isLoadingPatients: state.schedules.isLoadingPatients,
-    selectedSchedule: state.schedules.schedules,
+    selectedSchedule: state.schedules.selectedSchedule,
     availablePatients: state.schedules.availablePatients,
     selectedAppointment: state.schedules.selectedAppointment,
     modal: state.modal,

@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { connect, useDispatch } from "react-redux";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 
-import { getAvailablePhysicians, editEventSchedule, getSchedules } from "../../actions/schedules";
+import {} from "../../actions/schedules";
+import { getAvailablePhysicians, editEventSchedule } from "../../reducers/schedulesSlice";
 import { format } from "date-fns";
 
 import { useForm, Controller } from "react-hook-form";
@@ -14,7 +15,7 @@ import { getValueFromArrayOrObject, shortenTime } from "./CalendarSchedule";
 
 import _ from "lodash";
 
-import { hideModal } from "../../actions/modal";
+import { hideModal } from "../../reducers/modalSlice";
 import { array } from "prop-types";
 
 function pageInitial() {
@@ -692,7 +693,7 @@ function EditScheduleForm(props) {
 
 const mapStateToProps = (state) => ({
     availablePhysicians: state.schedules.availablePhysicians,
-    selectedSchedule: state.schedules.schedules,
+    selectedSchedule: state.schedules.selectedSchedule,
     modal: state.modal,
 });
 

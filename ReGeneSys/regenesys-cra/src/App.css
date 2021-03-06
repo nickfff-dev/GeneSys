@@ -55,3 +55,15 @@
 .schedule-table-container {
     height: 42em;
 }
+
+.demographic-box {
+    background: aliceblue;
+}
+
+.diagnostic-box {
+    background: cornsilk;
+}
+
+.contact-box {
+    background: skyblue;
+}

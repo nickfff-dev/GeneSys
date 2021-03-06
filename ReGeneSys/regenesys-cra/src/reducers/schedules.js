@@ -111,10 +111,12 @@ export default function (state = initialState, action) {
                 scheduledPatients: [...state.scheduledPatients, action.payload],
             };
         case EDIT_PATIENT_APPOINTMENT:
-            console.log(action.payload.pk)
+            console.log(action.payload.pk);
             return {
                 ...state,
-                scheduledPatients: state.scheduledPatients.map((scheduledPatient) => (scheduledPatient.pk === action.payload.pk ? action.payload : scheduledPatient)),
+                scheduledPatients: state.scheduledPatients.map((scheduledPatient) =>
+                    scheduledPatient.pk === action.payload.pk ? action.payload : scheduledPatient
+                ),
             };
         case DELETE_PATIENT_APPOINTMENT:
             return {
@@ -122,16 +124,16 @@ export default function (state = initialState, action) {
                 scheduledPatients: state.scheduledPatients.filter((scheduledPatients) => scheduledPatients.pk !== action.payload),
             };
         case NEW_DATE_SELECTED:
-            return{
+            return {
                 ...state,
                 newDateSelected: action.payload,
-                selectedSchedulePhysician: null
+                selectedSchedulePhysician: null,
             };
         case SCHEDULE_SELECTED:
-            return{
+            return {
                 ...state,
-                selectedSchedulePhysician:action.payload
-            }
+                selectedSchedulePhysician: action.payload,
+            };
         //PATIENTS
         case GET_SCHEDULED_PATIENTS:
             return {
@@ -149,7 +151,7 @@ export default function (state = initialState, action) {
             return {
                 ...state,
                 selectedAppointment: action.payload,
-                isLoadingOverlay: false
+                isLoadingOverlay: false,
             };
         default:
             return state;

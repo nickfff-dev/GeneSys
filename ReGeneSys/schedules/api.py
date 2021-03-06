@@ -56,7 +56,7 @@ class ClinicScheduleViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def search_by_date(self, request, pk=None):
-        schedule_list = []
+
         date = request.GET.get('date')
 
         print("date " + str(local_to_UTC(date)))
@@ -65,9 +65,9 @@ class ClinicScheduleViewSet(viewsets.ModelViewSet):
                                                  event__event_type='clinic')
         print(schedule)
 
-        test = ClinicScheduleSerializer(schedule, many=True).data
+        schedule_list = ClinicScheduleSerializer(schedule, many=True).data
 
-        return Response(test)
+        return Response(schedule_list)
 
     @action(detail=False, methods=['get'])
     def search_available_physicians(self, request, pk=None):

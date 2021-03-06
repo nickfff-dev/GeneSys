@@ -6,6 +6,7 @@ import "../../static/sb-admin2/css/sb-admin-2.css";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import Dashboard from "../dashboard/Dashboard";
 import Patients from "../patients/Patients";
 import Schedules from "../schedules/Schedules";
 import PrivateRoute from "../common/PrivateRoute";
@@ -24,7 +25,7 @@ const routes = [
     {
         path: "/dashboard",
         // sidebar: () => <div>dashboard!</div>,
-        main: () => <h1>Dashboard</h1>,
+        main: () => <Dashboard />,
     },
     {
         path: "/patients",

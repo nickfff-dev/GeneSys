@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { connect, useDispatch } from "react-redux";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 
-import { getSchedules, getAvailablePhysicians, createEventSchedule } from "../../actions/schedules";
-
-import { TimePicker } from "antd";
+import {} from "../../actions/schedules";
+import { getAvailablePhysicians, createEventSchedule } from "../../reducers/schedulesSlice";
+import { hideModal } from "../../reducers/modalSlice";
 
 import { format } from "date-fns";
 
@@ -14,8 +14,6 @@ import Select from "react-select";
 import makeAnimated from "react-select/animated";
 
 import _ from "lodash/fp";
-
-import { hideModal } from "../../actions/modal";
 
 function pageInitial() {
     return 1;
@@ -520,7 +518,7 @@ function CreateScheduleForm(props) {
 
 const mapStateToProps = (state) => ({
     availablePhysicians: state.schedules.availablePhysicians,
-    selectedSchedule: state.schedules.schedules,
+    selectedSchedule: state.schedules.selectedSchedule,
     modal: state.modal,
 });
 

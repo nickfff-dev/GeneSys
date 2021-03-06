@@ -17,7 +17,7 @@ import PrivateRoute from "../components/common/PrivateRoute";
 
 import { Provider } from "react-redux";
 import store from "../store";
-import { loadUser } from "../actions/auth";
+import { loadUser } from "../reducers/authSlice";
 
 import "../static/css/styles.css";
 import logo from "../logo.svg";
@@ -32,7 +32,7 @@ const alertOptions = {
 function App() {
     useEffect(() => {
         store.dispatch(loadUser());
-    });
+    }, []);
     const NoMatch = ({ location }) => (
         <h3>
             No match for <code>{location.pathname}</code>

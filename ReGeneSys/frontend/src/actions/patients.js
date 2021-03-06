@@ -17,6 +17,24 @@ export const getPatients = () => (dispatch, getState) => {
         .catch((err) => dispatch(returnErrors(err.response.data, err.response.status)));
 };
 
+//RTK ver
+export const patientsGet = (patients) => {
+    return {
+        type: "GET_PATIENTS",
+        payload: patients,
+    };
+};
+
+export const getPatients2 = () => (dispatch, getState) => {
+    axios
+        .get("/api/patients/", tokenConfig(getState))
+        .then((res) => {
+            dispatch(patientsGet(res));
+        })
+        .catch((err) => dispatch(returnErrors(err.response.data, err.response.status)));
+};
+//RTK ver end
+
 //DELETE PATIENT
 export const deletePatient = (patientID) => (dispatch, getState) => {
     axios

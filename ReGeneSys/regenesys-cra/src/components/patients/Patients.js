@@ -1,20 +1,23 @@
 import React, { Fragment, useState, useEffect, useMemo } from "react";
 import { connect, useSelector, useDispatch } from "react-redux";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
-import { useTable, useSortBy, useGlobalFilter, usePagination, useAsyncDebounce } from "react-table";
+import { useTable, useSortBy, useGlobalFilter, usePagination } from "react-table";
 
 // import { PropTypes } from "prop-types";
 import { useForm } from "react-hook-form";
 import useSWR, { mutate } from "swr";
 
-import { getPatient, getPatients, dischargePatient, editPatient, filterPatients } from "../../actions/patients";
-import { showModal, hideModal } from "../../actions/modal";
+import { snakeCaseKeysToCamel, camelCaseKeysToSnake } from "../../actions/utils";
+import { getPatient, getPatients, dischargePatient, searchPatients, filterPatients } from "../../reducers/patientsSlice";
+import { showModal, hideModal } from "../../reducers/modalSlice";
 import { PATIENT_API } from "../../constants";
 import Form from "./Form";
 import EditForm from "./EditForm";
 import ViewModal from "./ViewModal";
-import { result } from "lodash";
+
 import axios from "axios";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSearch } from "@fortawesome/free-solid-svg-icons";
 
 const _ = require("lodash");
 
@@ -24,17 +27,17 @@ function generateID() {
     });
 }
 
-function Table({ columns, data}) {
+function Table({ columns, data }) {
     const filter = useSelector((state) => state.patients.globalFilter);
     const tableProps = useTable(
         {
             columns,
-            data
+            data,
         },
 
         useGlobalFilter, // useGlobalFilter!
         useSortBy,
-        usePagination,
+        usePagination
     );
     const {
         getTableProps,
@@ -56,7 +59,7 @@ function Table({ columns, data}) {
         nextPage,
         previousPage,
         setPageSize,
-        state: { pageIndex, pageSize, globalFilter }
+        state: { pageIndex, pageSize, globalFilter },
     } = tableProps;
     useEffect(() => {
         setGlobalFilter(filter);
@@ -72,21 +75,15 @@ function Table({ columns, data}) {
             /> */}
             <table className="table table-striped table-responsive-md" {...getTableProps()}>
                 <thead>
-                    {headerGroups.map(headerGroup => (
+                    {headerGroups.map((headerGroup) => (
                         <tr {...headerGroup.getHeaderGroupProps()}>
-                            {headerGroup.headers.map(column => (
+                            {headerGroup.headers.map((column) => (
                                 // Add the sorting props to control sorting. For this example
                                 // we can add them into the header props
                                 <th {...column.getHeaderProps(column.getSortByToggleProps())}>
-                                    {column.render('Header')}
+                                    {column.render("Header")}
                                     {/* Add a sort direction indicator */}
-                                    <span>
-                                        {column.isSorted
-                                            ? column.isSortedDesc
-                                                ? ' 🔽'
-                                                : ' 🔼'
-                                            : ''}
-                                    </span>
+                                    <span>{column.isSorted ? (column.isSortedDesc ? " 🔽" : " 🔼") : ""}</span>
                                 </th>
                             ))}
                         </tr>
@@ -97,10 +94,8 @@ function Table({ columns, data}) {
                         prepareRow(row);
                         return (
                             <tr {...row.getRowProps()}>
-                                {row.cells.map(cell => {
-                                    return (
-                                        <td {...cell.getCellProps()}>{cell.render("Cell")}</td>
-                                    );
+                                {row.cells.map((cell) => {
+                                    return <td {...cell.getCellProps()}>{cell.render("Cell")}</td>;
                                 })}
                             </tr>
                         );
@@ -118,38 +113,34 @@ function Table({ columns, data}) {
                 </div> */}
                 <div className="pagination d-block text-center">
                     <button onClick={() => gotoPage(0)} disabled={!canPreviousPage}>
-                        {'<<'}
-                    </button>{' '}
+                        {"<<"}
+                    </button>{" "}
                     <button onClick={() => previousPage()} disabled={!canPreviousPage}>
-                        {'<'}
-                    </button>{' '}
+                        {"<"}
+                    </button>{" "}
                     <span>
-                        Page{' '}
+                        Page{" "}
                         <strong>
                             {pageIndex + 1} of {pageOptions.length}
-                        </strong>{' '}
+                        </strong>{" "}
                     </span>
                     <button onClick={() => nextPage()} disabled={!canNextPage}>
-                        {'>'}
-                    </button>{' '}
+                        {">"}
+                    </button>{" "}
                     <button onClick={() => gotoPage(pageCount - 1)} disabled={!canNextPage}>
-                        {'>>'}
-                    </button>{' '}
+                        {">>"}
+                    </button>{" "}
                 </div>
             </div>
 
-
             <br />
-
         </>
     );
 }
 
 function Patients(props) {
-    const { getPatients } = props;
-
     useEffect(() => {
-        getPatients();
+        loadAll();
     }, []);
 
     const [modal, setModal] = useState(false);
@@ -166,10 +157,11 @@ function Patients(props) {
 
     const [newPatientID, setPatientID] = useState(() => generateID());
     const [globalFilter, setGlobalFilter] = useState();
+    const [searchValue, setSearchValue] = useState();
 
-    useEffect(() =>{
-        console.log(`this is your filter  ${globalFilter}`)
-    },[globalFilter])
+    useEffect(() => {
+        console.log(`this is your filter  ${globalFilter}`);
+    }, [globalFilter]);
 
     const data = useMemo(() => getPatientData(state.patients.patients), [state.patients.patients]);
     const columns = useMemo(
@@ -252,11 +244,10 @@ function Patients(props) {
     function showPatientModal(type, modalProps) {
         if (type === "delete") {
             toggle();
-            dispatch(showModal(type, modalProps));
         } else {
-            dispatch(getPatient(modalProps));
-            dispatch(showModal(type, modalProps));
         }
+        dispatch(getPatient(modalProps));
+        dispatch(showModal(type, modalProps));
     }
 
     const { register, errors, reset, handleSubmit, trigger, getValues } = useForm({
@@ -270,10 +261,6 @@ function Patients(props) {
 
     const onSubmit = (data) => {
         const { status } = data;
-
-        const modalData = _.find(state.patients.patients, {
-            patientId: modalProps,
-        });
 
         const {
             patientId,
@@ -290,9 +277,41 @@ function Patients(props) {
             region,
             contact,
             clinical,
-        } = modalData;
+        } = props.patient;
 
-        clinical.status = status;
+        const { caseNumber, patientType, referringDoctor, referringService, referralReason } = clinical;
+        const {
+            mothersName,
+            mAddress,
+            mContactNumber,
+            fathersName,
+            fAddress,
+            fContactNumber,
+            altContactName,
+            altAddress,
+            altContactNumber,
+        } = contact;
+
+        var clinicalNew = {
+            caseNumber,
+            patientType,
+            referringDoctor,
+            referringService,
+            referralReason,
+            status,
+        };
+
+        var contactNew = {
+            mothersName,
+            mAddress,
+            mContactNumber,
+            fathersName,
+            fAddress,
+            fContactNumber,
+            altContactName,
+            altAddress,
+            altContactNumber,
+        };
 
         const userToDischarge = {
             patientId,
@@ -307,21 +326,30 @@ function Patients(props) {
             brgyAdd,
             cityAdd,
             region,
-            contact,
-            clinical,
+            contact: camelCaseKeysToSnake(contactNew),
+            clinical: camelCaseKeysToSnake(clinicalNew),
         };
 
+        console.log(userToDischarge);
         dispatch(dischargePatient(userToDischarge));
         toggleAll();
     };
 
     function handleChange(value) {
-        dispatch(filterPatients(value))
+        dispatch(filterPatients(value));
+    }
+
+    function search(value) {
+        dispatch(searchPatients(value));
+    }
+
+    function loadAll() {
+        dispatch(getPatients());
     }
 
     let tableComponent;
 
-    if (state.schedules.isLoadingPatients === true) {
+    if (state.patients.isLoadingPatients === true) {
         tableComponent = <h1>Loading</h1>;
     } else {
         if (data.length === 0) {
@@ -333,9 +361,7 @@ function Patients(props) {
                 </div>
             );
         } else {
-            tableComponent = (
-                <Table columns={columns} data={data} globalFilter={props.globalFilter} />
-            );
+            tableComponent = <Table columns={columns} data={data} globalFilter={props.globalFilter} />;
         }
     }
 
@@ -345,31 +371,40 @@ function Patients(props) {
                 <h2>Patient Management</h2>
 
                 <div className="row">
-                    <div className="col-md-3 col-sm-12">
+                    <div className="col-md-3 col-sm-12 mb-2">
+                        <div className="input-group">
+                            <input
+                                type="text"
+                                className="form-control"
+                                placeholder="Search for Patient"
+                                aria-label="Search for Patient"
+                                aria-describedby="basic-addon2"
+                                onChange={(event) => setSearchValue(event.target.value)}
+                            />
+                            <div className="input-group-append">
+                                <button className="btn btn-primary" type="button" onClick={() => search(searchValue)}>
+                                    <FontAwesomeIcon icon={faSearch} />
+                                </button>
+                                <button className="btn btn-outline-primary" type="button" onClick={() => loadAll()}>
+                                    Load All
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-md-3 col-sm-12 mb-2">
                         <div className="input-group">
                             <input
                                 className="form-control"
                                 type="text"
-                                onChange={e => handleChange(e.target.value)}
+                                placeholder="Refine Search"
+                                aria-label="Refine Search"
+                                onChange={(e) => handleChange(e.target.value)}
                             />
                         </div>
                     </div>
-                    <div className="col-md-3 col-sm-12">
+                    <div className="col-md-3 col-sm-12 mb-2">
                         <div className="input-group">
-                            <input
-                                className="form-control"
-                                type="text"
-                                onChange={e => handleChange(e.target.value)}
-                            />
-                        </div>
-                    </div>
-                    <div className="col-md-3 col-sm-12">
-                        <div className="input-group">
-                            <input
-                                className="form-control"
-                                type="text"
-                                onChange={e => handleChange(e.target.value)}
-                            />
+                            <input className="form-control" type="text" onChange={(e) => handleChange(e.target.value)} />
                         </div>
                     </div>
                     <div className="col-md-3 col-sm-12">
@@ -388,9 +423,7 @@ function Patients(props) {
                     </div>
                 </div>
 
-                <div className="registry-table-container">
-                    {tableComponent}
-                </div>
+                <div className="registry-table-container">{tableComponent}</div>
                 {(() => {
                     switch (state.modal.modalMode) {
                         case "create":
@@ -423,10 +456,10 @@ function Patients(props) {
                                 <div className="form-group col-12">
                                     <label>Select reason for discharging patient.</label>
                                     <select id="statusSelect" className="form-control" name="status" ref={register({ required: true })}>
-                                        <option value="D">Deceased</option>
-                                        <option value="L">Lost to Follow-up</option>
-                                        <option value="F">False Positive</option>
-                                        <option value="P">Moved to Private</option>
+                                        <option value="Deceased">Deceased</option>
+                                        <option value="Lost to Follow-up">Lost to Follow-up</option>
+                                        <option value="False Postive">False Positive</option>
+                                        <option value="Moved to Private">Moved to Private</option>
                                     </select>
                                     <p className="text-error"></p>
                                 </div>
@@ -438,38 +471,32 @@ function Patients(props) {
                             <ModalFooter>
                                 <Button color="primary" onClick={handleSubmit(onSubmit)}>
                                     Yes
-                            </Button>
+                                </Button>
                                 <Button color="secondary" onClick={() => toggleNested}>
                                     Cancel
-                            </Button>
+                                </Button>
                             </ModalFooter>
                         </Modal>
                     </ModalBody>
                     <ModalFooter>
                         <Button color="primary" onClick={toggleNested}>
                             Save
-                    </Button>
+                        </Button>
                         <Button color="secondary" onClick={toggle}>
                             Cancel
-                    </Button>
+                        </Button>
                     </ModalFooter>
                 </Modal>
             </div>
         </Fragment>
     );
-
 }
 
 const mapStateToProps = (state) => ({
     patients: state.patients.patients,
+    patient: state.patients.patient,
     globalFilter: state.patients.globalFilter,
     modal: state.modal,
 });
 
-export default connect(mapStateToProps, {
-    getPatients,
-    dischargePatient,
-    editPatient,
-    showModal,
-    hideModal,
-})(Patients);
+export default connect(mapStateToProps, {})(Patients);

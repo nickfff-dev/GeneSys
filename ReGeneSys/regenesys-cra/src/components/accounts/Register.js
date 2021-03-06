@@ -2,8 +2,8 @@ import React, { Component } from "react";
 import { Link, Redirect } from "react-router-dom";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
-import { register } from "../../actions/auth";
-import { createMessage } from "../../actions/messages";
+import { register } from "../../reducers/authSlice";
+import { createMessage } from "../../reducers/messagesSlice";
 
 export class Register extends Component {
     state = {
@@ -49,43 +49,19 @@ export class Register extends Component {
                     <form onSubmit={this.onSubmit}>
                         <div className="form-group">
                             <label>Username</label>
-                            <input
-                                type="text"
-                                className="form-control"
-                                name="username"
-                                onChange={this.onChange}
-                                value={username}
-                            />
+                            <input type="text" className="form-control" name="username" onChange={this.onChange} value={username} />
                         </div>
                         <div className="form-group">
                             <label>Email</label>
-                            <input
-                                type="email"
-                                className="form-control"
-                                name="email"
-                                onChange={this.onChange}
-                                value={email}
-                            />
+                            <input type="email" className="form-control" name="email" onChange={this.onChange} value={email} />
                         </div>
                         <div className="form-group">
                             <label>Password</label>
-                            <input
-                                type="password"
-                                className="form-control"
-                                name="password"
-                                onChange={this.onChange}
-                                value={password}
-                            />
+                            <input type="password" className="form-control" name="password" onChange={this.onChange} value={password} />
                         </div>
                         <div className="form-group">
                             <label>Confirm Password</label>
-                            <input
-                                type="password"
-                                className="form-control"
-                                name="password2"
-                                onChange={this.onChange}
-                                value={password2}
-                            />
+                            <input type="password" className="form-control" name="password2" onChange={this.onChange} value={password2} />
                         </div>
                         <div className="form-group">
                             <button type="submit" className="btn btn-primary">
@@ -93,8 +69,7 @@ export class Register extends Component {
                             </button>
                         </div>
                         <p>
-                            Already have an account?{" "}
-                            <Link to="/login">Login</Link>
+                            Already have an account? <Link to="/login">Login</Link>
                         </p>
                     </form>
                 </div>
