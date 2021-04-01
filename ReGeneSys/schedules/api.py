@@ -1,4 +1,5 @@
 import json
+from timeit import default_timer as timer
 from .models import Event, ClinicSchedule, ClinicSchedulePatient
 from rest_framework import generics, viewsets, permissions
 from rest_framework.response import Response
@@ -122,17 +123,25 @@ class ClinicSchedulePatientViewSet(viewsets.ModelViewSet):
     #Gets all scheduled patients for given schedule
     @action(detail=False, methods=['get'])
     def all(self, request, pk=None):
+        start = timer()
 
         schedule = request.GET.get('schedule')
         physician = request.GET.get('physician')
 
         scheduled_patients = ClinicSchedulePatient.objects.filter(
             schedule=schedule, physician=physician)
-        print(scheduled_patients)
 
-        return Response(
-            ClinicSchedulePatientSerializer(scheduled_patients,
-                                            many=True).data)
+        end = timer()
+        print(scheduled_patients)
+        print(end - start)
+
+        test = ClinicSchedulePatientSerializer(scheduled_patients,
+                                               many=True).data
+        end = timer()
+        print(end - start)
+        # print(test)
+
+        return Response(test)
 
     #Gets all available patients for schedule
     @action(detail=False, methods=['get'])
@@ -154,6 +163,18 @@ class ClinicSchedulePatientViewSet(viewsets.ModelViewSet):
 
         return Response(
             PatientContactClinicalSerializer(patients, many=True).data)
+
+    @action(detail=False, methods=['get'])
+    def is_editable(self, request, pk=None):
+        schedule = request.GET.get('schedule')
+
+        appointments = ClinicSchedulePatient.objects.filter(
+            schedule__pk=schedule)
+
+        if appointments:
+            return Response(False)
+        else:
+            return Response(True)
 
 
 #Schedule Viewset

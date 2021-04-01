@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { connect, useDispatch } from "react-redux";
+import { connect, useDispatch, useSelector } from "react-redux";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 
 import {} from "../../actions/schedules";
-import { getAvailablePhysicians, editEventSchedule } from "../../reducers/schedulesSlice";
+import { getAvailablePhysicians, editEventSchedule, isEditable } from "../../reducers/schedulesSlice";
 import { format } from "date-fns";
 
 import { useForm, Controller } from "react-hook-form";
@@ -30,17 +30,20 @@ function EditScheduleForm(props) {
     const [isLoading, setIsLoading] = useState(true);
     const [selectedPhysician, setSelectedPhysician] = useState([]);
     const [inputTimeResetCounter, setInputTimeResetCounter] = useState(false);
+
+    const state = useSelector((state) => state);
     const dispatch = useDispatch();
 
     useEffect(() => {
-        getPhysicians(props.modal.modalProps);
+        getPhysicians(state.modal.modalProps);
+        dispatch(isEditable(state.schedules.selectedSchedule[0].pk));
     }, []);
 
     useEffect(() => {
         getDefaultTimes();
     });
 
-    const selectedSchedule = props.selectedSchedule[0];
+    const selectedSchedule = state.schedules.selectedSchedule[0];
 
     const defaultPhysician = [];
     const defaultStartTime = [];
@@ -52,7 +55,7 @@ function EditScheduleForm(props) {
 
     const getPhysicians = () => {
         dispatch(getAvailablePhysicians(""));
-        generateOptions(props.availablePhysicians);
+        generateOptions(state.schedules.availablePhysicians);
         for (var i = 0; i < selectedSchedule.physician.length; i++) {
             defaultPhysician.push({
                 value: selectedSchedule.physician[i].id,
@@ -115,7 +118,7 @@ function EditScheduleForm(props) {
 
     const generateOptions = () => {
         const availablePhysicians = [];
-        props.availablePhysicians.forEach((physician) => {
+        state.schedules.availablePhysicians.forEach((physician) => {
             availablePhysicians.push({ value: physician.id, label: physician.firstName + " " + physician.lastName });
         });
         return availablePhysicians;
@@ -219,7 +222,7 @@ function EditScheduleForm(props) {
         });
 
         //date is in UTC due to react-calendar
-        const date = props.modal.modalProps;
+        const date = new Date(state.modal.modalProps);
 
         const event = {
             name,
@@ -340,37 +343,14 @@ function EditScheduleForm(props) {
                                         })}
                                     /> */}
                                     <Controller
-                                        // as={
-                                        //     <Select
-                                        //         // components={makeAnimated()}
-                                        //         className="basic-single"
-                                        //         placeholder="Select Start Time"
-                                        //         options={generateTimeOptions("start")}
-                                        //         // defaultValue={defaultStartTime}
-                                        //         // noOptionsMessage={() => "No available physicians"}
-                                        //         // isMulti
-                                        //         // name="physician"
-                                        //         name="startTime"
-                                        //         onFocus={() => resetOppositeTime("start")}
-                                        //         // onChange={() => resetEndTime()}
-                                        //         // onClick={() => reset({ endTime: "bill" })}
-                                        //     />
-                                        // }
                                         as={Select}
-                                        // components={makeAnimated()}
                                         className="basic-single"
                                         placeholder="Select Start Time"
                                         options={generateTimeOptions("start")}
-                                        // defaultValue={defaultStartTime}
-                                        // noOptionsMessage={() => "No available physicians"}
-                                        // isMulti
-                                        // name="physician"
                                         onFocus={() => resetOppositeTime("start")}
-                                        // onChange={() => resetEndTime()}
-                                        // onClick={() => reset({ endTime: "bill" })}
-
                                         name="startTime"
                                         control={control}
+                                        disabled={!state.schedules.isEditable}
                                         rules={{
                                             required: "This is required",
                                             validate: {
@@ -381,22 +361,8 @@ function EditScheduleForm(props) {
                                                         if (Array.isArray(value) || Array.isArray(endTime)) {
                                                             value = getValueFromArrayOrObject(value);
                                                             endTime = getValueFromArrayOrObject(endTime);
-
-                                                            // if (Array.isArray(value)) {
-                                                            //     value = value[0].value;
-                                                            // } else if (typeof value === "object") {
-                                                            // }
-
-                                                            // if (Array.isArray(endTime)) {
-                                                            //     endTime = endTime[0].value;
-                                                            // }
-                                                            // // else if() {
-
-                                                            // // }
-
                                                             return value < endTime || endTime.length === 0 || "Must be before end time";
                                                         }
-                                                        // return value.value < endTime.value || endTime.value.length === 0 || "Must be before end time";
                                                     }
                                                 },
                                             },
@@ -420,47 +386,12 @@ function EditScheduleForm(props) {
 
                                 <div className="form-group col-6">
                                     <label>End Time</label>
-                                    {/* <input
-                                        className="form-control"
-                                        type="time"
-                                        name="endTime"
-                                        ref={register({
-                                            required: "This is required",
-                                            validate: {
-                                                lesserThanEndTime: (value) => {
-                                                    const { startTime } = getValues();
-                                                    return value > startTime || startTime.length === 0 || "Must be after start time";
-                                                },
-                                            },
-                                        })}
-                                    /> */}
                                     <Controller
-                                        // as={
-                                        //     <Select
-                                        //         // components={makeAnimated()}
-                                        //         // onChange={setSelectedPhysician}
-                                        //         className="basic-single"
-                                        //         placeholder="Select End Time"
-                                        //         options={generateTimeOptions()}
-                                        //         onFocus={() => resetOppositeTime("end")}
-                                        //         // defaultValue={defaultEndTime}
-                                        //         // noOptionsMessage={() => "No available physicians"}
-                                        //         // isMulti
-                                        //         // name="physician"
-                                        //     />
-                                        // }
                                         as={Select}
-                                        // components={makeAnimated()}
-                                        // onChange={setSelectedPhysician}
                                         className="basic-single"
                                         placeholder="Select End Time"
                                         options={generateTimeOptions()}
                                         onFocus={() => resetOppositeTime("end")}
-                                        // defaultValue={defaultEndTime}
-                                        // noOptionsMessage={() => "No available physicians"}
-                                        // isMulti
-                                        // name="physician"
-
                                         name="endTime"
                                         control={control}
                                         rules={{
@@ -470,73 +401,16 @@ function EditScheduleForm(props) {
                                                     let { startTime } = getValues();
                                                     if (startTime && value != "") {
                                                         if (Array.isArray(value) || Array.isArray(startTime)) {
-                                                            // if (Array.isArray(value)) {
-                                                            //     console.log("value is Array");
-                                                            //     console.log(value);
-                                                            //     value = _.first(value).value;
-                                                            //     console.log(value);
-                                                            // } else if (typeof value === "object") {
-                                                            //     console.log("value is Object");
-                                                            //     console.log(value);
-                                                            //     value = value.value;
-                                                            //     console.log(value);
-                                                            // }
                                                             value = getValueFromArrayOrObject(value);
                                                             startTime = getValueFromArrayOrObject(startTime);
-
-                                                            // if (Array.isArray(startTime)) {
-                                                            //     console.log("startTime is array");
-                                                            //     console.log(startTime);
-                                                            //     startTime = _.first(startTime).value;
-                                                            //     // console.log(startTime);
-                                                            // } else if (typeof startTime === "object") {
-                                                            //     console.log("startTime is Object");
-                                                            //     console.log(startTime);
-                                                            //     startTime = startTime.value;
-                                                            //     console.log(startTime);
-                                                            // }
-                                                            // value = _.first(value).value;
-                                                            // startTime = _.first(startTime).value;
-
-                                                            // console.log("inside if array");
-                                                            // console.log(value);
-                                                            // console.log(startTime);
-                                                            // console.log(value < startTime);
-                                                            // console.log(startTime.length === 0);
-
                                                             return value > startTime || startTime.length === 0 || "Must be after start time";
                                                         }
-                                                        // console.log("inside");
-                                                        // console.log(value);
-                                                        // console.log(startTime);
-                                                        // console.log(value < startTime);
-                                                        // console.log(startTime.length === 0);
                                                         return (
                                                             value.value > startTime.value ||
                                                             startTime.value.length === 0 ||
                                                             "Must be after start time"
                                                         );
-
-                                                        // if (Array.isArray(value)) {
-                                                        //     value = value[0].value;
-                                                        // }
-                                                        // if (Array.isArray(startTime)) {
-                                                        //     startTime = startTime[0].value;
-                                                        // }
-                                                        // console.log("end");
-                                                        // console.log(value);
-                                                        // console.log(startTime);
-                                                        // console.log(value < startTime);
-                                                        // console.log(startTime.length === 0);
-                                                        // return value > startTime || startTime.length === 0 || "Must be after start time";
                                                     }
-                                                    // else if (startTime[0].length != 0){
-                                                    //     return (
-                                                    //         value.value > startTime.value ||
-                                                    //         startTime.value.length === 0 ||
-                                                    //         "Must be after start time"
-                                                    //     );
-                                                    // }
                                                 },
                                             },
                                         }}
@@ -691,10 +565,11 @@ function EditScheduleForm(props) {
     );
 }
 
-const mapStateToProps = (state) => ({
-    availablePhysicians: state.schedules.availablePhysicians,
-    selectedSchedule: state.schedules.selectedSchedule,
-    modal: state.modal,
-});
+// const mapStateToProps = (state) => ({
+//     availablePhysicians: state.schedules.availablePhysicians,
+//     selectedSchedule: state.schedules.selectedSchedule,
+//     modal: state.modal,
+// });
 
-export default connect(mapStateToProps, { getAvailablePhysicians })(EditScheduleForm);
+// export default connect(mapStateToProps, { getAvailablePhysicians })(EditScheduleForm);
+export default EditScheduleForm;

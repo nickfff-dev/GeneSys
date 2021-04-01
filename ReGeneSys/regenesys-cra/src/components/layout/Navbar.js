@@ -7,20 +7,16 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap/js/dist/dropdown";
 import { logout } from "../../actions/auth";
 
-
-
 export function Navbar(props) {
-
     const dispatch = useDispatch();
     const { isAuthenticated, user, profile } = props.auth;
     function logoutUser() {
         dispatch(logout());
     }
 
-
     return (
         <Fragment>
-            <nav className="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+            <nav className="navbar navbar-expand navbar-light bg-white topbar static-top shadow">
                 {/* Sidebar Toggle (Topbar) */}
                 <button id="sidebarToggleTop" className="btn btn-link d-md-none rounded-circle mr-3">
                     <i className="fa fa-bars" />

@@ -53,7 +53,7 @@
 
 import { createSlice } from "@reduxjs/toolkit";
 import { PATIENT_API } from "../constants";
-import { tokenConfig } from "../actions/auth";
+import { tokenConfig } from "../reducers/authSlice";
 import { createMessage } from "../reducers/messagesSlice";
 import { returnErrors } from "../reducers/errorsSlice";
 import { snakeCaseKeysToCamel, camelCaseKeysToSnake } from "../actions/utils";
@@ -65,12 +65,18 @@ const initialState = {
     patients: [],
     globalFilter: "",
     isLoadingPatients: false,
+    isLoadingModal: false,
+    generatedPatientId: "",
 };
 
 const patientsSlice = createSlice({
     name: "patients",
     initialState,
     reducers: {
+        //GENERATE ID FOR CREATION
+        patientGenerateId(state, action) {
+            state.generatedPatientId = action.payload;
+        },
         //GET PATIENT INFO
         patientGet(state, action) {
             state.patient = action.payload;
@@ -95,7 +101,7 @@ const patientsSlice = createSlice({
         patientDischarge(state, action) {
             // return {
             // ...state,
-            state.patients = state.patients.filter((patient) => patient.patientId !== action.payload.patientId);
+            state.patients = state.patients.filter((patient) => patient.patientId !== action.payload);
             // };
         },
         //SEARCH PATIENT
@@ -121,28 +127,46 @@ const patientsSlice = createSlice({
                 };
             },
         },
-
-        // todoToggled(state, action) {
-        //     const todo = state.find((todo) => todo.id === action.payload);
-        //     todo.completed = !todo.completed;
-        // },
-        // todosLoading(state, action) {
-        //     return {
-        //         ...state,
-        //         status: "loading",
-        //     };
-        // },
+        toggleLoadingPatients(state) {
+            state.isLoadingPatients = !state.isLoadingPatients;
+        },
+        toggleLoadingModal(state) {
+            state.isLoadingModal = !state.isLoadingModal;
+        },
     },
 });
 
-export const { patientGet, patientsGet, patientsSearch, patientAdd, patientEdit, patientDischarge, filterPatients } = patientsSlice.actions;
+export const {
+    patientGenerateId,
+    patientGet,
+    patientsGet,
+    patientsSearch,
+    patientAdd,
+    patientEdit,
+    patientDischarge,
+    filterPatients,
+    toggleLoadingPatients,
+    toggleLoadingModal,
+} = patientsSlice.actions;
 
 export default patientsSlice.reducer;
 
+export const generateId = () => async (dispatch, getState) => {
+    try {
+        const res = await axios.get(PATIENT_API + "generateid", tokenConfig(getState));
+        dispatch(patientGenerateId(res.data));
+        dispatch(toggleLoadingModal());
+    } catch (err) {
+        dispatch(returnErrors(err.response.data, err.response.status));
+    }
+};
+
 export const getPatients = () => async (dispatch, getState) => {
     try {
+        dispatch(toggleLoadingPatients());
         const res = await axios.get(PATIENT_API, tokenConfig(getState));
         dispatch(patientsGet(snakeCaseKeysToCamel(res.data)));
+        dispatch(toggleLoadingPatients());
     } catch (err) {
         dispatch(returnErrors(err.response.data, err.response.status));
     }
@@ -150,8 +174,10 @@ export const getPatients = () => async (dispatch, getState) => {
 
 export const searchPatients = (searchValue) => async (dispatch, getState) => {
     try {
+        dispatch(toggleLoadingPatients());
         const res = await axios.get(PATIENT_API + `search_patients/?query=${searchValue}`, tokenConfig(getState));
         dispatch(patientsSearch(snakeCaseKeysToCamel(res.data)));
+        dispatch(toggleLoadingPatients());
     } catch (err) {
         dispatch(returnErrors(err.response.data, err.response.status));
     }
@@ -164,6 +190,7 @@ export const getPatient = (patientId) => async (dispatch, getState) => {
     } catch (err) {
         dispatch(returnErrors(err.response.data, err.response.status));
     }
+    dispatch(toggleLoadingModal());
 };
 
 //ADD PATIENT
@@ -171,6 +198,8 @@ export const addPatient = (patient) => async (dispatch, getState) => {
     try {
         const res = await axios.post(PATIENT_API, camelCaseKeysToSnake(patient), tokenConfig(getState));
         dispatch(createMessage({ addPatient: "Patient Added" }));
+        // dispatch(getPatients());
+        // dispatch(loadingModal());
         dispatch(patientAdd(snakeCaseKeysToCamel(res.data)));
     } catch (err) {
         dispatch(returnErrors(err.response.data, err.response.status));
@@ -190,12 +219,23 @@ export const editPatient = (patient) => async (dispatch, getState) => {
 
 //DISCHARGE PATIENT
 export const dischargePatient = (patient) => async (dispatch, getState) => {
+    const { patientId } = patient;
     try {
-        const res = await axios.put(PATIENT_API + `${patient.patientId}/`, camelCaseKeysToSnake(patient), tokenConfig(getState));
-        dispatch(createMessage({ dischargePatient: "Patient Discharged" }));
-        dispatch(patientDischarge(snakeCaseKeysToCamel(res.data)));
+        const res = await axios.put(PATIENT_API + `discharge_patient/`, camelCaseKeysToSnake(patient), tokenConfig(getState));
+        dispatch(createMessage({ dischargePatient: res.data }));
+        dispatch(patientDischarge(patientId));
     } catch (err) {
-        console.log(err);
+        dispatch(returnErrors(err.response.data, err.response.status));
+    }
+};
+
+//DELETE PATIENT
+export const deletePatient = (patientId) => async (dispatch, getState) => {
+    try {
+        const res = await axios.delete(PATIENT_API + `${patientId}/`, tokenConfig(getState));
+        dispatch(createMessage({ deletePatient: "Patient Deleted" }));
+        dispatch(patientDischarge(patientId));
+    } catch (err) {
         dispatch(returnErrors(err.response.data, err.response.status));
     }
 };

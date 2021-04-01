@@ -58,7 +58,7 @@ export function Home() {
                     <div id="content">
                         <Navbar />
                         {/* Begin Page Content */}
-                        <div className="container-fluid">
+                        <div className="container-fluid h-100 pt-4">
                             {/* Page Heading */}
                             {/* <Switch> */}
                             <Fragment>

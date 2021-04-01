@@ -44,22 +44,24 @@ function App() {
                 <Router>
                     <Fragment>
                         <Alerts />
-                        <Switch>
-                            <PrivateRoute exact path="/" component={Home} />
-                            <PrivateRoute path="/patients" component={Home} />
-                            <PrivateRoute path="/dashboard" component={Home} />
-                            <PrivateRoute path="/schedule" component={Home} />
-                            <Route path="/login" component={Login} />
-                            <Route path="/register" component={Register} />
-                            <Route component={NoMatch} />
-                            {/*  */}
-                            {/* <PrivateRoute path="/patients" component={<h1>Patients</h1>} />
+                        <div className="page-container h-100">
+                            <Switch>
+                                <PrivateRoute exact path="/" component={Home} />
+                                <PrivateRoute path="/patients" component={Home} />
+                                <PrivateRoute path="/dashboard" component={Home} />
+                                <PrivateRoute path="/schedule" component={Home} />
+                                <Route path="/login" component={Login} />
+                                <Route path="/register" component={Register} />
+                                <Route component={NoMatch} />
+                                {/*  */}
+                                {/* <PrivateRoute path="/patients" component={<h1>Patients</h1>} />
                             
                             <PrivateRoute path="/schedule" component={<h1>Schedule</h1>} /> */}
-                            {/* <Route path="/register" component={Register} />
+                                {/* <Route path="/register" component={Register} />
                             <Route path="/login" component={Login} />
                              */}
-                        </Switch>
+                            </Switch>
+                        </div>
                     </Fragment>
                 </Router>
             </AlertProvider>

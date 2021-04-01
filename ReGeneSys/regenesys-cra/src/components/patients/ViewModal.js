@@ -92,10 +92,10 @@ function ViewModal(props) {
                     [{clinical.status}]Patient: {patientId}{" "}
                 </ModalHeader>
                 <ModalBody>
-                    <div class="demographic-box p-2 mb-2">
-                        <div className="row">
-                            <div className="col-12 mb-3">
-                                <strong>Demographic Data</strong>
+                    <div class="demographic-box px-3 mb-3">
+                        <div className="row border border-gray rounded-sm">
+                            <div className="info-box border-bottom border-gray col-12 mb-3">
+                                <p className="text-header my-2">Demographic Data</p>
                             </div>
 
                             <div className="col-md-3 col-sm-6">
@@ -138,10 +138,10 @@ function ViewModal(props) {
                         </div>
                     </div>
 
-                    <div className="diagnostic-box p-2 mb-2">
-                        <div className="row">
-                            <div className="col-12 mb-3">
-                                <strong>Diagnostic Data</strong>
+                    <div className="diagnostic-box px-3 mb-3">
+                        <div className="row border border-gray rounded-sm">
+                            <div className="info-box border-bottom border-gray  col-12 mb-3">
+                                <p className="text-header my-2">Diagnostic Data</p>
                             </div>
 
                             <div className="col-md-3 col-sm-6">
@@ -181,10 +181,10 @@ function ViewModal(props) {
                         </div>
                     </div>
 
-                    <div className="contact-box p-2 mb-2">
-                        <div className="row">
-                            <div className="col-12 mb-3">
-                                <strong>Contact Information</strong>
+                    <div className="contact-box px-3 mb-3">
+                        <div className="row border border-gray rounded-sm">
+                            <div className="info-box border-bottom border-gray col-12 mb-3">
+                                <p className="text-header my-2">Contact Information</p>
                             </div>
 
                             {contact.altContactName.length > 0 && (

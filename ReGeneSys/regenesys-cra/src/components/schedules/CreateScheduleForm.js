@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { connect, useDispatch } from "react-redux";
+import { connect, useDispatch, useSelector } from "react-redux";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 
 import {} from "../../actions/schedules";
@@ -27,10 +27,12 @@ function CreateScheduleForm(props) {
     const [isLoading, setIsLoading] = useState(true);
     const [selectedPhysician, setSelectedPhysician] = useState([]);
     const [selectedStartTime, setSelectedStartTime] = useState();
+
+    const state = useSelector((state) => state);
     const dispatch = useDispatch();
 
     useEffect(() => {
-        getPhysicians(props.modal.modalProps);
+        getPhysicians(new Date(state.modal.modalProps));
     }, []);
 
     const closeModal = () => {
@@ -39,7 +41,7 @@ function CreateScheduleForm(props) {
 
     const getPhysicians = (date) => {
         dispatch(getAvailablePhysicians(format(date, "yyyy-MM-dd")));
-        generatePhysicianOptions(props.availablePhysicians);
+        generatePhysicianOptions(state.schedules.availablePhysicians);
     };
 
     const generateTimeOptions = () => {
@@ -66,7 +68,7 @@ function CreateScheduleForm(props) {
 
     const generatePhysicianOptions = () => {
         const availablePhysicians = [];
-        props.availablePhysicians.forEach((physician) => {
+        state.schedules.availablePhysicians.forEach((physician) => {
             availablePhysicians.push({ value: physician.id, label: physician.firstName + " " + physician.lastName });
         });
 
@@ -140,7 +142,7 @@ function CreateScheduleForm(props) {
         // const date = format(props.modal.modalProps, "yyyy-MM-dd");
 
         //date is in UTC due to react-calendar
-        const date = props.modal.modalProps;
+        const date = new Date(state.modal.modalProps);
 
         const event = {
             name,
@@ -516,10 +518,11 @@ function CreateScheduleForm(props) {
     );
 }
 
-const mapStateToProps = (state) => ({
-    availablePhysicians: state.schedules.availablePhysicians,
-    selectedSchedule: state.schedules.selectedSchedule,
-    modal: state.modal,
-});
+// const mapStateToProps = (state) => ({
+//     availablePhysicians: state.schedules.availablePhysicians,
+//     selectedSchedule: state.schedules.selectedSchedule,
+//     modal: state.modal,
+// });
 
-export default connect(mapStateToProps, { getAvailablePhysicians })(CreateScheduleForm);
+// export default connect(mapStateToProps, { getAvailablePhysicians })(CreateScheduleForm);
+export default CreateScheduleForm;

@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { connect, useDispatch } from "react-redux";
+import { connect, useDispatch, useSelector } from "react-redux";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 
 // import { editPatientAppointment } from "../../actions/schedules";
-import { getAvailablePatients, editPatientAppointment } from "../../reducers/schedulesSlice";
+import { getAvailablePatients, editPatientAppointment, clearPatientOptions } from "../../reducers/schedulesSlice";
 import { shortenTime, getValueFromArrayOrObject } from "./CalendarSchedule";
 import { generateTime, timeRangeOverlaps } from "./CreatePatientAppointment";
 import { hideModal } from "../../reducers/modalSlice";
@@ -29,11 +29,13 @@ function EditPatientAppointment(props) {
     const [timeOptions, setTimeOptions] = useState(() => generateTime());
     const [loadOverlay, setLoadOverlay] = useState(true);
 
+    const state = useSelector((state) => state);
+
     const dispatch = useDispatch();
 
-    const selectedSchedule = props.selectedSchedule[0];
-    const selectedAppointment = props.selectedAppointment;
-    const scheduledPatients = props.scheduledPatients;
+    const selectedSchedule = state.schedules.selectedSchedule[0];
+    const selectedAppointment = state.schedules.selectedAppointment;
+    const scheduledPatients = state.schedules.scheduledPatients;
     var availablePatients = [];
     var limitStartTime = [];
     var limitEndTime = [];
@@ -57,15 +59,11 @@ function EditPatientAppointment(props) {
     }, [availablePatients]);
 
     useEffect(() => {
-        generatePatientOptions(props.availablePatients);
+        generatePatientOptions(state.schedules.availablePatients);
     }, []);
 
-    const closeModal = () => {
-        dispatch(hideModal());
-    };
-
     //gets patients that can be scheduled
-    const getPatients = () => {
+    const getPatients = async () => {
         dispatch(getAvailablePatients(selectedSchedule.pk, selectedAppointment.patient.patientId));
     };
 
@@ -86,7 +84,7 @@ function EditPatientAppointment(props) {
 
     //set list of available patients as options for dropdown
     const generatePatientOptions = () => {
-        props.availablePatients.forEach((patient) => {
+        state.schedules.availablePatients.forEach((patient) => {
             availablePatients.push({ value: patient.patientId, label: patient.firstName + " " + patient.lastName });
         });
         return availablePatients;
@@ -132,6 +130,11 @@ function EditPatientAppointment(props) {
         return filteredTimeOptions;
     };
 
+    const closeModal = () => {
+        dispatch(clearPatientOptions());
+        dispatch(hideModal());
+    };
+
     const toggle = () => {
         setModal(!modal);
         closeModal();
@@ -141,6 +144,7 @@ function EditPatientAppointment(props) {
         setNestedModal(!nestedModal);
         setCloseAll(false);
     };
+
     const toggleAll = () => {
         setNestedModal(!nestedModal);
         setCloseAll(true);
@@ -158,12 +162,12 @@ function EditPatientAppointment(props) {
         const { patient, schedule, physician, startTime, endTime, appointmentType } = data;
 
         //convert it to date to be formatted because date strings are invalid.
-        const date = new Date(props.selectedAppointment.schedule.event.date);
+        const date = new Date(state.schedules.selectedAppointment.schedule.event.date);
 
         const appointmentToEdit = {
             patient: getValueFromArrayOrObject(patient),
-            schedule: props.selectedSchedule[0].pk,
-            physician: props.selectedSchedule[0].physician[0].id,
+            schedule: state.schedules.selectedSchedule[0].pk,
+            physician: state.schedules.selectedSchedule[0].physician[0].id,
             startTime: new Date(format(date, "yyyy-MM-dd") + " " + getValueFromArrayOrObject(startTime)),
             endTime: new Date(format(date, "yyyy-MM-dd") + " " + getValueFromArrayOrObject(endTime)),
             appointmentType,
@@ -171,7 +175,6 @@ function EditPatientAppointment(props) {
         };
 
         // console.log(appointmentToEdit);
-
         dispatch(editPatientAppointment(selectedAppointment.pk, appointmentToEdit));
         toggleAll();
     };
@@ -182,8 +185,8 @@ function EditPatientAppointment(props) {
         reValidateMode: "onChange",
         defaultValues: {
             patient: defaultPatient,
-            schedule: props.selectedSchedule[0].pk,
-            physician: props.selectedSchedule[0].physician[0].id,
+            schedule: state.schedules.selectedSchedule[0].pk,
+            physician: state.schedules.selectedSchedule[0].physician[0].id,
             startTime: defaultStartTime,
             endTime: defaultEndTime,
             appointmentType: "",
@@ -207,8 +210,9 @@ function EditPatientAppointment(props) {
                                         <Controller
                                             as={Select}
                                             options={generatePatientOptions()}
+                                            isLoading={state.isLoadingPatients}
                                             name="patient"
-                                            noOptionsMessage={() => "No available physicians"}
+                                            noOptionsMessage={() => "No available patients"}
                                             placeholder="Select Patient"
                                             className="basic-single"
                                             isClearable
@@ -492,12 +496,13 @@ function EditPatientAppointment(props) {
     );
 }
 
-const mapStateToProps = (state) => ({
-    availablePatients: state.schedules.availablePatients,
-    scheduledPatients: state.schedules.scheduledPatients,
-    selectedSchedule: state.schedules.selectedSchedule,
-    selectedAppointment: state.schedules.selectedAppointment,
-    modal: state.modal,
-});
+// const mapStateToProps = (state) => ({
+//     availablePatients: state.schedules.availablePatients,
+//     scheduledPatients: state.schedules.scheduledPatients,
+//     selectedSchedule: state.schedules.selectedSchedule,
+//     selectedAppointment: state.schedules.selectedAppointment,
+//     modal: state.modal,
+// });
 
-export default connect(mapStateToProps, {})(EditPatientAppointment);
+// export default connect(mapStateToProps, {})(EditPatientAppointment);
+export default EditPatientAppointment;

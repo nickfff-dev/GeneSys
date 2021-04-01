@@ -1,19 +1,6 @@
 import React, { useState, useEffect, useRef, Fragment } from "react";
 import { connect, useDispatch, useSelector } from "react-redux";
-import {
-    Dropdown,
-    DropdownToggle,
-    DropdownMenu,
-    DropdownItem,
-    Card,
-    CardTitle,
-    CardText,
-    Button,
-    Modal,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
-} from "reactstrap";
+import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 
 import Calendar from "react-calendar";
 import { differenceInCalendarDays, parseISO, format } from "date-fns";
@@ -21,15 +8,17 @@ import _ from "lodash";
 
 import { zonedTimeToUtc, utcToZonedTime } from "date-fns-tz";
 
-import { deleteEvent, showOverlay, getScheduleDetails, getScheduledPatients } from "../../reducers/schedulesSlice";
+import { deleteEvent, getScheduleDetails, getScheduledPatients } from "../../reducers/schedulesSlice";
 
 import { showModal, hideModal } from "../../reducers/modalSlice";
 import CreateScheduleForm from "./CreateScheduleForm";
 import EditScheduleForm from "./EditScheduleForm";
 import CreatePatientAppointment from "./CreatePatientAppointment";
 import EditPatientAppointment from "./EditPatientAppointment";
-import { LOAD_OVERLAY } from "../../actions/types";
-import { tr } from "date-fns/locale";
+import Pulse from "../../static/images/Pulse.svg";
+
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEllipsisV } from "@fortawesome/free-solid-svg-icons";
 
 export const shortenTime = (time, timeFormat) => {
     let shortened = "";
@@ -86,20 +75,23 @@ function CalendarSchedule(props) {
     }, []);
 
     useEffect(() => {
-        // console.log(prevProps);
-        if (props.selectedSchedule.length > 0) {
-            // setDisableScheduleActionButton(false);
+        if (state.schedules.selectedSchedule.length > 0) {
             setNewDateSelected(true);
             setDisableDeleteButton(false);
-
-            console.log("habe selected");
         } else {
             setDisableDeleteButton(true);
-            // setDisableScheduleActionButton(true);
-            console.log("no habe selected");
         }
         setDisableCreateButton(false);
     }, [props.selectedSchedule]);
+
+    useEffect(() => {
+        console.log(currentDate);
+        if (new Date() > currentDate) {
+            console.log("Past Date");
+        } else {
+            console.log("Future Date");
+        }
+    });
 
     const [modal, setModal] = useState(false);
     const [selectedDate, setSelectedDate] = useState();
@@ -108,16 +100,17 @@ function CalendarSchedule(props) {
     const [disableScheduleActionButton, setDisableScheduleActionButton] = useState(true);
     const [disableCreateButton, setDisableCreateButton] = useState(true);
     const [disableDeleteButton, setDisableDeleteButton] = useState(true);
+    const [toggleSelected, settoggleSelected] = useState();
+
     const state = useSelector((state) => state);
+
     const toggleDropdown = () => setDropdownOpen((prevState) => !prevState);
     const toggle = () => setModal(!modal);
 
     const datesToAddClassTo = [];
 
-    useEffect(() => {});
-
-    for (var i in props.events) {
-        datesToAddClassTo.push(props.events[i]["startTime"]);
+    for (var i in state.schedules.events) {
+        datesToAddClassTo.push(state.schedules.events[i]["startTime"]);
     }
 
     function isSameDay(a, b) {
@@ -132,16 +125,11 @@ function CalendarSchedule(props) {
     }
 
     function onClickDay(value) {
-        // New date selected
-        if (Date.parse(selectedDate) !== Date.parse(value)) {
-            setNewDateSelected(true);
-            setDisableScheduleActionButton(true);
-        } else {
-            setNewDateSelected(false);
-        }
+        setDisableScheduleActionButton(true);
+        settoggleSelected();
         setSelectedDate(value);
         setDisableCreateButton(false);
-        dispatch(getScheduleDetails(value, newDateSelected));
+        dispatch(getScheduleDetails(value));
     }
 
     function getPatients(scheduleId, physicianId) {
@@ -150,110 +138,125 @@ function CalendarSchedule(props) {
     }
 
     const confirmDelete = () => {
-        dispatch(deleteEvent(props.selectedSchedule[0].event.pk));
+        dispatch(deleteEvent(state.schedules.selectedSchedule[0].event.pk));
         toggle();
     };
 
     //Handles showing of add/edit appointment modal
-    function showScheduleModal(type, modalProps) {
+    const showScheduleModal = async (type, modalProps) => {
+        let date = modalProps.toDateString();
         if (type === "deleteSchedule") {
             toggle();
-            dispatch(showModal(type, modalProps));
+            dispatch(showModal(type, date));
         } else if (type === "addSchedule") {
-            dispatch(showModal(type, modalProps));
-        } else {
-            dispatch(showModal(type, modalProps));
+            dispatch(showModal(type, date));
         }
-    }
+        // else if (type === "editSchedule") {
+        //     if (state.schedules.scheduledPatients.length > 0) {
+        //         alert("please remove all existing appointments before you can edit this schedule.");
+        //     } else {
+        //         await dispatch(isEditable(state.schedules.selectedSchedule[0].pk));
+        //         if (state.schedules.isEditable === false) {
+        //             alert("please remove all existing appointments before you can edit this schedule.");
+        //         } else {
+        //             dispatch(showModal(type, date));
+        //         }
+        //     }
+        // }
+        else {
+            dispatch(showModal(type, date));
+        }
+    };
 
     let componentHeader;
     let myComponent;
 
-    if (props.isLoadingSchedules) {
-        myComponent = <h1>Loading</h1>;
-    } else {
-        componentHeader = (
-            <div className="row">
-                <div className="col-8">
-                    <h6 className="h-4">
-                        Schedules for <i>{format(currentDate, "yyyy-MM-dd")}</i>
-                    </h6>
-                </div>
-                <div className="col-4">
-                    <Dropdown isOpen={dropdownOpen} toggle={toggleDropdown}>
-                        <DropdownToggle className="float-right">
-                            <svg
-                                width="1em"
-                                height="1em"
-                                viewBox="0 0 16 16"
-                                className="bi bi-three-dots-vertical"
-                                fill="currentColor"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <path
-                                    fillRule="evenodd"
-                                    d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"
-                                />
-                            </svg>
-                        </DropdownToggle>
-                        <DropdownMenu right>
-                            {(props.selectedSchedule.length === 0 && (
-                                <DropdownItem onClick={() => showScheduleModal("addSchedule", currentDate)} disabled={disableCreateButton}>
-                                    Create Schedule
-                                </DropdownItem>
-                            )) || (
-                                <DropdownItem onClick={() => showScheduleModal("editSchedule", currentDate)} disabled={disableCreateButton}>
-                                    Edit Schedule
-                                </DropdownItem>
-                            )}
-                            <DropdownItem onClick={() => showScheduleModal("deleteSchedule", currentDate)} disabled={disableDeleteButton}>
-                                Delete Schedule
+    componentHeader = (
+        <div className="row mb-1">
+            <div className="col-8">
+                <p className="mb-0 font-weight-bold" style={{ fontSize: "1.125rem" }}>
+                    {format(currentDate, "PPP")}
+                </p>
+            </div>
+            <div className="col-4">
+                <Dropdown isOpen={dropdownOpen} toggle={toggleDropdown}>
+                    <DropdownToggle outline color="secondary" size="sm" className="float-right border-0">
+                        <FontAwesomeIcon icon={faEllipsisV} />
+                    </DropdownToggle>
+                    <DropdownMenu right>
+                        {(state.schedules.selectedSchedule.length === 0 && (
+                            <DropdownItem onClick={() => showScheduleModal("addSchedule", currentDate)} disabled={disableCreateButton}>
+                                Create Schedule
                             </DropdownItem>
-                        </DropdownMenu>
-                    </Dropdown>
-                    {/* <button className="menu-button float-right"></button> */}
+                        )) || (
+                            <DropdownItem onClick={() => showScheduleModal("editSchedule", currentDate)} disabled={disableCreateButton}>
+                                Edit Schedule
+                            </DropdownItem>
+                        )}
+                        <DropdownItem onClick={() => showScheduleModal("deleteSchedule", currentDate)} disabled={disableDeleteButton}>
+                            Delete Schedule
+                        </DropdownItem>
+                    </DropdownMenu>
+                </Dropdown>
+                {/* <button className="menu-button float-right"></button> */}
+            </div>
+        </div>
+    );
+    if (state.schedules.isLoadingSchedules === true) {
+        myComponent = (
+            <div className="d-flex flex-flow-column justify-content-center" style={{ minHeight: "13em" }}>
+                <div className="d-flex">
+                    <img className="" src={Pulse}></img>
                 </div>
             </div>
         );
-        if (props.selectedSchedule.length === 0) {
-            myComponent = (
-                <div className="row h-75">
-                    <div className="col-12 my-auto">
-                        <h3 className="text-center">No schedules made</h3>
-                    </div>
+    } else if (state.schedules.selectedSchedule.length === 0 && state.schedules.isLoadingSchedules === false) {
+        myComponent = (
+            <div className="row" style={{ minHeight: "13em" }}>
+                <div className="col-12 my-auto">
+                    <h3 className="text-center">No schedules made</h3>
                 </div>
-            );
-        } else {
-            myComponent = (
-                <div className="row">
-                    <div className="col-12">
-                        {props.selectedSchedule.map((schedule, index) =>
-                            schedule.physician.map((physician, index2) => (
-                                <Card
+            </div>
+        );
+    } else {
+        myComponent = (
+            <div className="">
+                <div className="overflow-auto pr-2 custom-scrollbar-css" style={{ maxHeight: "13em" }}>
+                    {state.schedules.selectedSchedule.map((schedule, index) =>
+                        schedule.physician.map((physician, index2) => (
+                            <div
+                                key={index2}
+                                // className="card-outer rounded mb-2"
+                                className={`card-outer rounded mb-2 ${toggleSelected === index2 ? "card-selected" : ""}`}
+                                onClick={() => settoggleSelected(index2)}
+                            >
+                                <div
+                                    className="card border-left-info bg-light text-black p-3"
                                     key={index2}
-                                    body
-                                    outline
-                                    className="border-left-info bg-light text-black shadow m-1"
                                     onClick={() => getPatients(schedule.pk, physician.id)}
                                 >
-                                    <CardTitle>
-                                        {physician.firstName} {physician.lastName}
-                                    </CardTitle>
-                                    <CardText className="text-black-50 small user-select-none">
-                                        {shortenTime(schedule.event.startTime, "12H")} {" - "} {shortenTime(schedule.event.endTime, "12H")}
-                                    </CardText>
-                                </Card>
-                            ))
-                        )}
-                    </div>
+                                    <div className="card-title">
+                                        <p className="m-0">
+                                            {physician.firstName} {physician.lastName}
+                                        </p>
+                                    </div>
+                                    <div className="card-text text-black-50 small user-select-none">
+                                        <p className="m-0">
+                                            {shortenTime(schedule.event.startTime, "12H")} {" - "} {shortenTime(schedule.event.endTime, "12H")}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </div>
-            );
-        }
+            </div>
+        );
     }
 
     return (
         <div className="col-lg-4 col-md-12 mb-4-xl">
-            <div className="calendar-box p-2 mb-2 rounded" style={{ background: "cyan" }}>
+            <div className="calendar-box p-2 mb-2 border border-secondary rounded" style={{}}>
                 <Calendar
                     calendarType="US"
                     className={["rc-override", "mr-auto", "ml-auto"]}
@@ -264,12 +267,12 @@ function CalendarSchedule(props) {
                     value={currentDate}
                 />
             </div>
-            <div className="schedule-box p-2 mb-2 rounded" style={{ background: "cyan" }}>
+            <div className="schedule-box p-2 mb-2 border border-secondary rounded" style={{ height: "16.5em" }}>
                 {componentHeader}
                 {myComponent}
             </div>
-            <div className="text-center button-group mb-2 clearfix rounded p-2" style={{ background: "cyan" }}>
-                {(props.selectedSchedule.length === 0 && (
+            <div className="text-center button-group mb-2 clearfix border border-secondary rounded p-2" style={{ background: "" }}>
+                {(state.schedules.selectedSchedule.length === 0 && (
                     <button
                         className="btn btn-primary btn-md btn-block"
                         data-toggle="modal"
@@ -301,7 +304,7 @@ function CalendarSchedule(props) {
                     Schedule a Patient
                 </button>
             </div>
-            {(props.isLoadingOverlay === true && <div className="text-center h-100">Loading stuff...</div>) ||
+            {(state.schedules.isLoadingOverlay === true && <div className="loading">Loading&#8230;</div>) ||
                 (() => {
                     switch (state.modal.modalMode) {
                         case "addSchedule":
@@ -332,41 +335,10 @@ function CalendarSchedule(props) {
                             return null;
                     }
                 })()}
-            {/* {(() => {
-                switch (state.modal.modalMode) {
-                    case "addSchedule":
-                        return (
-                            <Fragment>
-                                <CreateScheduleForm toggleModal={true} />
-                            </Fragment>
-                        );
-                    case "editSchedule":
-                        return (
-                            <Fragment>
-                                <EditScheduleForm toggleModal={true} />
-                            </Fragment>
-                        );
-                    case "addAppointment":
-                        return (
-                            <Fragment>
-                                <CreatePatientAppointment toggleModal={true} />
-                            </Fragment>
-                        );
-                    case "editAppointment":
-                        return (
-                            <Fragment>
-                                <EditPatientAppointment toggleModal={true} />
-                            </Fragment>
-                        );
-                    default:
-                        return null;
-                }
-            })()} */}
-
-            <Modal isOpen={modal} toggle={toggle}>
+            <Modal isOpen={modal} toggle={toggle} backdrop="static" keyboard={false}>
                 <ModalHeader>Delete Schedule</ModalHeader>
                 <ModalBody>
-                    Deleting this schedule will also <b>delete all patient appointements</b> for this date. Do you want to continue?
+                    Deleting this schedule will also <b>delete all patient appointments</b> for this date. Do you want to continue?
                 </ModalBody>
                 <ModalFooter>
                     <Button color="primary" onClick={() => confirmDelete()}>
@@ -395,4 +367,5 @@ const mapStateToProps = (state) => ({
     selectedSchedulePhysician: state.schedules.selectedSchedulePhysician,
 });
 
-export default connect(mapStateToProps, { getScheduleDetails, getScheduledPatients })(CalendarSchedule);
+// export default connect(mapStateToProps, { getScheduleDetails, getScheduledPatients })(CalendarSchedule);
+export default CalendarSchedule;

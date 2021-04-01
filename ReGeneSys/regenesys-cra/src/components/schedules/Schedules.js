@@ -10,7 +10,6 @@ import "react-calendar/dist/Calendar.css";
 import "../../App.css";
 
 function Schedules(props) {
-    // const { getEvents } = props;
     const dispatch = useDispatch();
 
     useEffect(() => {

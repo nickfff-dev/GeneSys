@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useState, useRef, usePrevious } from "react";
-import { connect, useDispatch } from "react-redux";
+import { connect, useDispatch, useSelector } from "react-redux";
 import { useTable, useSortBy, useGlobalFilter, usePagination } from "react-table";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 
@@ -7,7 +7,12 @@ import { format } from "date-fns";
 import { split } from "lodash";
 import { shortenTime, formatDate, zonedToUtc } from "./CalendarSchedule";
 import { showModal } from "../../reducers/modalSlice";
-import { deletePatientAppointment, showOverlay, hideOverlay, getAppointmentDetails, getAvailablePatients } from "../../reducers/schedulesSlice";
+import { deletePatientAppointment, toggleLoadingOverlay, getAppointmentDetails, getAvailablePatients } from "../../reducers/schedulesSlice";
+import Pulse from "../../static/images/Pulse.svg";
+
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEdit, faTrashAlt, faNotesMedical, faBackward, faCaretLeft, faCaretRight, faForward } from "@fortawesome/free-solid-svg-icons";
+import { Fragment } from "react";
 
 function usePreviousSelection(schedule) {
     const ref = useRef();
@@ -23,25 +28,22 @@ function TableSchedule(props) {
     const [modal, setModal] = useState(false);
     const [modalType, setModalType] = useState();
     const [modalProps, setModalProps] = useState();
-    const [tableMessage, setTableMessage] = useState("Please Select a Date");
+    const [tableMessage, setTableMessage] = useState();
     const prevSelectedSchedule = usePreviousSelection(props.selectedSchedule);
     const [currentDateTime, onChange] = useState(new Date().toISOString());
 
+    const state = useSelector((state) => state.schedules);
     const dispatch = useDispatch();
 
     useEffect(() => {
-        dispatch(hideOverlay());
-    }, [props.availablePatients.length !== 0 && props.selectedAppointment !== 0]);
-
-    useEffect(() => {
-        dispatch(showModal(modalType, modalProps));
-    }, [props.isLoadingOverlay == false]);
-
-    useEffect(() => {
-        if (props.newDateSelected && props.selectedSchedulePhysician === null) {
-            setTableMessage("Please Select a Schedule");
-        } else if (props.selectedSchedulePhysician && props.scheduledPatients.length === 0) {
-            setTableMessage("No Scheduled Patients");
+        if (state.selectedSchedule[0]) {
+            if (state.selectedSchedulePhysician && state.scheduledPatients.length === 0) {
+                setTableMessage("No Patients Scheduled");
+            } else {
+                setTableMessage("Please Select a Doctor");
+            }
+        } else {
+            setTableMessage("Please Create a Schedule");
         }
     });
 
@@ -50,7 +52,7 @@ function TableSchedule(props) {
     };
 
     //useMemo is required by react-table.
-    const data = useMemo(() => getPatientData(props.scheduledPatients), [props.scheduledPatients]);
+    const data = useMemo(() => getPatientData(state.scheduledPatients), [state.scheduledPatients]);
     const columns = useMemo(
         () => [
             {
@@ -81,8 +83,6 @@ function TableSchedule(props) {
         var allData = [];
         var timeFormat = "12H";
         patients.forEach((element) => {
-            console.log(element.startTime);
-            console.log(new Date().toISOString());
             if (currentDateTime > element.startTime && currentDateTime > element.endTime) {
                 console.log("past sched");
             } else {
@@ -92,14 +92,35 @@ function TableSchedule(props) {
             if (currentDateTime > element.startTime && currentDateTime > element.endTime) {
                 actionCol = (
                     <div>
-                        <button onClick={() => showAppointment("remark", element)}>remark</button>
+                        <button
+                            className="btn btn-sm btn-primary"
+                            data-toggle="tooltip"
+                            title="Create Report"
+                            onClick={() => showAppointment("report", element)}
+                        >
+                            <FontAwesomeIcon icon={faNotesMedical} />
+                        </button>
                     </div>
                 );
             } else {
                 actionCol = (
-                    <div>
-                        <button onClick={() => showAppointment("editAppointment", element)}>edit</button>
-                        <button onClick={() => showAppointment("deleteAppointment", element)}>delete</button>
+                    <div className="d-flex flex-nowrap justify-content-around">
+                        <button
+                            className="btn btn-sm btn-primary"
+                            data-toggle="tooltip"
+                            title="Edit Appointment"
+                            onClick={() => showAppointment("editAppointment", element)}
+                        >
+                            <FontAwesomeIcon icon={faEdit} />
+                        </button>
+                        <button
+                            className="btn btn-sm btn-danger"
+                            data-toggle="tooltip"
+                            title="Delete Appointment"
+                            onClick={() => showAppointment("deleteAppointment", element)}
+                        >
+                            <FontAwesomeIcon icon={faTrashAlt} />
+                        </button>
                     </div>
                 );
             }
@@ -116,12 +137,11 @@ function TableSchedule(props) {
         return allData;
     }
 
-    const showAppointment = (type, appointment) => {
+    const showAppointment = async (type, appointment) => {
         if (type === "editAppointment") {
-            dispatch(showOverlay());
-            dispatch(getAppointmentDetails(appointment.pk));
-            setModalType(type);
-            setModalProps(appointment.pk);
+            await dispatch(getAppointmentDetails(appointment.pk));
+            dispatch(showModal(type, appointment.pk));
+        } else if (type === "report") {
         } else {
             setModalType(type);
             setModalProps(appointment.pk);
@@ -130,7 +150,6 @@ function TableSchedule(props) {
     };
 
     const onSubmit = () => {
-        console.log(modalProps);
         dispatch(deletePatientAppointment(modalProps));
         toggle();
     };
@@ -167,12 +186,18 @@ function TableSchedule(props) {
     );
 
     let tableComponent;
-    if (props.isLoadingPatients === true) {
-        tableComponent = <h1>Loading</h1>;
+    if (state.isLoadingAppointments || state.isLoadingSchedules) {
+        tableComponent = (
+            <div className="d-flex flex-flow-column justify-content-center h-100">
+                <div className="d-flex">
+                    <img className="" src={Pulse}></img>
+                </div>
+            </div>
+        );
     } else {
-        if (data.length === 0) {
+        if (data.length === 0 && (!state.isLoadingAppointments || !state.isLoadingSchedules)) {
             tableComponent = (
-                <div className="row h-75">
+                <div className="row h-100">
                     <div className="col-12 my-auto">
                         <h3 className="text-center">{tableMessage}</h3>
                     </div>
@@ -180,72 +205,71 @@ function TableSchedule(props) {
             );
         } else {
             tableComponent = (
-                <table className="table table-striped table-responsive-md" {...getTableProps()}>
-                    <thead>
-                        {headerGroups.map((headerGroup) => (
-                            <tr {...headerGroup.getHeaderGroupProps()}>
-                                {headerGroup.headers.map((column) => (
-                                    <th {...column.getHeaderProps(column.getSortByToggleProps())}>
-                                        {column.render("Header")}
-                                        <span>{column.isSorted ? (column.isSortedDesc ? " 🔽" : " 🔼") : ""}</span>
-                                    </th>
+                <Fragment>
+                    <div className="schedule-table-container h-md-100">
+                        <table className="table table-striped table-bordered table-responsive-sm" {...getTableProps()}>
+                            <thead>
+                                {headerGroups.map((headerGroup) => (
+                                    <tr {...headerGroup.getHeaderGroupProps()}>
+                                        {headerGroup.headers.map((column) => (
+                                            <th className="text-center" {...column.getHeaderProps(column.getSortByToggleProps())}>
+                                                {column.render("Header")}
+                                                <span>{column.isSorted ? (column.isSortedDesc ? " 🔽" : " 🔼") : ""}</span>
+                                            </th>
+                                        ))}
+                                    </tr>
                                 ))}
-                            </tr>
-                        ))}
-                    </thead>
-                    <tbody {...getTableBodyProps()}>
-                        {page.map((row, i) => {
-                            prepareRow(row);
-                            return (
-                                <tr {...row.getRowProps()}>
-                                    {row.cells.map((cell) => {
-                                        return <td {...cell.getCellProps()}>{cell.render("Cell")}</td>;
-                                    })}
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                    <tfoot>
-                        {footerGroups.map((group) => (
-                            <tr {...group.getFooterGroupProps()}>
-                                {group.headers.map((column) => (
-                                    <td {...column.getFooterProps()}>{column.Footer && column.render("Footer")}</td>
-                                ))}
-                            </tr>
-                        ))}
-                    </tfoot>
-                </table>
+                            </thead>
+                            <tbody className="text-center" {...getTableBodyProps()}>
+                                {page.map((row, i) => {
+                                    prepareRow(row);
+                                    return (
+                                        <tr {...row.getRowProps()}>
+                                            {row.cells.map((cell) => {
+                                                return <td {...cell.getCellProps()}>{cell.render("Cell")}</td>;
+                                            })}
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div className="pagination d-block text-center mb-2">
+                        <button className="btn btn-sm btn-outline-secondary" onClick={() => gotoPage(0)} disabled={!canPreviousPage}>
+                            <FontAwesomeIcon icon={faBackward} />
+
+                            {/* <span className="font-weight-bolder">{"<<"}</span> */}
+                        </button>
+                        <button className="btn btn-sm btn-outline-secondary px-2 mx-2" onClick={() => previousPage()} disabled={!canPreviousPage}>
+                            <FontAwesomeIcon icon={faCaretLeft} />
+
+                            {/* <span className="font-weight-bolder">{"<"}</span> */}
+                        </button>
+                        <span>
+                            Page{" "}
+                            <strong>
+                                {pageIndex + 1} of {pageOptions.length}
+                            </strong>{" "}
+                        </span>
+                        <button className="btn btn-sm btn-outline-secondary px-2 mx-2" onClick={() => nextPage()} disabled={!canNextPage}>
+                            <FontAwesomeIcon icon={faCaretRight} />
+                            {/* <span className="font-weight-bolder">{">"}</span> */}
+                        </button>
+                        <button className="btn btn-sm btn-outline-secondary" onClick={() => gotoPage(pageCount - 1)} disabled={!canNextPage}>
+                            <FontAwesomeIcon icon={faForward} />
+                            {/* <span className="font-weight-bolder">{">>"}</span> */}
+                        </button>
+                    </div>
+                </Fragment>
             );
         }
     }
 
     return (
-        <div className="col-12 rounded h-100">
-            <div className="schedule-table-container">{tableComponent}</div>
-            <div
-                className="pagination text-center"
-                className={`pagination text-center ${props.selectedSchedulePhysician && props.scheduledPatients.length > 0 ? "d-block" : "d-none"}`}
-            >
-                <button onClick={() => gotoPage(0)} disabled={!canPreviousPage}>
-                    {"<<"}
-                </button>{" "}
-                <button onClick={() => previousPage()} disabled={!canPreviousPage}>
-                    {"<"}
-                </button>{" "}
-                <span>
-                    Page{" "}
-                    <strong>
-                        {pageIndex + 1} of {pageOptions.length}
-                    </strong>{" "}
-                </span>
-                <button onClick={() => nextPage()} disabled={!canNextPage}>
-                    {">"}
-                </button>{" "}
-                <button onClick={() => gotoPage(pageCount - 1)} disabled={!canNextPage}>
-                    {">>"}
-                </button>{" "}
-            </div>
-            <Modal isOpen={modal} toggle={toggle}>
+        <div className="rounded h-100">
+            <div className="schedule-container h-100 d-flex flex-column">{tableComponent}</div>
+            <Modal isOpen={modal} toggle={toggle} backdrop="static" keyboard={false}>
                 <ModalHeader>Delete Appointment</ModalHeader>
                 <ModalBody>Are you sure you want to delete appointment?</ModalBody>
                 <ModalFooter>
@@ -264,6 +288,8 @@ function TableSchedule(props) {
 const mapStateToProps = (state) => ({
     scheduledPatients: state.schedules.scheduledPatients,
     isLoadingPatients: state.schedules.isLoadingPatients,
+    isLoadingAppointments: state.schedules.isLoadingAppointments,
+    isLoadingSchedules: state.schedules.isLoadingSchedules,
     selectedSchedule: state.schedules.selectedSchedule,
     availablePatients: state.schedules.availablePatients,
     selectedAppointment: state.schedules.selectedAppointment,

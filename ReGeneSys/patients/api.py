@@ -9,6 +9,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.db.models import Q
+from django.http import HttpResponseBadRequest
 
 from django.contrib.postgres.search import SearchVector, SearchQuery
 
@@ -31,26 +32,65 @@ def normalize_query(query_string,
     ]
 
 
-def get_query(query_string, search_fields):
-    ''' Returns a query, that is a combination of Q objects. That combination
-        aims to search keywords within a model by testing the given search fields.
+# def get_query(query_string, search_fields):
+#     ''' Returns a query, that is a combination of Q objects. That combination
+#         aims to search keywords within a model by testing the given search fields.
+#     '''
+#     query = None  # Query to search for every search term
+#     terms = normalize_query(query_string)
 
-    '''
-    query = None  # Query to search for every search term
+#     for term in terms:
+#         or_query = None  # Query to search for a given term in each field
+#         for field_name in search_fields:
+#             q = Q(**{"%s__icontains" % field_name: term})
+#             if or_query is None:
+#                 or_query = q
+#             else:
+#                 or_query = or_query | q
+#         if query is None:
+#             query = or_query
+#         else:
+#             query = query & or_query
+#     return query
+
+
+def get_query(query_string, search_fields):
+    query = Q()  # Query to search for every search term
     terms = normalize_query(query_string)
+    print(query_string)
+    print(search_fields)
+
     for term in terms:
-        or_query = None  # Query to search for a given term in each field
+        or_query = Q()  # Query to search for a given term in each field
         for field_name in search_fields:
-            q = Q(**{"%s__icontains" % field_name: term})
-            if or_query is None:
-                or_query = q
-            else:
-                or_query = or_query | q
-        if query is None:
-            query = or_query
-        else:
-            query = query & or_query
+            or_query |= Q(**{"%s__icontains" % field_name: term})
+        query &= or_query
     return query
+
+
+# @method_decorator(csrf_exempt)
+# @api_view(['GET'])
+def generatePatientID():
+    rn = datetime.datetime.now()
+    epoch = datetime.datetime.utcfromtimestamp(0)
+
+    def unix_time_millis(dt):
+        return (dt - epoch).total_seconds() * 1000.0
+
+    def microtime(get_as_float=False):
+        t = time.mktime(rn.timetuple())
+        if get_as_float:
+            return t
+        else:
+            ms = rn.microsecond / 1000000.
+            return '%f' % (ms)
+
+    userCount = Patient.objects.all().count()
+    patientID = str("CLNGN-" + str(int(math.floor(unix_time_millis(rn)))) +
+                    microtime()[2:6] + str((userCount + 1)))
+
+    # return Response(patientID)
+    return patientID
 
 
 #Patient Viewset
@@ -72,7 +112,9 @@ class PatientViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        print(request.user)
+        patient_id = generatePatientID()
+        request.data.update({"patient_id": patient_id})
+        print(request.data)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         patient = serializer.save(validated_data=request.data,
@@ -81,19 +123,44 @@ class PatientViewSet(viewsets.ModelViewSet):
             PatientContactClinicalSerializer(
                 patient, context=self.get_serializer_context()).data, )
 
-    # def search(request):
-    #     query_string = ''
-    #     found_entries = None
-    #     if ('q' in request.GET) and request.GET['q'].strip():
-    #         query_string = request.GET['q']
+    @action(detail=False, methods=['put'])
+    def discharge_patient(self, request, pk=None):
 
-    #         entry_query = get_query(query_string, ['title', 'body',])
+        patient_id = request.data.get("patient_id")
+        remark = request.data.get('remark')
 
-    #         found_entries = Entry.objects.filter(entry_query).order_by('-pub_date')
+        print(patient_id)
+        print(remark)
 
-    #     return render_to_response('search/search_results.html',
-    #                         { 'query_string': query_string, 'found_entries': found_entries },
-    #                         context_instance=RequestContext(request))
+        try:
+            patient = Patient.objects.get(patient_id=patient_id)
+        except Patient.DoesNotExist:
+            return Response("Patient Does Not Exist.")
+
+        if patient.clinical.status != "active" and remark != "5":
+            return Response("Patient Already Discharged.")
+
+        print(patient.clinical.status)
+        print(remark)
+
+        if remark == "1":
+            remark = "Deceased"
+        elif remark == "2":
+            remark = "Lost to Follow-up"
+        elif remark == "3":
+            remark = "False Positive"
+        elif remark == "4":
+            remark = "Moved to Private"
+        else:
+            remark = "active"
+
+        patient.clinical.status = remark
+        patient.clinical.save(update_fields=["status"])
+
+        print(patient.clinical.status)
+        print(remark)
+
+        return Response("Patient Discharged.")
 
     @action(detail=False, methods=['get'])
     def search_patients(self, request, pk=None):
@@ -119,40 +186,3 @@ class PatientViewSet(viewsets.ModelViewSet):
 
 rn = datetime.datetime.now()
 epoch = datetime.datetime.utcfromtimestamp(0)
-
-
-# @method_decorator(csrf_exempt)
-@api_view(['GET'])
-def generatePatientID(request):
-    rn = datetime.datetime.now()
-    epoch = datetime.datetime.utcfromtimestamp(0)
-
-    def unix_time_millis(dt):
-        return (dt - epoch).total_seconds() * 1000.0
-
-    def microtime(get_as_float=False):
-        t = time.mktime(rn.timetuple())
-        if get_as_float:
-            return t
-        else:
-            ms = rn.microsecond / 1000000.
-            return '%f' % (ms)
-
-    userCount = Patient.objects.all().count()
-    patientID = str("CLNGN-" + str(int(math.floor(unix_time_millis(rn)))) +
-                    microtime()[2:6] + str((userCount + 1)))
-
-    return Response(patientID)
-
-    # logger.info("Course Details API Called")
-    # url = urlparse(request.META['HTTP_REFERER'])
-    # course_id = str(url.path.split("/")[2])
-    # course_details = SetCoursePrice.objects.filter(course_id = course_id).first()
-    # if course_details:
-    #     course_price = course_details.price
-    # else:
-    #     course_price = "Free"
-    # response_data = {}
-    # response_data['course_price'] = str(course_price)
-    # response_data['course_currency'] = str(course_details.currency)
-    # return HttpResponse(json.dumps(response_data), content_type="application/json")

@@ -89,7 +89,7 @@ class PatientClinical(models.Model):
     patient = models.OneToOneField(Patient,
                                    on_delete=models.CASCADE,
                                    related_name="clinical")
-    case_number = models.CharField(max_length=30, null=True, blank=True)
+    case_number = models.CharField(max_length=30, blank=True)
     patient_type = models.CharField(max_length=14, blank=True)
     referring_doctor = models.CharField(max_length=75, blank=True)
     referring_service = models.CharField(max_length=75, blank=True)

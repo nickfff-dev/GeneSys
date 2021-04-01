@@ -123,8 +123,6 @@ class ClinicSchedulePatientSerializer(serializers.ModelSerializer):
         patient = Patient.objects.get(patient_id=validated_data['patient'])
         physician = User.objects.get(pk=validated_data['physician'])
 
-        print("I'M VALIDATED DATA " + str(validated_data))
-
         patient_schedule_instance = ClinicSchedulePatient.objects.create(
             schedule=schedule,
             patient=patient,

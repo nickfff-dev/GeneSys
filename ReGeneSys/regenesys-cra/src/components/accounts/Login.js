@@ -32,10 +32,9 @@ export class Login extends Component {
         const { username, password } = this.state;
         return (
             <Fragment>
-                <Header />
-                <div className="container h-100 center">
+                <div className="container h-100 d-flex justify-content-center align-items-center">
                     <div className="col-md-6 m-auto">
-                        <div className="card card-body mt-5">
+                        <div className="card card-body">
                             <h2 className="text-center">Login</h2>
                             <form onSubmit={this.onSubmit}>
                                 <div className="form-group">

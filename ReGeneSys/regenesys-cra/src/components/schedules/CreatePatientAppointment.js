@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { connect, useDispatch } from "react-redux";
+import { connect, useDispatch, useSelector } from "react-redux";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 
-import { getAvailablePatients, createPatientAppointment } from "../../reducers/schedulesSlice";
+import { getAvailablePatients, createPatientAppointment, clearPatientOptions } from "../../reducers/schedulesSlice";
 import { shortenTime, getValueFromArrayOrObject } from "./CalendarSchedule";
 import { hideModal } from "../../reducers/modalSlice";
 
@@ -74,10 +74,11 @@ function CreatePatientAppointment(props) {
     const [selectedPatient, setSelectedPatient] = useState([]);
     const [timeOptions, setTimeOptions] = useState(() => generateTime());
 
+    const state = useSelector((state) => state);
     const dispatch = useDispatch();
 
-    const selectedSchedule = props.selectedSchedule[0];
-    const scheduledPatients = props.scheduledPatients;
+    const selectedSchedule = state.schedules.selectedSchedule[0];
+    const scheduledPatients = state.schedules.scheduledPatients;
     var defaultStartTime = [];
     var defaultEndTime = [];
 
@@ -90,21 +91,21 @@ function CreatePatientAppointment(props) {
     }, []);
 
     useEffect(() => {
-        generatePatientOptions(props.availablePatients);
-    }, [props.availablePatients]);
+        generatePatientOptions(state.schedules.availablePatients);
+    }, [state.schedules.availablePatients]);
 
     const closeModal = () => {
+        dispatch(clearPatientOptions());
         dispatch(hideModal());
     };
 
     const getPatients = () => {
-        console.log(props.selectedSchedule[0].pk);
-        dispatch(getAvailablePatients(props.selectedSchedule[0].pk));
+        dispatch(getAvailablePatients(state.schedules.selectedSchedule[0].pk));
     };
 
     const generatePatientOptions = () => {
         const availablePatients = [];
-        props.availablePatients.forEach((patient) => {
+        state.schedules.availablePatients.forEach((patient) => {
             availablePatients.push({ value: patient.patientId, label: patient.firstName + " " + patient.lastName });
         });
         return availablePatients;
@@ -125,7 +126,7 @@ function CreatePatientAppointment(props) {
         let startIndex = _.findIndex(timeOptions, defaultStartTime);
         let endIndex = _.findIndex(timeOptions, defaultEndTime);
         let options = _.slice(timeOptions, [startIndex], [endIndex + 1]);
-        let scheduledPatients = props.scheduledPatients;
+        let scheduledPatients = state.schedules.scheduledPatients;
 
         for (let i = 0; i < scheduledPatients.length; i++) {
             let startTime = shortenTime(scheduledPatients[i].startTime);
@@ -150,6 +151,7 @@ function CreatePatientAppointment(props) {
         setNestedModal(!nestedModal);
         setCloseAll(false);
     };
+
     const toggleAll = () => {
         setNestedModal(!nestedModal);
         setCloseAll(true);
@@ -181,12 +183,12 @@ function CreatePatientAppointment(props) {
         const { patient, schedule, physician, startTime, endTime, appointmentType } = data;
 
         // const date = format(props.modal.modalProps, "yyyy-MM-dd");
-        const date = props.modal.modalProps;
+        const date = new Date(state.modal.modalProps);
 
         const appointmentToCreate = {
             patient: patient["value"],
-            schedule: props.selectedSchedule[0].pk,
-            physician: props.selectedSchedulePhysician,
+            schedule: state.schedules.selectedSchedule[0].pk,
+            physician: state.schedules.selectedSchedulePhysician,
             startTime: new Date(format(date, "yyyy-MM-dd") + " " + getValueFromArrayOrObject(startTime)),
             endTime: new Date(format(date, "yyyy-MM-dd") + " " + getValueFromArrayOrObject(endTime)),
             appointmentType,
@@ -213,8 +215,9 @@ function CreatePatientAppointment(props) {
                                     <Controller
                                         as={Select}
                                         options={generatePatientOptions()}
+                                        isLoading={state.schedules.isLoadingPatients}
                                         name="patient"
-                                        noOptionsMessage={() => "No available physicians"}
+                                        noOptionsMessage={() => "No available patients"}
                                         placeholder="Select Patient"
                                         onChange={setSelectedPatient}
                                         className="basic-single"
@@ -523,4 +526,5 @@ const mapStateToProps = (state) => ({
     modal: state.modal,
 });
 
-export default connect(mapStateToProps, { getAvailablePatients })(CreatePatientAppointment);
+// export default connect(mapStateToProps, { getAvailablePatients })(CreatePatientAppointment);
+export default CreatePatientAppointment;

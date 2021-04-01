@@ -32,6 +32,7 @@ export class Alerts extends Component {
             if (message.deletePatient) alert.success(message.deletePatient);
             if (message.addPatient) alert.success(message.addPatient);
             if (message.editPatient) alert.success(message.editPatient);
+            if (message.dischargePatient) alert.success(message.dischargePatient);
             if (message.passwordsNotMatch) alert.error(message.passwordsNotMatch);
             if (message.addSchedule) alert.success(message.addSchedule);
             if (message.editSchedule) alert.success(message.editSchedule);
