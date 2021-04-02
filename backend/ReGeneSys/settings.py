@@ -106,17 +106,6 @@ WSGI_APPLICATION = 'ReGeneSys.wsgi.application'
 #     }
 # }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'regenesysdb',
-#         'USER': 'postgres',
-#         'PASSWORD': 'asanessus',
-#         'HOST': 'localhost',
-#         'PORT': '5432',
-#     }
-# }
-
 DATABASES = {
     'default': {
         'ENGINE': os.environ.get('DB_ENGINE'),
