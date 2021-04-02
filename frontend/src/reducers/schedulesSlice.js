@@ -1,9 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 import { snakeCaseKeysToCamel, camelCaseKeysToSnake } from "../actions/utils";
-import { createMessage } from "../reducers/messagesSlice";
-import { returnErrors } from "../reducers/errorsSlice";
-import { tokenConfig } from "../reducers/authSlice";
+import { createMessage } from "./messagesSlice";
+import { returnErrors } from "./errorsSlice";
+import { tokenConfig } from "./authSlice";
 
 import { EVENT_API, GET_SCHEDULE_API, SCHEDULED_PATIENTS_API, SCHEDULE_API } from "../constants";
 

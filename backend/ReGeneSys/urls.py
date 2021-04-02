@@ -1,5 +1,8 @@
+from django.conf.urls import url
+from . import views
 from django.contrib import admin
 from django.urls import path, re_path, include
+from rest_framework import routers
 from patients.api import generatePatientID
 
 urlpatterns = [
@@ -7,5 +10,6 @@ urlpatterns = [
     path('', include('patients.urls')),
     path('', include('accounts.urls')),
     path('', include('schedules.urls')),
-    re_path(r'^api/patients/generateid', generatePatientID)
+    url(r'^', views.FrontendAppView.as_view()),
+    re_path(r'^api/patients/generateid', generatePatientID),
 ]

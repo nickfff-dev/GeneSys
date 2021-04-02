@@ -3,6 +3,7 @@
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
+    "proxy": "http://localhost:8000",
     "scripts": {
         "dev": "webpack --mode development --watch ./ReGeneSys/frontend/src/index.js --output ./ReGeneSys/frontend/static/frontend/main.js",
         "build": "webpack --mode production ./ReGeneSys/frontend/src/index.js --output ./ReGeneSys/frontend/static/frontend/main.js"

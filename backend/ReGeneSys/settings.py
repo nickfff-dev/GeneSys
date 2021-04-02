@@ -11,22 +11,23 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
-
 import environ
 
 env = environ.Env(
     # set casting, default value
     DEBUG=(bool, False))
 
-environ.Env.read_env(env_file='.env')
+environ.Env.read_env(env_file='../.env')
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
+# SECRET_KEY = os.environ.get("SECRET_KEY")
 SECRET_KEY = 'w^-yy1jr$fr0jj!9oul8i3q!p%kjld0c2v+xcc4qfjbcx)bdr_'
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -34,6 +35,7 @@ SECRET_KEY = 'w^-yy1jr$fr0jj!9oul8i3q!p%kjld0c2v+xcc4qfjbcx)bdr_'
 DEBUG = os.environ.get('DEBUG')
 
 ALLOWED_HOSTS = []
+# ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
 
 # Application definition
 
@@ -64,6 +66,8 @@ MIDDLEWARE = [
 DJANGO_CPROFILE_MIDDLEWARE_REQUIRE_STAFF = False
 
 CORS_ORIGIN_ALLOW_ALL = True  # If this is used then `CORS_ORIGIN_WHITELIST` will not have any effect
+# CORS_ORIGIN_WHITELIST = os.environ.get("CORS_ORIGIN_WHITELIST").split(" ")
+
 # CORS_ALLOW_CREDENTIALS = True
 # CORS_ORIGIN_WHITELIST = [
 #     'http://localhost:3030',
@@ -165,4 +169,16 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
-STATIC_URL = '/static/'
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+
+MEDIA_URL = '/media/'
+
+STATIC_URL = '/django_static/'
+
+STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
+
+REACT_APP_DIR = os.path.join(BASE_DIR, 'regenesys-cra')
+
+STATICFILES_DIRS = [
+    os.path.join(REACT_APP_DIR, 'build', 'static'),
+]
